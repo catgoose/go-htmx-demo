@@ -33,22 +33,22 @@ A demonstration of building modern, interactive web applications with Go and HTM
 
 | Home | Controls Gallery |
 |------|-----------------|
-| ![Home](docs/screenshots/home-viewport.png) | ![Controls](docs/screenshots/controls-viewport.png) |
+| ![Home](https://raw.githubusercontent.com/catgoose/screenshots/main/go-htmx-demo/home-viewport.png) | ![Controls](https://raw.githubusercontent.com/catgoose/screenshots/main/go-htmx-demo/controls-viewport.png) |
 
 | Inventory Table | Catalog |
 |----------------|---------|
-| ![Inventory](docs/screenshots/inventory-viewport.png) | ![Catalog](docs/screenshots/catalog-viewport.png) |
+| ![Inventory](https://raw.githubusercontent.com/catgoose/screenshots/main/go-htmx-demo/inventory-viewport.png) | ![Catalog](https://raw.githubusercontent.com/catgoose/screenshots/main/go-htmx-demo/catalog-viewport.png) |
 
 <details>
 <summary>Interactive demos (GIFs)</summary>
 
 ### Table Filtering
 
-![Table filtering demo](docs/screenshots/table-filter.gif)
+![Table filtering demo](https://raw.githubusercontent.com/catgoose/screenshots/main/go-htmx-demo/table-filter.gif)
 
 ### Controls Interaction
 
-![Controls interaction demo](docs/screenshots/controls-demo.gif)
+![Controls interaction demo](https://raw.githubusercontent.com/catgoose/screenshots/main/go-htmx-demo/controls-demo.gif)
 
 </details>
 
