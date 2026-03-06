@@ -40,7 +40,7 @@ jobs:
 
       - name: Start application
         run: |
-          SERVER_LISTEN_PORT=8080 ./go-htmx-demo &
+          SERVER_LISTEN_PORT=8080 ./go-htmx-demo -env production &
           echo "APP_PID=$!" >> $GITHUB_ENV
 
       - name: Capture screenshots and recordings
