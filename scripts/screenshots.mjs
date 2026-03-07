@@ -36,22 +36,30 @@ const recordings = [
     async interact(page) {
       // Wait for table to load
       await page.waitForSelector("table tbody tr", { timeout: 5000 });
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(800);
 
       // Type in search to trigger filtering
       const search = page.locator('input[name="search"]').first();
       if (await search.isVisible()) {
         await search.click();
-        for (const char of "wire") {
-          await search.press(char);
-          await page.waitForTimeout(200);
-        }
-        // Wait for HTMX response
-        await page.waitForTimeout(1000);
+        await page.waitForTimeout(300);
 
-        // Clear and try another search
+        // Use pressSequentially for reliable input event triggering
+        await search.pressSequentially("wire", { delay: 150 });
+        // Wait for HTMX debounce + response
+        await page.waitForTimeout(1500);
+
+        // Clear search to show table restoring
         await search.fill("");
-        await page.waitForTimeout(800);
+        await page.waitForTimeout(1200);
+
+        // Try another search term
+        await search.pressSequentially("sensor", { delay: 150 });
+        await page.waitForTimeout(1500);
+
+        // Clear again
+        await search.fill("");
+        await page.waitForTimeout(1000);
       }
     },
   },
@@ -60,18 +68,38 @@ const recordings = [
     title: "Controls Interaction",
     path: "/hypermedia/controls",
     async interact(page) {
-      await page.waitForTimeout(500);
+      await page.waitForTimeout(800);
 
-      // Click a few interactive elements
-      const btn = page.locator("button").filter({ hasText: /click|count/i }).first();
+      // Click interactive elements - try multiple selectors
+      const btn = page
+        .locator("button")
+        .filter({ hasText: /click|count|like/i })
+        .first();
       if (await btn.isVisible()) {
-        await btn.click();
-        await page.waitForTimeout(400);
-        await btn.click();
-        await page.waitForTimeout(400);
-        await btn.click();
+        for (let i = 0; i < 5; i++) {
+          await btn.click();
+          await page.waitForTimeout(500);
+        }
         await page.waitForTimeout(600);
       }
+
+      // Try toggling something
+      const toggle = page
+        .locator("button")
+        .filter({ hasText: /toggle/i })
+        .first();
+      if (await toggle.isVisible()) {
+        await toggle.click();
+        await page.waitForTimeout(600);
+        await toggle.click();
+        await page.waitForTimeout(600);
+      }
+
+      // Scroll down to show more content
+      await page.evaluate(() => window.scrollBy({ top: 300, behavior: "smooth" }));
+      await page.waitForTimeout(800);
+      await page.evaluate(() => window.scrollTo({ top: 0, behavior: "smooth" }));
+      await page.waitForTimeout(800);
     },
   },
 ];
@@ -163,9 +191,11 @@ async function main() {
     // Playwright saves video after context close
     await recCtx.close();
 
-    // Rename the video file (Playwright uses a random name)
+    // Rename the video file (Playwright uses a random UUID name)
     const { readdirSync, renameSync } = await import("fs");
-    const videos = readdirSync(videoDir).filter((f) => f.endsWith(".webm"));
+    const videos = readdirSync(videoDir).filter(
+      (f) => f.endsWith(".webm") && f !== `${rec.name}.webm` && !recordings.some((r) => f === `${r.name}.webm`),
+    );
     if (videos.length > 0) {
       const latest = videos[videos.length - 1];
       renameSync(
