@@ -28,6 +28,12 @@ func appNavComponent(path string) templ.Component {
 				{Label: "Inventory", Href: "/tables/inventory"},
 				{Label: "Catalog", Href: "/tables/catalog"},
 				{Label: "Bulk", Href: "/tables/bulk"},
+				{Label: "People", Href: "/tables/people"},
+				{Label: "Kanban", Href: "/tables/kanban"},
+				{Label: "Approvals", Href: "/tables/approvals"},
+				{Label: "Feed", Href: "/tables/feed"},
+				{Label: "Settings", Href: "/tables/settings"},
+				{Label: "Vendors", Href: "/tables/vendors"},
 			},
 		},
 		{

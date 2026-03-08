@@ -1,0 +1,101 @@
+// setup:feature:demo
+package views
+
+import (
+	"fmt"
+
+	"catgoose/go-htmx-demo/internals/demo"
+)
+
+templ SettingsPage(sections []demo.SettingsSection) {
+	<div class="max-w-2xl mx-auto p-4 space-y-4">
+		<div class="flex items-center justify-between">
+			<h1 class="text-2xl font-bold">Settings</h1>
+			<div class="text-sm text-base-content/50">Lazy-load accordion sections</div>
+		</div>
+		<div id="settings-panel" class="space-y-2">
+			for _, sec := range sections {
+				@SettingsAccordion(sec)
+			}
+		</div>
+	</div>
+}
+
+templ SettingsAccordion(sec demo.SettingsSection) {
+	{{ sectionID := "settings-section-" + sec.ID }}
+	{{ loadURL := fmt.Sprintf("/tables/settings/%s", sec.ID) }}
+	<div class="collapse collapse-arrow bg-base-200 border border-base-300">
+		<input type="checkbox" name={ "settings-" + sec.ID }/>
+		<div
+			class="collapse-title font-semibold"
+			hx-get={ loadURL }
+			hx-target={ "#" + sectionID }
+			hx-trigger="click once"
+			hx-swap="innerHTML"
+		>
+			<div>{ sec.Title }</div>
+			<div class="text-xs text-base-content/50 font-normal">{ sec.Description }</div>
+		</div>
+		<div class="collapse-content">
+			<div id={ sectionID }>
+				<div class="py-4 text-center text-sm text-base-content/40">
+					<span class="loading loading-dots loading-sm"></span>
+				</div>
+			</div>
+		</div>
+	</div>
+}
+
+templ SettingsSectionForm(sec demo.SettingsSection) {
+	{{ saveURL := fmt.Sprintf("/tables/settings/%s", sec.ID) }}
+	{{ formID := "settings-form-" + sec.ID }}
+	{{ resultID := "settings-result-" + sec.ID }}
+	<form id={ formID } class="space-y-4 pt-2">
+		for _, f := range sec.Fields {
+			@settingsField(f)
+		}
+		<div class="flex items-center gap-3">
+			<button
+				type="button"
+				class="btn btn-primary btn-sm"
+				hx-put={ saveURL }
+				hx-target={ "#" + resultID }
+				hx-swap="innerHTML"
+				hx-include={ "#" + formID }
+			>
+				Save
+			</button>
+			<span id={ resultID }></span>
+		</div>
+	</form>
+}
+
+templ settingsField(f demo.SettingField) {
+	<div class="form-control">
+		<label class="label">
+			<span class="label-text text-sm">{ f.Label }</span>
+		</label>
+		switch f.Kind {
+			case "text":
+				<input type="text" name={ f.Key } class="input input-sm input-bordered w-full max-w-sm" value={ f.Value }/>
+			case "toggle":
+				<input type="checkbox" name={ f.Key } value="true" class="toggle toggle-sm" checked?={ f.Value == "true" }/>
+			case "select":
+				<select name={ f.Key } class="select select-sm select-bordered w-full max-w-sm">
+					for _, opt := range f.Options {
+						<option value={ opt } selected?={ f.Value == opt }>{ opt }</option>
+					}
+				</select>
+			case "textarea":
+				<textarea name={ f.Key } class="textarea textarea-bordered w-full max-w-sm" rows="3">{ f.Value }</textarea>
+		}
+	</div>
+}
+
+templ SettingsSaveResult(ok bool, msg string) {
+	if ok {
+		<span class="text-sm text-success">{ msg }</span>
+	} else {
+		<span class="text-sm text-error">{ msg }</span>
+	}
+}
