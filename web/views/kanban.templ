@@ -95,7 +95,7 @@ templ kanbanMoveButtons(t demo.KanbanTask) {
 	{{ statusIdx := statusIndex(t.Status) }}
 	if statusIdx > 0 {
 		{{ prevStatus := demo.KanbanStatuses[statusIdx-1] }}
-		{{ moveURL := fmt.Sprintf("/tables/kanban/tasks/%d/move", t.ID) }}
+		{{ moveURL := fmt.Sprintf("/demo/kanban/tasks/%d/move", t.ID) }}
 		@components.Controls([]hypermedia.Control{
 			{
 				Kind:    hypermedia.ControlKindHTMX,
@@ -112,7 +112,7 @@ templ kanbanMoveButtons(t demo.KanbanTask) {
 	}
 	if statusIdx < len(demo.KanbanStatuses)-1 {
 		{{ nextStatus := demo.KanbanStatuses[statusIdx+1] }}
-		{{ moveURL := fmt.Sprintf("/tables/kanban/tasks/%d/move", t.ID) }}
+		{{ moveURL := fmt.Sprintf("/demo/kanban/tasks/%d/move", t.ID) }}
 		@components.Controls([]hypermedia.Control{
 			{
 				Kind:    hypermedia.ControlKindHTMX,
