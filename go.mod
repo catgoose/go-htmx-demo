@@ -15,7 +15,7 @@ require (
 	github.com/labstack/echo/v4 v4.15.1
 	github.com/magefile/mage v1.16.0
 	github.com/mattn/go-sqlite3 v1.14.34
-	github.com/microsoft/kiota-abstractions-go v1.9.3
+	github.com/microsoft/kiota-abstractions-go v1.9.4
 	github.com/microsoftgraph/msgraph-sdk-go v1.96.0
 	github.com/microsoftgraph/msgraph-sdk-go-core v1.4.0
 	github.com/stretchr/testify v1.11.1
