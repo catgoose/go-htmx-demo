@@ -44,10 +44,7 @@ func (r *userRepository) CreateOrUpdate(ctx context.Context, user *domain.User, 
 	repository.SetCreateTimestamps(&user.CreatedAt, &user.UpdatedAt)
 	user.LastLoginAt = sql.NullTime{Time: now, Valid: true}
 
-	var exec repository.GetExecer = r.repo.GetDB()
-	if tx != nil {
-		exec = tx
-	}
+	exec := r.repo.Exec(tx)
 
 	insertCols := schema.UsersTable.InsertColumns()
 	query := repository.InsertInto(schema.UsersTable.Name, insertCols...) + ";\n\t\tSELECT SCOPE_IDENTITY() AS ID;"
@@ -117,10 +114,7 @@ func (r *userRepository) GetByAzureID(ctx context.Context, azureID string) (*dom
 
 // Update updates an existing user
 func (r *userRepository) Update(ctx context.Context, user *domain.User, tx *sqlx.Tx) error {
-	var exec repository.GetExecer = r.repo.GetDB()
-	if tx != nil {
-		exec = tx
-	}
+	exec := r.repo.Exec(tx)
 
 	query := fmt.Sprintf("UPDATE %s SET %s WHERE ID = @ID",
 		schema.UsersTable.Name,
@@ -164,10 +158,7 @@ func (r *userRepository) Update(ctx context.Context, user *domain.User, tx *sqlx
 
 // UpdateLastLogin updates only the LastLoginAt timestamp for a user
 func (r *userRepository) UpdateLastLogin(ctx context.Context, id int, tx *sqlx.Tx) error {
-	var exec repository.GetExecer = r.repo.GetDB()
-	if tx != nil {
-		exec = tx
-	}
+	exec := r.repo.Exec(tx)
 
 	query := `
 		UPDATE Users

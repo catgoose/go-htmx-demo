@@ -14,7 +14,7 @@ import (
 // It skips users who already have a cached photo unless force is true.
 // Requests are throttled to avoid hitting Graph rate limits.
 func SyncPhotos(ctx context.Context, client *Client, store *PhotoStore, users []domain.GraphUser, force bool) error {
-	log := logger.Get()
+	log := logger.WithContext(ctx)
 	var downloaded, skipped, noPhoto, errCount int
 
 	for _, u := range users {

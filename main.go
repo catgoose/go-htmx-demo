@@ -6,6 +6,7 @@ import (
 	"catgoose/go-htmx-demo/internals/database"
 	"catgoose/go-htmx-demo/internals/database/dialect"
 	dbrepo "catgoose/go-htmx-demo/internals/database/repository"
+	"catgoose/go-htmx-demo/internals/database/schema"
 	// setup:feature:database:end
 	log "catgoose/go-htmx-demo/internals/logger"
 	"catgoose/go-htmx-demo/internals/routes"
@@ -48,9 +49,7 @@ func main() {
 	if envErr != nil {
 		// No .env file -- apply standalone defaults so the demo binary
 		// can run without any configuration.
-		if os.Getenv("SERVER_LISTEN_PORT") == "" {
-			os.Setenv("SERVER_LISTEN_PORT", "8080")
-		}
+		os.Setenv("SERVER_LISTEN_PORT", dio.EnvWithDefault("SERVER_LISTEN_PORT", "8080"))
 		log.Info("No .env file found, using environment variables and defaults")
 		envErr = nil
 	}
@@ -84,13 +83,21 @@ func main() {
 			log.Fatal("Failed to create dialect", "error", err)
 		}
 
-		repoManager := dbrepo.NewManager(db, d)
+		repoManager := dbrepo.NewManager(db, d, schema.UsersTable)
 
 		// InitRepo gates schema init. Destructive: drops existing tables and recreates them, wiping data. Only enable when intentionally resetting the database.
 		if cfg.InitRepo {
 			if err := repoManager.InitSchema(appCtx); err != nil {
 				log.Fatal("Failed to initialize database schema", "error", err)
 			}
+		}
+
+		if err := repoManager.EnsureSchema(appCtx); err != nil {
+			log.Fatal("Failed to ensure database schema", "error", err)
+		}
+
+		if err := repoManager.ValidateSchema(appCtx); err != nil {
+			log.Fatal("Database schema validation failed", "error", err)
 		}
 	}
 	// setup:feature:database:end
@@ -124,7 +131,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Failed to open in-memory SQLite for user cache", "error", err)
 		}
-		defer sqliteDB.Close()
+		defer func() { _ = sqliteDB.Close() }()
 		userCache := graph.NewUserCache(sqliteDB)
 		afterSync := func(ctx context.Context, users []domain.GraphUser) {
 			if err := graph.SyncPhotos(ctx, graphClient, photoStore, users, false); err != nil {

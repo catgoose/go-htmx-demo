@@ -7,14 +7,25 @@ import (
 	"catgoose/go-htmx-demo/internals/database/dialect"
 )
 
+// UniqueConstraint defines a composite UNIQUE constraint across multiple columns.
+type UniqueConstraint struct {
+	columns []string
+}
+
+// ddl renders the constraint as a DDL fragment.
+func (uc UniqueConstraint) ddl() string {
+	return fmt.Sprintf("UNIQUE (%s)", strings.Join(uc.columns, ", "))
+}
+
 // TableDef defines a table schema.
 type TableDef struct {
-	Name          string
-	cols          []ColumnDef
-	indexes       []IndexDef
-	hasSoftDelete bool
-	hasVersion    bool
-	hasExpiry     bool
+	Name              string
+	cols              []ColumnDef
+	indexes           []IndexDef
+	uniqueConstraints []UniqueConstraint
+	hasSoftDelete     bool
+	hasVersion        bool
+	hasExpiry         bool
 }
 
 // NewTable creates a new table definition.
@@ -91,6 +102,12 @@ func (t *TableDef) WithExpiry() *TableDef {
 	return t
 }
 
+// UniqueColumns adds a composite UNIQUE constraint across the given columns.
+func (t *TableDef) UniqueColumns(columns ...string) *TableDef {
+	t.uniqueConstraints = append(t.uniqueConstraints, UniqueConstraint{columns: columns})
+	return t
+}
+
 // Indexes appends index definitions.
 func (t *TableDef) Indexes(indexes ...IndexDef) *TableDef {
 	t.indexes = append(t.indexes, indexes...)
@@ -143,15 +160,35 @@ func (t *TableDef) HasExpiry() bool {
 	return t.hasExpiry
 }
 
-// CreateSQL returns the CREATE TABLE statement followed by CREATE INDEX statements.
-func (t *TableDef) CreateSQL(d dialect.Dialect) []string {
+// columnBody returns the formatted column definitions for use in CREATE TABLE statements.
+func (t *TableDef) columnBody(d dialect.Dialect) string {
 	var colLines []string
 	for _, c := range t.cols {
 		colLines = append(colLines, "\t\t\t"+c.ddl(d))
 	}
+	if len(t.uniqueConstraints) > 0 {
+		for _, uc := range t.uniqueConstraints {
+			colLines = append(colLines, "\t\t\t"+uc.ddl())
+		}
+	}
+	return strings.Join(colLines, ",\n")
+}
 
+// CreateSQL returns the CREATE TABLE statement followed by CREATE INDEX statements.
+func (t *TableDef) CreateSQL(d dialect.Dialect) []string {
 	create := fmt.Sprintf("\n\t\tCREATE TABLE %s (\n%s\n\t\t)",
-		t.Name, strings.Join(colLines, ",\n"))
+		t.Name, t.columnBody(d))
+
+	stmts := []string{create}
+	for _, idx := range t.indexes {
+		stmts = append(stmts, d.CreateIndexIfNotExists(idx.name, t.Name, idx.columns))
+	}
+	return stmts
+}
+
+// CreateIfNotExistsSQL returns CREATE TABLE IF NOT EXISTS followed by CREATE INDEX IF NOT EXISTS statements.
+func (t *TableDef) CreateIfNotExistsSQL(d dialect.Dialect) []string {
+	create := d.CreateTableIfNotExists(t.Name, t.columnBody(d))
 
 	stmts := []string{create}
 	for _, idx := range t.indexes {

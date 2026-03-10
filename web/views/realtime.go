@@ -32,8 +32,6 @@ type MetricsSnapshot struct {
 	ConnWait   int
 }
 
-const networkSize = 15
-
 // networkAreaStyles returns CSS style strings for a Charts.css area chart.
 // Each entry has --start (previous normalized size) and --size (current).
 func networkAreaStyles(snap MetricsSnapshot) []string {
@@ -128,18 +126,6 @@ func serviceBarColor(s ServiceStatus) string {
 		return "#fbbf24" // amber-400
 	default:
 		return "#34d399" // emerald-400
-	}
-}
-
-// serviceStatusBadge returns a DaisyUI badge class for the service status.
-func serviceStatusBadge(s ServiceStatus) string {
-	switch s.Status {
-	case "critical":
-		return "badge-error"
-	case "degraded":
-		return "badge-warning"
-	default:
-		return "badge-success"
 	}
 }
 
@@ -241,16 +227,3 @@ func statsEntries(s ssebroker.SystemStats) []statsEntry {
 	}
 }
 
-// statsSections returns the ordered section names.
-func statsSections() []string {
-	return []string{"Runtime", "Memory", "GC", "Allocator"}
-}
-
-// statsEntriesBySection groups entries by their section.
-func statsEntriesBySection(entries []statsEntry) map[string][]statsEntry {
-	m := make(map[string][]statsEntry)
-	for _, e := range entries {
-		m[e.Section] = append(m[e.Section], e)
-	}
-	return m
-}

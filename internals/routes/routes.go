@@ -5,7 +5,7 @@ import (
 	"catgoose/go-htmx-demo/internals/config"
 	// setup:feature:demo:start
 	"catgoose/go-htmx-demo/internals/demo"
-	log "catgoose/go-htmx-demo/internals/logger"
+	"catgoose/go-htmx-demo/internals/logger"
 	// setup:feature:sse:start
 	"catgoose/go-htmx-demo/internals/ssebroker"
 	// setup:feature:sse:end
@@ -73,7 +73,7 @@ func (ar *appRoutes) InitRoutes() error {
 
 	db, err := demo.Open("demo.db")
 	if err != nil {
-		log.Warn("Demo DB unavailable; /demo/* routes disabled", "error", err)
+		logger.WithContext(ar.ctx).Warn("Demo DB unavailable; /demo/* routes disabled", "error", err)
 		return nil
 	}
 	ar.initInventoryRoutes(db)

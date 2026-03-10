@@ -67,7 +67,7 @@ func (b *SSEBroker) Publish(topic, msg string) {
 		// Channel may have been closed by unsub() between the snapshot and now.
 		// Recover from the resulting panic rather than adding complex synchronization.
 		func() {
-			defer func() { recover() }()
+			defer func() { _ = recover() }()
 			select {
 			case ch <- msg:
 			default:

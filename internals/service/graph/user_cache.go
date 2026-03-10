@@ -3,6 +3,7 @@
 package graph
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
@@ -24,7 +25,7 @@ func NewUserCache(db *sqlx.DB) *UserCache {
 
 // InsertOrUpdateUsers inserts or updates users in the SQLite database using PascalCase column names
 func (c *UserCache) InsertOrUpdateUsers(users []domain.GraphUser) error {
-	log := logger.Get()
+	log := logger.WithContext(context.Background())
 
 	// Ensure the Users table exists
 	if err := c.EnsureSchema(); err != nil {
@@ -172,7 +173,7 @@ func (c *UserCache) EnsureSchema() error {
 	}
 
 	if !exists {
-		log := logger.Get()
+		log := logger.WithContext(context.Background())
 		log.Info("Users table does not exist, creating it")
 
 		usersTableSchema := `

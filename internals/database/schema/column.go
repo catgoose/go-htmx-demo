@@ -56,6 +56,8 @@ type ColumnDef struct {
 	mutable    bool
 	defaultVal string
 	defaultFn  func(dialect.Dialect) string
+	refTable   string
+	refColumn  string
 }
 
 // Col creates a new column definition. By default columns are nullable and mutable.
@@ -95,6 +97,13 @@ func (c ColumnDef) Immutable() ColumnDef { c.mutable = false; return c }
 // Mutable marks the column as mutable (included in UPDATE column lists).
 func (c ColumnDef) Mutable() ColumnDef { c.mutable = true; return c }
 
+// References adds a foreign key reference to another table's column.
+func (c ColumnDef) References(table, column string) ColumnDef {
+	c.refTable = table
+	c.refColumn = column
+	return c
+}
+
 // Name returns the column name.
 func (c ColumnDef) Name() string { return c.name }
 
@@ -116,6 +125,10 @@ func (c ColumnDef) ddl(d dialect.Dialect) string {
 		parts = append(parts, fmt.Sprintf("DEFAULT %s", c.defaultFn(d)))
 	} else if c.defaultVal != "" {
 		parts = append(parts, fmt.Sprintf("DEFAULT %s", c.defaultVal))
+	}
+
+	if c.refTable != "" && c.refColumn != "" {
+		parts = append(parts, fmt.Sprintf("REFERENCES %s(%s)", c.refTable, c.refColumn))
 	}
 
 	return strings.Join(parts, " ")

@@ -505,7 +505,7 @@ func (gs *controlsGalleryState) handleErrStale(c echo.Context) error {
 		name = "Widget Pro (stale edit)"
 	}
 	var sv int
-	fmt.Sscanf(c.FormValue("version"), "%d", &sv)
+	_, _ = fmt.Sscanf(c.FormValue("version"), "%d", &sv)
 
 	gs.mu.RLock()
 	currentVersion := gs.staleVersion

@@ -9,6 +9,7 @@ import (
 
 	"catgoose/go-htmx-demo/internals/domain"
 	"catgoose/go-htmx-demo/internals/logger"
+	"catgoose/go-htmx-demo/internals/shared"
 
 	"github.com/catgoose/dio"
 )
@@ -34,7 +35,8 @@ func InitAndSyncUserCache(
 	fetchUsersFunc func() ([]domain.GraphUser, error),
 	afterSync func(ctx context.Context, users []domain.GraphUser),
 ) error {
-	log := logger.Get()
+	ctx = shared.WithContextIDAndDescription(ctx, shared.GenerateContextID(), "user cache init")
+	log := logger.WithContext(ctx)
 	isDev := dio.Dev()
 
 	// Development
@@ -92,19 +94,21 @@ func InitAndSyncUserCache(
 
 	// Schedule periodic refreshes
 	doSync := func(syncType SyncType) {
-		log.Info("Starting user cache refresh", "type", syncType)
+		syncCtx := shared.WithContextIDAndDescription(ctx, shared.GenerateContextID(), string(syncType))
+		syncLog := logger.WithContext(syncCtx)
+		syncLog.Info("Starting user cache refresh", "type", syncType)
 		users, err := fetchUsersFunc()
 		if err != nil {
-			log.Error("Failed to fetch users during sync", "type", syncType, "error", err)
+			syncLog.Error("Failed to fetch users during sync", "type", syncType, "error", err)
 			return
 		}
 		if err := userCache.InsertOrUpdateUsers(users); err != nil {
-			log.Error("Failed to sync users during sync", "type", syncType, "error", err)
+			syncLog.Error("Failed to sync users during sync", "type", syncType, "error", err)
 			return
 		}
-		log.Info("Successfully completed sync", "type", syncType, "user_count", len(users))
+		syncLog.Info("Successfully completed sync", "type", syncType, "user_count", len(users))
 		if afterSync != nil {
-			afterSync(ctx, users)
+			afterSync(syncCtx, users)
 		}
 	}
 
@@ -120,7 +124,7 @@ func InitAndSyncUserCache(
 	go func() {
 		for {
 			next := nextRefreshTime()
-			log.Info("Scheduled user cache refresh", "next_refresh", next, "wait_duration", time.Until(next))
+			logger.WithContext(ctx).Info("Scheduled user cache refresh", "next_refresh", next, "wait_duration", time.Until(next))
 			select {
 			case <-ctx.Done():
 				return
