@@ -144,17 +144,17 @@ test.describe("Repository Demo Page", () => {
     page,
   }) => {
     await navigateTo(page, "/demo/repository");
+    // Handle confirmation dialog before triggering it
+    page.on("dialog", (dialog) => dialog.accept());
     // Delete the first task
     const deleteBtn = page.locator('button:has-text("Delete")').first();
     await deleteBtn.click();
-    // Handle confirmation dialog
-    page.on("dialog", (dialog) => dialog.accept());
     await waitForHtmx(page);
     // Enable show deleted checkbox
     const deletedCheckbox = page.locator('input[name="deleted"]');
     await deletedCheckbox.check();
     await waitForHtmx(page);
-    await page.waitForTimeout(300);
+    await page.waitForTimeout(500);
     await waitForHtmx(page);
     // Should see a "deleted" badge and a "Restore" button
     const deletedBadge = page.locator('.badge:has-text("deleted")');
@@ -186,6 +186,8 @@ test.describe("Repository Demo Page", () => {
 
   test("restore deleted task brings it back", async ({ page }) => {
     await navigateTo(page, "/demo/repository");
+    // Handle confirmation dialog before triggering it
+    page.on("dialog", (dialog) => dialog.accept());
     // Count initial visible rows
     const initialRows = await page
       .locator("#repo-table-container table tbody tr:visible")
@@ -193,7 +195,6 @@ test.describe("Repository Demo Page", () => {
     // Delete first task
     const deleteBtn = page.locator('button:has-text("Delete")').first();
     await deleteBtn.click();
-    page.on("dialog", (dialog) => dialog.accept());
     await waitForHtmx(page);
     // Should have one fewer row
     const afterDeleteRows = await page

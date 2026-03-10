@@ -149,8 +149,9 @@ func (t *TableDef) HasSeedData() bool {
 	return len(t.seedRows) > 0
 }
 
-// SeedSQL returns INSERT statements for all seed rows using the table's insert columns.
-// Values are inserted using INSERT OR IGNORE (SQLite) / IF NOT EXISTS style to be idempotent.
+// SeedSQL returns INSERT statements for all seed rows.
+// Only columns present in the SeedRow are included — missing columns use their DB defaults.
+// Uses INSERT OR IGNORE to be idempotent.
 func (t *TableDef) SeedSQL() []string {
 	if len(t.seedRows) == 0 {
 		return nil
@@ -159,17 +160,21 @@ func (t *TableDef) SeedSQL() []string {
 	insertCols := t.InsertColumns()
 	var stmts []string
 	for _, row := range t.seedRows {
+		// Only include columns that have values in this SeedRow.
+		var cols []string
 		var vals []string
 		for _, col := range insertCols {
 			if v, ok := row[col]; ok {
+				cols = append(cols, col)
 				vals = append(vals, v)
-			} else {
-				vals = append(vals, "NULL")
 			}
+		}
+		if len(cols) == 0 {
+			continue
 		}
 		stmt := fmt.Sprintf("INSERT OR IGNORE INTO %s (%s) VALUES (%s)",
 			t.Name,
-			strings.Join(insertCols, ", "),
+			strings.Join(cols, ", "),
 			strings.Join(vals, ", "),
 		)
 		stmts = append(stmts, stmt)

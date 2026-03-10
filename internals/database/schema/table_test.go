@@ -431,17 +431,19 @@ func TestTableDef_WithSeedRows(t *testing.T) {
 	assert.Contains(t, stmts[1], "'1.0.0'")
 }
 
-func TestTableDef_WithSeedRows_NullDefaults(t *testing.T) {
+func TestTableDef_WithSeedRows_OmittedColumns(t *testing.T) {
 	td := NewLookupTable("Tags", "Type", "Label").
 		WithSeedRows(
 			SeedRow{"Type": "'color'", "Label": "'Red'"},
-			SeedRow{"Type": "'color'"}, // Label not specified -> NULL
+			SeedRow{"Type": "'color'"}, // Label not specified -> omitted, uses DB default
 		)
 
 	stmts := td.SeedSQL()
 	require.Len(t, stmts, 2)
 	assert.Contains(t, stmts[0], "'Red'")
-	assert.Contains(t, stmts[1], "NULL")
+	// Second row should only have Type column, not Label
+	assert.Contains(t, stmts[1], "(Type)")
+	assert.NotContains(t, stmts[1], "Label")
 }
 
 func TestTableDef_NoSeedData(t *testing.T) {
