@@ -196,6 +196,8 @@ test.describe("Repository Demo Page", () => {
     const deleteBtn = page.locator('button:has-text("Delete")').first();
     await deleteBtn.click();
     await waitForHtmx(page);
+    await page.waitForTimeout(300);
+    await waitForHtmx(page);
     // Should have one fewer row
     const afterDeleteRows = await page
       .locator("#repo-table-container table tbody tr:visible")
