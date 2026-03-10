@@ -313,3 +313,74 @@ func TestTableDef_TraitsComposition(t *testing.T) {
 
 	assert.True(t, td.HasSoftDelete())
 }
+
+func TestTableDef_UniqueColumns(t *testing.T) {
+	d := dialect.SQLiteDialect{}
+	td := NewTable("JoinTable").
+		Columns(
+			Col("OwnerID", TypeInt()).NotNull(),
+			Col("TagID", TypeInt()).NotNull(),
+		).
+		UniqueColumns("OwnerID", "TagID")
+
+	stmts := td.CreateSQL(d)
+	require.Len(t, stmts, 1)
+	assert.Contains(t, stmts[0], "UNIQUE (OwnerID, TagID)")
+}
+
+func TestTableDef_References_SQLite(t *testing.T) {
+	d := dialect.SQLiteDialect{}
+	td := NewTable("Orders").
+		Columns(
+			AutoIncrCol("ID"),
+			Col("UserID", TypeInt()).NotNull().References("Users", "ID"),
+		)
+
+	stmts := td.CreateSQL(d)
+	require.Len(t, stmts, 1)
+	assert.Contains(t, stmts[0], "UserID INTEGER NOT NULL REFERENCES Users(ID)")
+}
+
+func TestTableDef_References_MSSQL(t *testing.T) {
+	d := dialect.MSSQLDialect{}
+	td := NewTable("Orders").
+		Columns(
+			AutoIncrCol("ID"),
+			Col("UserID", TypeInt()).NotNull().References("Users", "ID"),
+		)
+
+	stmts := td.CreateSQL(d)
+	require.Len(t, stmts, 1)
+	assert.Contains(t, stmts[0], "UserID INT NOT NULL REFERENCES Users(ID)")
+}
+
+func TestTableDef_CreateIfNotExistsSQL_SQLite(t *testing.T) {
+	d := dialect.SQLiteDialect{}
+	td := NewTable("Items").
+		Columns(
+			AutoIncrCol("ID"),
+			Col("Name", TypeString(255)).NotNull(),
+		).
+		Indexes(Index("idx_items_name", "Name"))
+
+	stmts := td.CreateIfNotExistsSQL(d)
+	require.Len(t, stmts, 2)
+	assert.Contains(t, stmts[0], "CREATE TABLE IF NOT EXISTS Items")
+	assert.Contains(t, stmts[0], "Name TEXT NOT NULL")
+	assert.Contains(t, stmts[1], "CREATE INDEX IF NOT EXISTS idx_items_name")
+}
+
+func TestTableDef_CreateIfNotExistsSQL_MSSQL(t *testing.T) {
+	d := dialect.MSSQLDialect{}
+	td := NewTable("Items").
+		Columns(
+			AutoIncrCol("ID"),
+			Col("Name", TypeString(255)).NotNull(),
+		)
+
+	stmts := td.CreateIfNotExistsSQL(d)
+	require.Len(t, stmts, 1)
+	assert.Contains(t, stmts[0], "IF NOT EXISTS")
+	assert.Contains(t, stmts[0], "OBJECT_ID(N'[dbo].[Items]')")
+	assert.Contains(t, stmts[0], "CREATE TABLE Items")
+}

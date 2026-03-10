@@ -33,6 +33,13 @@ func (MSSQLDialect) IntType() string { return "INT" }
 
 func (MSSQLDialect) TextType() string { return "NVARCHAR(MAX)" }
 
+func (MSSQLDialect) CreateTableIfNotExists(table, body string) string {
+	return fmt.Sprintf(
+		"IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[%s]') AND type in (N'U')) BEGIN CREATE TABLE %s (\n%s\n\t\t) END",
+		table, table, body,
+	)
+}
+
 func (MSSQLDialect) DropTableIfExists(table string) string {
 	return fmt.Sprintf(
 		"IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[%s]') AND type in (N'U')) BEGIN DROP TABLE [dbo].[%s]; END",
@@ -50,3 +57,11 @@ func (MSSQLDialect) CreateIndexIfNotExists(indexName, table, columns string) str
 func (MSSQLDialect) LastInsertIDQuery() string { return "SELECT SCOPE_IDENTITY() AS ID" }
 
 func (MSSQLDialect) SupportsLastInsertID() bool { return false }
+
+func (MSSQLDialect) TableExistsQuery() string {
+	return "SELECT name FROM sys.objects WHERE object_id = OBJECT_ID(?) AND type = 'U'"
+}
+
+func (MSSQLDialect) TableColumnsQuery() string {
+	return "SELECT COLUMN_NAME AS name FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = ?"
+}

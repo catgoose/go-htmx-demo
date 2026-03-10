@@ -73,6 +73,12 @@ type Dialect interface {
 	//   SQLite: "TEXT"
 	TextType() string
 
+	// CreateTableIfNotExists wraps a CREATE TABLE body so that it only runs
+	// when the table does not already exist.
+	//   MSSQL:  "IF NOT EXISTS (SELECT * FROM sys.objects ...) BEGIN CREATE TABLE ... END"
+	//   SQLite: "CREATE TABLE IF NOT EXISTS ..."
+	CreateTableIfNotExists(table, body string) string
+
 	// DropTableIfExists returns the statement to drop a table if it exists.
 	//   MSSQL:  "IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Users]') ...) BEGIN DROP TABLE [dbo].[Users]; END"
 	//   SQLite: "DROP TABLE IF EXISTS Users"
@@ -93,6 +99,16 @@ type Dialect interface {
 	//   MSSQL:  false (use SCOPE_IDENTITY() query)
 	//   SQLite: true
 	SupportsLastInsertID() bool
+
+	// TableExistsQuery returns a query that checks whether a table exists.
+	// The query accepts a single positional parameter (?) for the table name
+	// and returns one row if the table exists.
+	TableExistsQuery() string
+
+	// TableColumnsQuery returns a query that lists column names for a table.
+	// The query accepts a single positional parameter (?) for the table name
+	// and returns rows with a "name" column.
+	TableColumnsQuery() string
 }
 
 // New returns a Dialect for the given engine.
