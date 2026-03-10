@@ -49,9 +49,7 @@ func main() {
 	if envErr != nil {
 		// No .env file -- apply standalone defaults so the demo binary
 		// can run without any configuration.
-		if os.Getenv("SERVER_LISTEN_PORT") == "" {
-			os.Setenv("SERVER_LISTEN_PORT", "8080")
-		}
+		os.Setenv("SERVER_LISTEN_PORT", dio.EnvWithDefault("SERVER_LISTEN_PORT", "8080"))
 		log.Info("No .env file found, using environment variables and defaults")
 		envErr = nil
 	}
@@ -133,7 +131,7 @@ func main() {
 		if err != nil {
 			log.Fatal("Failed to open in-memory SQLite for user cache", "error", err)
 		}
-		defer sqliteDB.Close()
+		defer func() { _ = sqliteDB.Close() }()
 		userCache := graph.NewUserCache(sqliteDB)
 		afterSync := func(ctx context.Context, users []domain.GraphUser) {
 			if err := graph.SyncPhotos(ctx, graphClient, photoStore, users, false); err != nil {
