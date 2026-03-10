@@ -195,6 +195,11 @@ func copyDirExcluding(src, dst string, excludeDirs ...string) error {
 		if info.IsDir() && excludeSet[filepath.Base(path)] {
 			return filepath.SkipDir
 		}
+		// Skip symlinks — they may point to directories or external paths.
+		linfo, lErr := os.Lstat(path)
+		if lErr == nil && linfo.Mode()&os.ModeSymlink != 0 {
+			return nil
+		}
 		destPath := filepath.Join(dst, rel)
 		if info.IsDir() {
 			return os.MkdirAll(destPath, info.Mode())
