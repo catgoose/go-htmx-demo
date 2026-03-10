@@ -1,3 +1,5 @@
+// setup:feature:graph
+
 package domain
 
 import (
