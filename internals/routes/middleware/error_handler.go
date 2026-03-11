@@ -14,7 +14,8 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// handleError logs the error and returns an HTML error component
+// handleError logs the error and returns an HTML error component.
+// For HTMX requests the error banner is delivered as an OOB swap to #error-status.
 func handleError(c echo.Context, statusCode int, message string, err error) error {
 	if errors.Is(c.Request().Context().Err(), context.Canceled) {
 		return nil
@@ -30,8 +31,22 @@ func handleError(c echo.Context, statusCode int, message string, err error) erro
 	log.Error("Request error", "error", err)
 
 	if c.Request().Header.Get("HX-Request") == "true" {
-		c.Response().Status = statusCode
-		return corecomponents.ErrorStatus(statusCode, message, err, c.Request().URL.Path, requestID, true).Render(c.Request().Context(), c.Response())
+		ec := hypermedia.ErrorContext{
+			StatusCode: statusCode,
+			Message:    message,
+			Err:        err,
+			Route:      c.Request().URL.Path,
+			RequestID:  requestID,
+			Closable:   true,
+			Controls: []hypermedia.Control{
+				hypermedia.ReportIssueButton(hypermedia.LabelReportIssue, requestID),
+			},
+		}
+		return response.New(c).
+			Status(statusCode).
+			Component(templ.NopComponent).
+			OOBErrorStatus(ec).
+			Send()
 	}
 
 	// Non-HTMX: render a full HATEOAS error page with default controls
@@ -51,8 +66,7 @@ func handleError(c echo.Context, statusCode int, message string, err error) erro
 }
 
 // handleErrorWithContext renders a full hypermedia error response from an ErrorContext.
-// When ec.OOBTarget is set the error panel is delivered as an OOB swap alongside
-// a no-op primary component; otherwise it is rendered inline.
+// For HTMX requests the error banner is always delivered as an OOB swap to #error-status.
 func handleErrorWithContext(c echo.Context, ec hypermedia.ErrorContext) error {
 	if errors.Is(c.Request().Context().Err(), context.Canceled) {
 		return nil
@@ -73,16 +87,12 @@ func handleErrorWithContext(c echo.Context, ec hypermedia.ErrorContext) error {
 		return corecomponents.ErrorPage(ec).Render(c.Request().Context(), c.Response())
 	}
 
-	if ec.OOBTarget != "" {
-		return response.New(c).
-			Status(ec.StatusCode).
-			Component(templ.NopComponent).
-			OOBErrorStatus(ec).
-			Send()
-	}
-
-	c.Response().Status = ec.StatusCode
-	return corecomponents.ErrorStatusFromContext(ec).Render(c.Request().Context(), c.Response())
+	// HTMX: deliver error banner via OOB swap
+	return response.New(c).
+		Status(ec.StatusCode).
+		Component(templ.NopComponent).
+		OOBErrorStatus(ec).
+		Send()
 }
 
 // ErrorHandlerMiddleware automatically wraps errors returned by handlers in HandleError
