@@ -238,13 +238,18 @@ func HTMXAction(label string, req HxRequestConfig) Control {
 	}
 }
 
-// ReportIssueButton creates a button that opens the Report Issue modal.
-// The modal handles the actual POST to /report-issue/:requestID.
+// ReportIssueButton creates a button that fetches the Report Issue modal via
+// HTMX GET. The server returns the modal fragment with collected log data; the
+// modal auto-opens on load.
 func ReportIssueButton(label, requestID string) Control {
+	url := "/report-issue"
+	if requestID != "" {
+		url += "/" + requestID
+	}
 	return Control{
-		Kind:    ControlKindReport,
-		Label:   label,
-		ModalID: "report-issue-modal",
+		Kind:      ControlKindReport,
+		Label:     label,
+		HxRequest: HxGet(url, "#report-modal-container"),
 	}
 }
 

@@ -92,7 +92,6 @@ templ errorStatusBody(ec hypermedia.ErrorContext) {
 			@bannerControlButtonsLeft(bannerControls(ec))
 			@bannerControlButtonsRight(bannerControls(ec))
 		</div>
-		@ReportIssueModal(hypermedia.ReportIssueModal(ec.RequestID))
 	} else {
 		@ErrorControls(ec.Controls)
 	}

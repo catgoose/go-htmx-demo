@@ -74,6 +74,12 @@ This means:
 
 New pages get correct behavior by composing existing control patterns rather than hand-wiring HTMX attributes.
 
+Writing `hx-get`, `hx-post`, `hx-target` directly on elements is perfectly fine — that's HTMX doing its job. But when the same arrangement of attributes shows up across multiple pages, that's a pattern asking to become a primitive. Breadcrumbs, modal menus, create-form actions, edit-form actions — these all started as raw `hx-*` attributes on elements, and each one eventually earned a factory function because the repetition made it worth encoding.
+
+This isn't a rule. There's no enforcement layer. It's the natural progression of a tool-less machinist who starts making tools for himself: you do the work by hand until the hand-work repeats enough that building a jig saves time. `FormActions("create")` is a jig. It exists because we got tired of wiring the same three buttons with the same swap targets on every create form. If a new page needs something novel, write the `hx-*` attributes directly. If that novel thing shows up three more times, consider whether it's earned a place in the control vocabulary.
+
+Because hypermedia drives the application, navigational chrome like breadcrumbs and action bars should either flow from the parent representation or be derivable from the navigation structure itself. The server already knows where the user is — the route, the resource, the hierarchy. Breadcrumbs are just that hierarchy rendered as links. Action bars are just the available transitions for the current resource state. These aren't independent pieces of UI that each handler assembles from scratch; they're projections of document state. A task's edit page knows it sits under `/tasks/{id}`, which sits under `/tasks` — the breadcrumb trail writes itself. The action bar knows whether the resource is in draft or published state and offers the transitions that make sense. Local modifications — an extra button for a specific workflow, a contextual link that only applies here — are fine, but the baseline should come from the resource's position in the navigation graph, not from per-handler boilerplate.
+
 ## Server-Side State, Client-Side Rendering
 
 State lives on the server. The client is a thin rendering layer. When state changes, the server sends new HTML. The browser's job is to display it and let the user interact with the controls embedded in it.
@@ -293,6 +299,10 @@ The same principle applies to CSS. Tailwind gives you utility classes. DaisyUI g
 DaisyUI's `btn-primary` adapts to the active theme. Raw Tailwind's `bg-blue-600` doesn't. When you read `modal-box`, you know it's a modal. When you read a wall of utility classes, you're reverse-engineering the design.
 
 Use DaisyUI classes for components. Use Tailwind utilities for layout and spacing. The component tells you *what*, the utilities tell you *where*.
+
+DaisyUI also inherits Tailwind's core build philosophy: **only ship the CSS you use.** Tailwind scans your markup and generates only the utility classes that actually appear. DaisyUI extends this — you choose which components to include, and unused component styles never enter the bundle. A project that uses `btn`, `modal`, and `badge` doesn't pay for `carousel`, `timeline`, or `drawer`. This is the opposite of monolithic CSS frameworks that ship everything and dare you to tree-shake what you don't need. The result is a small, predictable stylesheet where every rule traces back to an element in your templates.
+
+This selectivity comes with a contract: **use DaisyUI's semantic color roles, not raw color values.** DaisyUI themes define `primary`, `secondary`, `accent`, `neutral`, `base-100/200/300`, `info`, `success`, `warning`, and `error`. Every DaisyUI component references these roles — `btn-primary` uses the theme's `primary`, `alert-error` uses the theme's `error`. If you reach for `bg-blue-600` or `text-red-500` instead, you've hard-coded a color that won't follow the theme. The theme selector switches all semantic colors at once; raw Tailwind colors don't participate. A button that uses `btn-primary` in the light theme is still correct in the dark theme, in the corporate theme, in any theme. A button that uses `bg-blue-600` is blue forever. Stick to the semantic roles and theming works for free.
 
 ### System space vs. user space errors
 

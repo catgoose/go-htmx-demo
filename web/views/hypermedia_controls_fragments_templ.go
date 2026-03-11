@@ -990,8 +990,8 @@ func RowEditFragment(item GalleryRowItem) templ.Component {
 
 // ─── Section 13: HATEOAS Error Recovery ─────────────────────────────────────
 
-// GalleryErrorPanel renders a compact error panel with unique ID and embedded controls.
-// Unlike ErrorStatusFromContext, each panel has its own ID so multiple can coexist.
+// GalleryErrorPanel renders an inline error using DaisyUI alert semantics with
+// hypermedia controls.  Each panel has its own ID so multiple can coexist.
 func GalleryErrorPanel(panelID string, ec hypermedia.ErrorContext) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -1020,20 +1020,20 @@ func GalleryErrorPanel(panelID string, ec hypermedia.ErrorContext) templ.Compone
 		var templ_7745c5c3_Var42 string
 		templ_7745c5c3_Var42, templ_7745c5c3_Err = templ.JoinStringErrs(panelID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 318, Col: 14}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 317, Col: 18}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var42))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "\" class=\"bg-rose-50 border border-rose-300 text-rose-800 p-4 rounded-lg text-sm space-y-2 transition-opacity duration-300\"><div class=\"space-y-1 flex-1\"><p class=\"font-semibold\"><span class=\"badge badge-error badge-sm mr-1\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 71, "\" role=\"alert\" class=\"alert alert-error text-sm\"><div class=\"space-y-1\"><p class=\"font-semibold\"><span class=\"badge badge-sm\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var43 string
 		templ_7745c5c3_Var43, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(ec.StatusCode))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 323, Col: 79}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 320, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var43))
 		if templ_7745c5c3_Err != nil {
@@ -1046,7 +1046,7 @@ func GalleryErrorPanel(panelID string, ec hypermedia.ErrorContext) templ.Compone
 		var templ_7745c5c3_Var44 string
 		templ_7745c5c3_Var44, templ_7745c5c3_Err = templ.JoinStringErrs(ec.Message)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 324, Col: 16}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 321, Col: 16}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var44))
 		if templ_7745c5c3_Err != nil {
@@ -1057,14 +1057,14 @@ func GalleryErrorPanel(panelID string, ec hypermedia.ErrorContext) templ.Compone
 			return templ_7745c5c3_Err
 		}
 		if ec.Err != nil {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "<p class=\"text-xs text-rose-600/80\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 74, "<p class=\"text-xs opacity-80\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var45 string
 			templ_7745c5c3_Var45, templ_7745c5c3_Err = templ.JoinStringErrs(ec.Err.Error())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 327, Col: 56}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 324, Col: 50}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var45))
 			if templ_7745c5c3_Err != nil {
@@ -1076,14 +1076,14 @@ func GalleryErrorPanel(panelID string, ec hypermedia.ErrorContext) templ.Compone
 			}
 		}
 		if ec.Route != "" {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "<p class=\"text-xs text-rose-600/60\">Route: ")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 76, "<p class=\"text-xs opacity-60\">Route: ")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var46 string
 			templ_7745c5c3_Var46, templ_7745c5c3_Err = templ.JoinStringErrs(ec.Route)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 330, Col: 57}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 327, Col: 51}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var46))
 			if templ_7745c5c3_Err != nil {
@@ -1098,7 +1098,7 @@ func GalleryErrorPanel(panelID string, ec hypermedia.ErrorContext) templ.Compone
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = components.ErrorControls(ec.Controls).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = components.InlineAlertControls(ec.Controls).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -1139,7 +1139,7 @@ func ErrorRecoverySuccess(title, detail, resultID string) templ.Component {
 		var templ_7745c5c3_Var48 string
 		templ_7745c5c3_Var48, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 341, Col: 35}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 338, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var48))
 		if templ_7745c5c3_Err != nil {
@@ -1157,7 +1157,7 @@ func ErrorRecoverySuccess(title, detail, resultID string) templ.Component {
 			var templ_7745c5c3_Var49 string
 			templ_7745c5c3_Var49, templ_7745c5c3_Err = templ.JoinStringErrs(detail)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 343, Col: 31}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 340, Col: 31}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var49))
 			if templ_7745c5c3_Err != nil {
@@ -1175,7 +1175,7 @@ func ErrorRecoverySuccess(title, detail, resultID string) templ.Component {
 		var templ_7745c5c3_Var50 string
 		templ_7745c5c3_Var50, templ_7745c5c3_Err = templ.JoinStringErrs("on click set #" + resultID + ".innerHTML to ''")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 348, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 345, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var50))
 		if templ_7745c5c3_Err != nil {
@@ -1218,7 +1218,7 @@ func ValidationFixForm(name, price string) templ.Component {
 		var templ_7745c5c3_Var52 string
 		templ_7745c5c3_Var52, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 367, Col: 74}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 364, Col: 74}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var52))
 		if templ_7745c5c3_Err != nil {
@@ -1231,7 +1231,7 @@ func ValidationFixForm(name, price string) templ.Component {
 		var templ_7745c5c3_Var53 string
 		templ_7745c5c3_Var53, templ_7745c5c3_Err = templ.JoinStringErrs(price)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 371, Col: 102}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 368, Col: 102}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var53))
 		if templ_7745c5c3_Err != nil {
@@ -1274,7 +1274,7 @@ func StaleRefreshForm(name string, version int) templ.Component {
 		var templ_7745c5c3_Var55 string
 		templ_7745c5c3_Var55, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(version))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 384, Col: 46}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 381, Col: 46}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var55))
 		if templ_7745c5c3_Err != nil {
@@ -1287,7 +1287,7 @@ func StaleRefreshForm(name string, version int) templ.Component {
 		var templ_7745c5c3_Var56 string
 		templ_7745c5c3_Var56, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 392, Col: 79}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 389, Col: 79}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var56))
 		if templ_7745c5c3_Err != nil {
@@ -1300,7 +1300,7 @@ func StaleRefreshForm(name string, version int) templ.Component {
 		var templ_7745c5c3_Var57 string
 		templ_7745c5c3_Var57, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(version))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 393, Col: 68}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 390, Col: 68}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var57))
 		if templ_7745c5c3_Err != nil {
@@ -1348,7 +1348,7 @@ func CascadeReassignForm(items []string) templ.Component {
 			var templ_7745c5c3_Var59 string
 			templ_7745c5c3_Var59, templ_7745c5c3_Err = templ.JoinStringErrs(item)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 406, Col: 14}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/hypermedia_controls_fragments.templ`, Line: 403, Col: 14}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var59))
 			if templ_7745c5c3_Err != nil {

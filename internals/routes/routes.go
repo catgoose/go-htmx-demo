@@ -12,9 +12,11 @@ import (
 	// setup:feature:demo:end
 	"catgoose/harmony/internals/requestlog"
 	"catgoose/harmony/internals/routes/handler"
+	"catgoose/harmony/internals/routes/hypermedia"
 	// setup:feature:session_settings:start
 	"catgoose/harmony/internals/repository"
 	// setup:feature:session_settings:end
+	corecomponents "catgoose/harmony/web/components/core"
 	"catgoose/harmony/web/views"
 	"catgoose/harmony/internals/routes/middleware"
 	"context"
@@ -91,6 +93,13 @@ func (ar *appRoutes) InitRoutes() error {
 	}
 	ar.e.POST("/report-issue", reportHandler)
 	ar.e.POST("/report-issue/:requestID", reportHandler)
+
+	// Fetch the Report Issue modal for a request.
+	ar.e.GET("/report-issue/:requestID", func(c echo.Context) error {
+		requestID := c.Param("requestID")
+		cfg := hypermedia.ReportIssueModal(requestID)
+		return handler.RenderComponent(c, corecomponents.ReportIssueModal(cfg))
+	})
 
 	// setup:feature:demo:start
 	ar.initControlsGalleryRoutes()

@@ -333,7 +333,9 @@ func Modal(cfg hypermedia.ModalConfig) templ.Component {
 	})
 }
 
-// ReportIssueModal renders the Report Issue modal with a textarea for additional info.
+// ReportIssueModal renders the Report Issue modal with a textarea for user context.
+// Log data is retrieved from the ring buffer server-side when the report is submitted.
+// When fetched dynamically via HTMX the dialog auto-opens on load.
 func ReportIssueModal(cfg hypermedia.ModalConfig) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -355,7 +357,24 @@ func ReportIssueModal(cfg hypermedia.ModalConfig) templ.Component {
 			templ_7745c5c3_Var21 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Var22 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<div _=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var22 string
+		templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs("on load call #" + cfg.ID + ".showModal()")
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/modal.templ`, Line: 85, Col: 52}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Var23 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
 			if !templ_7745c5c3_IsBuffer {
@@ -367,13 +386,17 @@ func ReportIssueModal(cfg hypermedia.ModalConfig) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<p class=\"text-sm text-base-content/70 mb-3\">This will send error details to our support team for investigation.</p><div id=\"report-details-toggle\"><button type=\"button\" class=\"btn btn-ghost btn-sm text-base-content/60\" _=\"on click remove #report-details-toggle then remove .hidden from #report-details\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-4 w-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 4.5v15m7.5-7.5h-15\"></path></svg> Add optional details</button></div><div id=\"report-details\" class=\"hidden\"><fieldset class=\"fieldset\"><legend class=\"fieldset-legend text-base-content/70\">Additional details (optional)</legend> <textarea name=\"description\" class=\"textarea w-full h-24\" placeholder=\"Describe what you were doing when this error occurred...\"></textarea></fieldset></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "<p class=\"text-sm text-base-content/70 mb-3\">This will send error details to our support team for investigation.</p><div id=\"report-add-message-toggle\"><button type=\"button\" class=\"btn btn-ghost btn-sm text-base-content/60\" _=\"on click remove #report-add-message-toggle then remove .hidden from #report-message-field then focus() the first <textarea/> in #report-message-field\"><svg xmlns=\"http://www.w3.org/2000/svg\" class=\"h-4 w-4\" fill=\"none\" viewBox=\"0 0 24 24\" stroke=\"currentColor\" stroke-width=\"2\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" d=\"M12 4.5v15m7.5-7.5h-15\"></path></svg> Add message</button></div><div id=\"report-message-field\" class=\"hidden\"><fieldset class=\"fieldset\"><legend class=\"fieldset-legend text-base-content/70\">Additional details (optional)</legend> <textarea name=\"description\" class=\"textarea w-full h-24\" placeholder=\"Describe what you were doing when this error occurred...\"></textarea></fieldset></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			return nil
 		})
-		templ_7745c5c3_Err = Modal(cfg).Render(templ.WithChildren(ctx, templ_7745c5c3_Var22), templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = Modal(cfg).Render(templ.WithChildren(ctx, templ_7745c5c3_Var23), templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

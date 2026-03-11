@@ -59,6 +59,7 @@ func handleError(c echo.Context, statusCode int, message string, err error) erro
 		Controls: []hypermedia.Control{
 			hypermedia.BackButton("Go Back"),
 			hypermedia.GoHomeButton("Go Home", "/", "body"),
+			hypermedia.ReportIssueButton(hypermedia.LabelReportIssue, requestID),
 		},
 	}
 	c.Response().Status = statusCode
