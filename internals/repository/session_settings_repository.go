@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	dbrepo "catgoose/harmony/internals/database/repository"
+	"catgoose/harmony/internals/database/schema"
 	"catgoose/harmony/internals/domain"
 )
 
@@ -29,14 +30,20 @@ func NewSessionSettingsRepository(repo *dbrepo.RepoManager) SessionSettingsRepos
 	return &sessionSettingsRepository{repo: repo}
 }
 
+// selectCols lists the columns matching the domain.SessionSettings struct.
+// SessionSettingsTable.SelectColumns() includes CreatedAt which the domain
+// struct omits, so we list them explicitly.
+var selectCols = dbrepo.Columns("Id", "SessionUUID", "Theme", "UpdatedAt")
+
+var tableName = schema.SessionSettingsTable.Name
+
 // GetByUUID returns settings for the given session UUID, or nil if not found.
 func (r *sessionSettingsRepository) GetByUUID(ctx context.Context, uuid string) (*domain.SessionSettings, error) {
+	w := dbrepo.NewWhere().And("SessionUUID = @SessionUUID", sql.Named("SessionUUID", uuid))
+	query, args := dbrepo.NewSelect(tableName, selectCols).Where(w).Build()
+
 	var s domain.SessionSettings
-	err := r.repo.GetDB().GetContext(ctx,
-		&s,
-		"SELECT Id, SessionUUID, Theme, UpdatedAt FROM SessionSettings WHERE SessionUUID = ?",
-		uuid,
-	)
+	err := r.repo.GetDB().GetContext(ctx, &s, query, args...)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	}
@@ -53,22 +60,31 @@ func (r *sessionSettingsRepository) Upsert(ctx context.Context, s *domain.Sessio
 		return err
 	}
 	if existing != nil {
-		_, err = r.repo.GetDB().ExecContext(ctx,
-			`UPDATE SessionSettings SET Theme = ?, UpdatedAt = CURRENT_TIMESTAMP
-			 WHERE SessionUUID = ?`,
-			s.Theme,
-			s.SessionUUID,
+		query := fmt.Sprintf("UPDATE %s SET %s WHERE SessionUUID = @SessionUUID",
+			tableName,
+			dbrepo.SetClause("Theme", "UpdatedAt"),
+		)
+		dbrepo.SetUpdateTimestamp(&s.UpdatedAt)
+		_, err = r.repo.GetDB().ExecContext(ctx, query,
+			sql.Named("Theme", s.Theme),
+			sql.Named("UpdatedAt", s.UpdatedAt),
+			sql.Named("SessionUUID", s.SessionUUID),
 		)
 		if err != nil {
 			return fmt.Errorf("update session settings: %w", err)
 		}
 		return nil
 	}
-	_, err = r.repo.GetDB().ExecContext(ctx,
-		`INSERT INTO SessionSettings (SessionUUID, Theme, CreatedAt, UpdatedAt)
-		 VALUES (?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
-		s.SessionUUID,
-		s.Theme,
+
+	insertCols := schema.SessionSettingsTable.InsertColumns()
+	query := dbrepo.InsertInto(tableName, insertCols...)
+	var createdAt = dbrepo.GetNow()
+	dbrepo.SetUpdateTimestamp(&s.UpdatedAt)
+	_, err = r.repo.GetDB().ExecContext(ctx, query,
+		sql.Named("SessionUUID", s.SessionUUID),
+		sql.Named("Theme", s.Theme),
+		sql.Named("CreatedAt", createdAt),
+		sql.Named("UpdatedAt", s.UpdatedAt),
 	)
 	if err != nil {
 		return fmt.Errorf("insert session settings: %w", err)
@@ -78,9 +94,14 @@ func (r *sessionSettingsRepository) Upsert(ctx context.Context, s *domain.Sessio
 
 // Touch updates UpdatedAt for the given session UUID.
 func (r *sessionSettingsRepository) Touch(ctx context.Context, uuid string) error {
-	_, err := r.repo.GetDB().ExecContext(ctx,
-		"UPDATE SessionSettings SET UpdatedAt = CURRENT_TIMESTAMP WHERE SessionUUID = ?",
-		uuid,
+	query := fmt.Sprintf("UPDATE %s SET %s WHERE SessionUUID = @SessionUUID",
+		tableName,
+		dbrepo.SetClause("UpdatedAt"),
+	)
+	now := dbrepo.GetNow()
+	_, err := r.repo.GetDB().ExecContext(ctx, query,
+		sql.Named("UpdatedAt", now),
+		sql.Named("SessionUUID", uuid),
 	)
 	if err != nil {
 		return fmt.Errorf("touch session settings: %w", err)
@@ -90,10 +111,11 @@ func (r *sessionSettingsRepository) Touch(ctx context.Context, uuid string) erro
 
 // DeleteStale removes session settings rows not updated in the given number of days.
 func (r *sessionSettingsRepository) DeleteStale(ctx context.Context, days int) (int64, error) {
-	res, err := r.repo.GetDB().ExecContext(ctx,
-		"DELETE FROM SessionSettings WHERE UpdatedAt < datetime('now', ?)",
-		fmt.Sprintf("-%d days", days),
+	w := dbrepo.NewWhere().And("UpdatedAt < datetime('now', @StaleInterval)",
+		sql.Named("StaleInterval", fmt.Sprintf("-%d days", days)),
 	)
+	query := fmt.Sprintf("DELETE FROM %s %s", tableName, w.String())
+	res, err := r.repo.GetDB().ExecContext(ctx, query, w.Args()...)
 	if err != nil {
 		return 0, fmt.Errorf("delete stale session settings: %w", err)
 	}
