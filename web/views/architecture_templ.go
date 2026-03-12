@@ -29,7 +29,7 @@ func ArchitecturePage() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<link rel=\"stylesheet\" href=\"/public/css/charts.min.css\" type=\"text/css\"><div class=\"max-w-6xl mx-auto p-4 space-y-16 pb-16\"><!-- Comparison Slider -->")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<link rel=\"stylesheet\" href=\"/public/css/charts.min.css\" type=\"text/css\"><div class=\"max-w-6xl mx-auto p-4 space-y-16 pb-16\"><!-- Hero --><div class=\"hero bg-base-200 rounded-box py-12\"><div class=\"hero-content text-center\"><div class=\"max-w-3xl space-y-4\"><h1 class=\"text-4xl font-bold\">Go + HTMX + Templ</h1><p class=\"text-lg text-base-content/70\">Two architectures, one goal. Which model fits your problem?</p></div></div></div><!-- Comparison Slider -->")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -100,7 +100,7 @@ func ArchitecturePage() templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(templ.SafeCSS("height: 320px"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 65, Col: 117}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 76, Col: 117}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -113,7 +113,7 @@ func ArchitecturePage() templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(templ.SafeCSS("--size: 1.0; --color: oklch(var(--p))"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 69, Col: 73}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 80, Col: 73}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -126,7 +126,7 @@ func ArchitecturePage() templ.Component {
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(templ.SafeCSS("--size: 0.88; --color: oklch(var(--s))"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 73, Col: 74}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 84, Col: 74}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -139,7 +139,7 @@ func ArchitecturePage() templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(templ.SafeCSS("--size: 0.74; --color: oklch(var(--a))"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 77, Col: 74}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 88, Col: 74}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -152,7 +152,7 @@ func ArchitecturePage() templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(templ.SafeCSS("--size: 0.60; --color: oklch(var(--in))"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 81, Col: 75}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 92, Col: 75}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -165,7 +165,7 @@ func ArchitecturePage() templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(templ.SafeCSS("--size: 0.42; --color: oklch(var(--su))"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 85, Col: 75}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 96, Col: 75}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -178,7 +178,7 @@ func ArchitecturePage() templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(templ.SafeCSS("--size: 0.25; --color: oklch(var(--wa))"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 89, Col: 75}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 100, Col: 75}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -191,7 +191,7 @@ func ArchitecturePage() templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(templ.SafeCSS("--size: 0.10; --color: oklch(var(--er))"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 93, Col: 75}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 104, Col: 75}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -265,7 +265,7 @@ func archCompareSlider() templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(templ.SafeCSS("--split: 50%"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 157, Col: 137}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 168, Col: 137}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -286,7 +286,7 @@ func archCompareSlider() templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(templ.SafeCSS("clip-path: inset(0 calc(100% - var(--split)) 0 0)"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 166, Col: 78}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 177, Col: 78}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -307,7 +307,7 @@ func archCompareSlider() templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templruntime.SanitizeStyleAttributeValues(templ.SafeCSS("left: var(--split); transform: translateX(-50%); touch-action: none"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 174, Col: 96}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 185, Col: 96}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
@@ -509,7 +509,7 @@ func pyramidLayer(widthClass, colorClasses, name, desc string) templ.Component {
 		var templ_7745c5c3_Var19 string
 		templ_7745c5c3_Var19, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 393, Col: 36}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 404, Col: 36}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var19))
 		if templ_7745c5c3_Err != nil {
@@ -527,7 +527,7 @@ func pyramidLayer(widthClass, colorClasses, name, desc string) templ.Component {
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(desc)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 395, Col: 76}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 406, Col: 76}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -592,7 +592,7 @@ func domainCard(colorClasses, title, description string) templ.Component {
 		var templ_7745c5c3_Var24 string
 		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 403, Col: 41}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 414, Col: 41}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
 		if templ_7745c5c3_Err != nil {
@@ -605,7 +605,7 @@ func domainCard(colorClasses, title, description string) templ.Component {
 		var templ_7745c5c3_Var25 string
 		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(description)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 404, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/architecture.templ`, Line: 415, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 		if templ_7745c5c3_Err != nil {

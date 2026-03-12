@@ -3,6 +3,17 @@ package views
 templ ArchitecturePage() {
 	<link rel="stylesheet" href="/public/css/charts.min.css" type="text/css"/>
 	<div class="max-w-6xl mx-auto p-4 space-y-16 pb-16">
+		<!-- Hero -->
+		<div class="hero bg-base-200 rounded-box py-12">
+			<div class="hero-content text-center">
+				<div class="max-w-3xl space-y-4">
+					<h1 class="text-4xl font-bold">Go + HTMX + Templ</h1>
+					<p class="text-lg text-base-content/70">
+						Two architectures, one goal. Which model fits your problem?
+					</p>
+				</div>
+			</div>
+		</div>
 		<!-- Comparison Slider -->
 		@archCompareSlider()
 		<!-- The Reach-Up Pyramid (detailed, two-track) -->
