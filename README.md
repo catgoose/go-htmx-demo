@@ -27,6 +27,7 @@
     - [From Release Binary](#from-release-binary)
     - [From Source](#from-source)
   - [Tech Stack](#tech-stack)
+  - [The Reach-Up Model](#the-reach-up-model)
   - [Project Structure](#project-structure)
   - [Template Setup](#template-setup)
     - [Interactive Setup (with gum)](#interactive-setup-with-gum)
@@ -475,6 +476,59 @@ go build -o harmony .
 - [**SQLite**](https://www.sqlite.org/) -- Embedded database for demo data
 - [**Air**](https://github.com/air-verse/air) -- Live reloading for Go development
 - [**Mage**](https://magefile.org/) -- Make/rake-like build tool for Go
+
+## The Reach-Up Model
+
+Every tool in this stack exists because HTML alone couldn't express something. You start at HTML and only **reach up** when the current layer can't do what you need. Each step trades simplicity for capability.
+
+```
+    ▲ reach up                  Behavior                          Presentation
+    │
+    │  ┌──────────────────────────────────────────────┐
+    │  │  .js files          locality broken          │
+    │  ├──────────────────────────────────────────────┤
+    │  │  inline <script>    locality bent             │
+    │  ├──────────────────────────────────────────────┤
+    │  │  Alpine.js          reactive client state    │
+    │  ├──────────────────────────────────────────────┼───────────────────────┐
+    │  │  _hyperscript       client-side behavior     │  Tailwind utilities   │
+    │  ├──────────────────────────────────────────────┤  layout + spacing     │
+    │  │  HTMX               completes hypertext      ├───────────────────────┤
+    │  ├──────────────────────────────────────────────┤  DaisyUI components   │
+    │  │  HTTP                uniform interface       │  semantic intent      │
+    │  ├──────────────────────────────────────────────┼───────────────────────┤
+    │  │  HTML                structure               │  CSS                  │
+    │  └──────────────────────────────────────────────┴───────────────────────┘
+```
+
+Two tracks rise from HTML. **Behavior** is the left column -- you reach up through HTTP, HTMX, `_hyperscript`, Alpine.js, and only to raw JavaScript when nothing else can express the intent. **Presentation** is the right column -- CSS is the base, DaisyUI gives you semantic component classes (`btn-primary`, `modal-box`) that encode design intent and adapt to themes, and Tailwind utilities handle layout and spacing. Both tracks follow [locality of behavior](docs/PHILOSOPHY.md#locality-of-behavior): the style is on the element, the behavior is on the element, nothing hides in a separate file.
+
+The presentation track has its own reach-up logic. You need a button? `btn btn-primary` -- DaisyUI knows what a primary button looks like in the current theme. You need to nudge it 4px left? `ml-1` -- Tailwind handles spatial layout. DaisyUI tells you *what* (semantic), Tailwind tells you *where* (spatial). Raw CSS is the escape hatch, same as `.js` files are for behavior -- available, but a sign you've left the locality model.
+
+Map two dimensions of the hierarchy -- **where it runs** and **what it manages** -- and six domains emerge:
+
+```
+                  State               Behavior              Presentation
+           ┌──────────────────┬──────────────────────┬──────────────────────┐
+           │                  │                      │                      │
+  Server   │  Go + SQL        │  HTTP + HTMX         │  templ + DaisyUI     │
+           │  source of truth │  hypermedia controls │  semantic components │
+           │  resource state  │  resource transitions│  theme-aware markup  │
+           │                  │                      │                      │
+           ├──────────────────┼──────────────────────┼──────────────────────┤
+           │                  │                      │                      │
+  Client   │  Alpine.js       │  _hyperscript        │  Tailwind + CSS      │
+           │  view state      │  DOM interactions    │  layout, spacing     │
+           │  ephemeral       │  transitions, toggles│  visual adjustments  │
+           │                  │                      │                      │
+           └──────────────────┴──────────────────────┴──────────────────────┘
+```
+
+The left column is authority. **Server state** (Go + SQL) is the single source of truth. **Client state** (Alpine.js) is ephemeral view data the server doesn't care about -- a modal's open flag, a filter panel's uncommitted selections. Nothing in the bottom row pretends to be the top row.
+
+The middle column is interaction. **Server behavior** (HTTP + HTMX) transfers representations and drives transitions through hypermedia controls. **Client behavior** (`_hyperscript`) handles what doesn't need the server -- toggles, transitions, clipboard, dismiss.
+
+The right column is appearance. **Server presentation** (templ + DaisyUI) authors semantic markup -- `btn-primary` adapts to the active theme, `modal-box` carries the right structure. **Client presentation** (Tailwind + CSS) handles spatial concerns -- `flex`, `gap-4`, `mt-2` -- the things that don't carry semantic meaning but position elements where they belong. DaisyUI says *what it is*. Tailwind says *where it goes*.
 
 ## Project Structure
 
