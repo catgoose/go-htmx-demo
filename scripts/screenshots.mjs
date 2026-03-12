@@ -60,6 +60,30 @@ async function main() {
 
   const browser = await chromium.launch();
 
+  // --- Theme helpers (random DaisyUI theme per screenshot) ---
+  const daisyThemes = [
+    "light", "dark", "cupcake", "emerald", "corporate", "synthwave",
+    "retro", "cyberpunk", "valentine", "garden", "forest", "lofi",
+    "pastel", "fantasy", "wireframe", "luxury", "dracula", "cmyk",
+    "autumn", "business", "acid", "lemonade", "night", "coffee",
+    "winter", "dim", "nord", "sunset", "caramellatte", "abyss", "silk",
+  ];
+
+  let lastTheme = null;
+  function randomTheme() {
+    const choices = lastTheme ? daisyThemes.filter((t) => t !== lastTheme) : daisyThemes;
+    const theme = choices[Math.floor(Math.random() * choices.length)];
+    lastTheme = theme;
+    return theme;
+  }
+
+  async function setTheme(page, theme) {
+    await page.evaluate((t) => {
+      document.documentElement.dataset.theme = t;
+    }, theme);
+    await page.waitForTimeout(200);
+  }
+
   // --- Static screenshots ---
   const ctx = await browser.newContext({
     viewport: { width: 1280, height: 800 },
@@ -69,9 +93,10 @@ async function main() {
   for (const { path, name, title } of pages) {
     const page = await ctx.newPage();
     try {
-      console.log(`Capturing ${title} (${path})...`);
+      const theme = randomTheme();
+      console.log(`Capturing ${title} (${path}) [theme: ${theme}]...`);
       await page.goto(`${baseURL}${path}`, { waitUntil: "networkidle" });
-      await page.waitForTimeout(500);
+      await setTheme(page, theme);
 
       // Full-page screenshot
       await page.screenshot({
@@ -179,8 +204,10 @@ async function main() {
   for (const { name, title, action, fullPage } of defaultErrors) {
     const page = await errCtx.newPage();
     try {
-      console.log(`Capturing ${title}...`);
+      const theme = randomTheme();
+      console.log(`Capturing ${title} [theme: ${theme}]...`);
       await action(page);
+      await setTheme(page, theme);
       await page.screenshot({
         path: resolve(outDir, `${name}.png`),
         fullPage: fullPage ?? false,
@@ -197,8 +224,10 @@ async function main() {
   for (const { name, title, selector, resultId } of recoveryErrors) {
     const page = await errCtx.newPage();
     try {
-      console.log(`Capturing ${title}...`);
+      const theme = randomTheme();
+      console.log(`Capturing ${title} [theme: ${theme}]...`);
       await page.goto(`${baseURL}/hypermedia/controls`, { waitUntil: "networkidle" });
+      await setTheme(page, theme);
       await waitForHtmx(page);
       await page.locator(selector).click();
       await waitForHtmx(page);
@@ -215,28 +244,8 @@ async function main() {
 
   await errCtx.close();
 
-  // --- Errors page screenshots (random theme per shot) ---
-  console.log("\nCapturing errors page screenshots with random themes...");
-
-  const daisyThemes = [
-    "light", "dark", "cupcake", "emerald", "corporate", "synthwave",
-    "retro", "cyberpunk", "valentine", "garden", "forest", "lofi",
-    "pastel", "fantasy", "wireframe", "luxury", "dracula", "cmyk",
-    "autumn", "business", "acid", "lemonade", "night", "coffee",
-    "winter", "dim", "nord", "sunset", "caramellatte", "abyss", "silk",
-  ];
-
-  function randomTheme(exclude) {
-    const choices = exclude ? daisyThemes.filter((t) => t !== exclude) : daisyThemes;
-    return choices[Math.floor(Math.random() * choices.length)];
-  }
-
-  async function setTheme(page, theme) {
-    await page.evaluate((t) => {
-      document.documentElement.dataset.theme = t;
-    }, theme);
-    await page.waitForTimeout(200);
-  }
+  // --- Errors page screenshots ---
+  console.log("\nCapturing errors page screenshots...");
 
   const errPageCtx = await browser.newContext({
     viewport: { width: 1280, height: 800 },
@@ -323,12 +332,10 @@ async function main() {
     },
   ];
 
-  let lastTheme = null;
   for (const { name, title, action } of errorsPageShots) {
     const page = await errPageCtx.newPage();
     try {
-      const theme = randomTheme(lastTheme);
-      lastTheme = theme;
+      const theme = randomTheme();
       console.log(`Capturing ${title} [theme: ${theme}]...`);
       await page.goto(`${baseURL}/hypermedia/errors`, { waitUntil: "networkidle" });
       await setTheme(page, theme);
