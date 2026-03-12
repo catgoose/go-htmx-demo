@@ -110,6 +110,35 @@ This project proves you can build a real, production, offline-capable mobile app
 
 The complexity budget goes toward the problem domain, not the framework.
 
+### But honestly
+
+SPAs aren't wrong. They're wrong *here*. If the UI is the product — a design tool, a collaborative editor, a code IDE — the client needs to own state, and an SPA is the right architecture. CRDTs, offline-first sync, canvas rendering, shared cursors: these are inherently client-side concerns that no server round-trip can solve.
+
+This project builds data-centric workflows — CRUD, dashboards, admin panels, form-heavy pages. That's hypermedia's home court. If it were building Figma, it would be React.
+
+Where each falls apart:
+
+```
+  Hypermedia sucks at                    SPAs suck at
+  ─────────────────────                  ────────────────────
+  Rich interactive UIs                   Content sites — rebuilt the
+    (spreadsheets, design tools)           browser for nothing
+
+  Offline-first with                     CRUD apps — two state stores
+    conflict resolution                    that drift apart
+
+  Real-time collaborative               Bundle size, hydration,
+    editing (CRDTs, OT)                    time-to-interactive
+
+  Canvas / WebGL —                       SEO and accessibility as
+    the rendering IS the client            afterthoughts bolted on
+
+  Latency-sensitive interactions         The dependency treadmill —
+    that need instant local feedback       node_modules, framework churn
+```
+
+Each side's weaknesses are the other side's strengths. Pick the architecture that matches your problem, not your identity.
+
 ## Explicit SQL, Composable Helpers
 
 ORMs hide SQL behind method chains and magic. When something goes wrong — a slow query, a missing join, an unexpected NULL — you're debugging the ORM's generated SQL, not your own. This project takes the opposite approach: **write the SQL, but don't write it by hand every time.**
