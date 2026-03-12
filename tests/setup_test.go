@@ -50,7 +50,7 @@ func TestSetupReplacesAppNameAndModule(t *testing.T) {
 	require.NotContains(t, mageContent, "{{TEMPL_HTTP_PORT}}")
 	require.NotContains(t, mageContent, "{{CADDY_TLS_PORT}}")
 
-	airPath := filepath.Join(dest, ".air.toml")
+	airPath := filepath.Join(dest, ".air", "server.toml")
 	airBytes, err := os.ReadFile(airPath)
 	require.NoError(t, err)
 	require.Contains(t, string(airBytes), "12346")
@@ -82,7 +82,7 @@ func TestSetupReplacesAppNameAndModule(t *testing.T) {
 	require.NoError(t, err)
 	require.Contains(t, string(loggerBytes), `appLogFile = "test-app.log"`)
 
-	_, err = os.Stat(filepath.Join(dest, "Caddyfile"))
+	_, err = os.Stat(filepath.Join(dest, "build", "Caddyfile"))
 	require.True(t, os.IsNotExist(err), "Caddyfile should be removed when using --no-caddy")
 
 	err = filepath.Walk(dest, func(path string, info os.FileInfo, errWalk error) error {
@@ -152,7 +152,7 @@ func TestSetupUsesRandomPortWhenPOmitted(t *testing.T) {
 	require.NotContains(t, mageContent, "{{APP_TLS_PORT}}")
 	require.NotContains(t, mageContent, "{{TEMPL_HTTP_PORT}}")
 
-	airPath := filepath.Join(dest, ".air.toml")
+	airPath := filepath.Join(dest, ".air", "server.toml")
 	airBytes, err := os.ReadFile(airPath)
 	require.NoError(t, err)
 	require.Contains(t, string(airBytes), templStr)
@@ -334,7 +334,7 @@ func TestSetup_FeaturesNone(t *testing.T) {
 	_, err = os.Stat(filepath.Join(dest, "internals", "database", "dialect", "mssql.go"))
 	require.True(t, os.IsNotExist(err), "dialect/mssql.go should be removed when mssql not selected")
 
-	_, err = os.Stat(filepath.Join(dest, "Caddyfile"))
+	_, err = os.Stat(filepath.Join(dest, "build", "Caddyfile"))
 	require.True(t, os.IsNotExist(err), "Caddyfile should be removed when no features selected")
 
 	_, err = os.Stat(filepath.Join(dest, "web", "assets", "public", "js", "htmx.ext.sse.js"))
@@ -365,7 +365,7 @@ func TestSetup_FeaturesAuthOnly(t *testing.T) {
 	assertDirRemoved(t, filepath.Join(dest, "internals", "service", "graph"))
 	assertDirRemoved(t, filepath.Join(dest, "internals", "ssebroker"))
 
-	_, err = os.Stat(filepath.Join(dest, "Caddyfile"))
+	_, err = os.Stat(filepath.Join(dest, "build", "Caddyfile"))
 	require.True(t, os.IsNotExist(err), "Caddyfile should be removed when caddy not selected")
 
 	configPath := filepath.Join(dest, "internals", "config", "config.go")
@@ -470,7 +470,7 @@ func TestSetup_FeaturesSSECaddy(t *testing.T) {
 	assertBuildSucceeds(t, dest)
 	assertDirExists(t, filepath.Join(dest, "internals", "ssebroker"))
 
-	_, err = os.Stat(filepath.Join(dest, "Caddyfile"))
+	_, err = os.Stat(filepath.Join(dest, "build", "Caddyfile"))
 	require.NoError(t, err, "Caddyfile should exist when caddy is selected")
 
 	assertDirExists(t, filepath.Join(dest, "internals", "database")) // database is implicit

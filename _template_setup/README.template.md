@@ -30,7 +30,7 @@ This project was bootstrapped from {{TEMPLATE_REF}}. If you are starting from th
 
    With `gum` installed, you can optionally copy the template to a new directory (no `.git` is copied), run `git init` there, then complete app name, module path, and ports in that directory. With flags (e.g. `go tool mage setup -n "My App" -m "github.com/you/my-app" -p 5124`) or without `gum`, setup runs in the current directory. After setup you can run cleanup (when prompted) to remove the `_template_setup` folder and `mage_setup.go`.
 
-3. Review `.env.dev` (generated from `.env.example`) and adjust as needed.
+3. Review `.env.dev` (generated from `.env.sample`) and adjust as needed.
 4. Start development:
 
    ```bash

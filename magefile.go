@@ -301,6 +301,7 @@ func Air() error {
 	fmt.Println("running air")
 
 	return sh.Run("go", "tool", "air",
+		"-c", ".air/server.toml",
 		"-build.cmd", fmt.Sprintf("go build -o ./tmp/main . && %s",
 			getTemplNotifyProxyCmd()))
 }
@@ -714,7 +715,7 @@ func FixFieldAlignment() error {
 func LintWatch() error {
 	fmt.Println("Starting Air lint watch mode...")
 	fmt.Println("Press Ctrl+C to stop")
-	return sh.Run("air", "-c", ".air.lint.toml")
+	return sh.Run("air", "-c", ".air/lint.toml")
 }
 
 // Test runs all tests
@@ -762,7 +763,7 @@ func TestE2E() error {
 		return err
 	}
 	fmt.Println("Running Playwright e2e tests...")
-	return sh.RunV("npx", "playwright", "test")
+	return sh.RunV("npx", "playwright", "test", "--config", "e2e/playwright.config.ts")
 }
 
 // TestE2EHeaded runs Playwright tests in headed browser mode
@@ -771,7 +772,7 @@ func TestE2EHeaded() error {
 		return err
 	}
 	fmt.Println("Running Playwright e2e tests (headed)...")
-	return sh.RunV("npx", "playwright", "test", "--headed")
+	return sh.RunV("npx", "playwright", "test", "--config", "e2e/playwright.config.ts", "--headed")
 }
 
 // TestE2EUI opens the Playwright interactive UI
@@ -780,7 +781,7 @@ func TestE2EUI() error {
 		return err
 	}
 	fmt.Println("Opening Playwright UI...")
-	return sh.RunV("npx", "playwright", "test", "--ui")
+	return sh.RunV("npx", "playwright", "test", "--config", "e2e/playwright.config.ts", "--ui")
 }
 
 // TestWatch runs tests in watch mode using the Go-based watcher
@@ -810,7 +811,8 @@ func CaddyInstall() error {
 // parse.  We resolve them to real port numbers and write the result to
 // tmp/Caddyfile so Caddy always receives a valid config.
 func CaddyStart() error {
-	if _, err := os.Stat("Caddyfile"); os.IsNotExist(err) {
+	caddyfile := filepath.Join("build", "Caddyfile")
+	if _, err := os.Stat(caddyfile); os.IsNotExist(err) {
 		fmt.Println("Caddyfile not found, skipping Caddy.")
 		return nil
 	}
@@ -821,7 +823,7 @@ func CaddyStart() error {
 	fmt.Println("Access your app at: https://localhost:" + resolvedCaddyPort)
 	fmt.Println("Press Ctrl+C to stop")
 
-	data, err := os.ReadFile("Caddyfile")
+	data, err := os.ReadFile(caddyfile)
 	if err != nil {
 		return fmt.Errorf("read Caddyfile: %w", err)
 	}

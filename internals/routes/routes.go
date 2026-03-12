@@ -118,7 +118,7 @@ func (ar *appRoutes) InitRoutes() error {
 	ar.initRealtimeRoutes(broker)
 	// setup:feature:sse:end
 
-	db, err := demo.Open("demo.db")
+	db, err := demo.Open("db/demo.db")
 	if err != nil {
 		logger.WithContext(ar.ctx).Warn("Demo DB unavailable; /demo/* routes disabled", "error", err)
 		return nil

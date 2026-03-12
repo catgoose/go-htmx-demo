@@ -25,7 +25,7 @@ node_modules/
 go.work
 go.work.sum
 
-# env files (.env.example and .env.sample are tracked)
+# env files (.env.sample is tracked)
 .env
 .env.dev
 .env.local
@@ -45,14 +45,16 @@ localhost.key
 # Log files
 log/
 
-# SQLite database (allow seed.db and gen_seed tool)
+# SQLite database (allow seed.db, demo.db, and gen_seed tool)
 db/*
 !db/seed.db
+!db/demo.db
 !db/gen_seed/
 
 # binary
 harmony
-build/
+build/*
+!build/Caddyfile
 
 # agents
 .claude/

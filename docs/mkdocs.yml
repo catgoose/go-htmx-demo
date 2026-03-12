@@ -1,5 +1,7 @@
 site_name: harmony
 site_description: Go + HTMX + Templ demo documentation
+docs_dir: .
+site_dir: ../site
 repo_url: https://github.com/catgoose/harmony
 repo_name: catgoose/harmony
 

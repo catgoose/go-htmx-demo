@@ -41,7 +41,7 @@
 
 A demonstration of building modern, interactive web applications with Go and HTMX. Harmony runs as a single binary with all assets embedded -- no external dependencies or configuration required.
 
-See [PHILOSOPHY.md](PHILOSOPHY.md) for the architectural principles driving this project.
+See [PHILOSOPHY.md](docs/PHILOSOPHY.md) for the architectural principles driving this project.
 
 ## Demo
 
