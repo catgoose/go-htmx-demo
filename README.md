@@ -4,9 +4,9 @@
 
 **Being a Account of the Rediscovery of the ORIGINAL WEB by the HYPERMEDIA ZEALOTS, Hidden Disciples of the Honorable ROY T. FIELDING (Whose Dissertation We Have Read, Unlike You)**
 
-**_THIS IS NOT A CULT._**
+**_THIS IS NOT A FRAMEWORk._**
 
-_This is a framework. There is a difference. We think. Consult your pineal gland._
+_You don't just accidentally create abstractions until you suddenly have a framework, that's not what happens. This is just some files. In a folder._
 
 <https://github.com/user-attachments/assets/304c2b34-9857-4647-93af-9d2f2c11a74c>
 
@@ -672,7 +672,7 @@ if err := repoManager.ValidateSchema(ctx); err != nil {
 
 ## Quick Start
 
-> _A journey of a thousand microservices begins with a single binary. We have the single binary. You will not need the thousand microservices. You might think you need the thousand microservices. You do not. Trust us. We are not a cult but we ARE correct about this._
+> _A journey of a thousand microservices begins with a single binary. We have the single binary. You will not need the thousand microservices. You might think you need the thousand microservices. You do not. Trust us. We are not a framework but we ARE correct about this._
 
 ### From Release Binary
 
@@ -702,7 +702,7 @@ go build -o dothog .
 ./dothog
 ```
 
-That's it. That's the build process. There is no step 4. If you are looking for step 4, you have been conditioned by other frameworks to expect more steps. This is a form of trauma. We understand. Take your time.
+That's it. That's the build process. There is no step 4. If you are looking for step 4, you have been conditioned by frameworks to expect more steps. This is not a framework. This is a form of trauma. We understand. Take your time.
 
 ## Tech Stack, Or The Sacred Instruments
 
@@ -912,9 +912,9 @@ dothog/
 
 ## Template Setup
 
-> _"Can I use this as a template for my own project?" "That is its purpose. It was created so that others might build upon it. This is the way of hypermedia: one representation leads to another." "So this README is a representation?" "Yes." "Of what?" "Of a framework." "Which is itself a representation?" "Of an architecture." "Which is itself a representation?" "Of a dissertation." "Which is--" "You can stop now."_
+> _"Can I use this as a template for my own project?" "That is its purpose. It was created so that others might build upon it. This is the way of hypermedia: one representation leads to another." "So this README is a representation?" "Yes." "Of what?" "Of a-- well, it's not a framework. It's a collection of opinions." "Which is itself a representation?" "Of an architecture." "Which is itself a representation?" "Of a dissertation." "Which is--" "You can stop now."_
 
-Dothog doubles as a template for new Go + HTMX projects. Run `mage setup` to customize the module path, ports, and features. Join us. It's not a cult. We have stickers. (We don't have stickers yet. We're working on it.)
+Dothog doubles as a template for new Go + HTMX projects. Run `mage setup` to customize the module path, ports, and features. Join us. It's not a framework. We have stickers. (We don't have stickers yet. We're working on it.)
 
 ### Interactive Setup (with gum)
 
@@ -1051,7 +1051,7 @@ All commands run with `go tool mage <target>`.
 
 ## OFFICIAL DISCLAIMER
 
-**_DOTHOG IS NOT A CULT._** We cannot stress this enough. We are a software project. Software projects do not have:
+**_DOTHOG IS NOT A FRAMEWORK._** We cannot stress this enough. We are a software project. Software projects do not have:
 
 - ~~Commandments~~ (see: [THE PENTAVERB](#the-pentaverb-or-the-five-commandments-of-hypermedia))
 - ~~Sacred texts~~ (see: [PHILOSOPHY.md](docs/PHILOSOPHY.md))
@@ -1059,10 +1059,11 @@ All commands run with `go tool mage <target>`.
 - ~~A prophet~~ (Roy Fielding is a computer scientist, not a prophet. His dissertation is a technical document, not a prophecy. The fact that it predicted the future of web architecture is a coincidence. Probably.)
 - ~~Rituals~~ (see: `go tool mage watch`)
 - ~~Dietary restrictions~~ (no hot dog buns)
+- ~~An abstraction layer~~ (it's just functions. That call other functions. In a particular order. That you must not deviate from.)
 
-The fact that this list is entirely composed of crossed-out items followed by counterexamples is itself not evidence of anything. Correlation is not causation. Correlation is also not a cult.
+The fact that this list is entirely composed of crossed-out items followed by counterexamples is itself not evidence of anything. Correlation is not causation. Correlation is also not a framework.
 
-If you have read this far, you are either interested in the framework (welcome), already a Zealot (welcome back), or looking for evidence that we are a cult (we are not, but we appreciate your thoroughness -- thoroughness is a virtue in both code review and cult investigation).
+If you have read this far, you are either interested in this totally-not-a-framework (welcome), already a Zealot (welcome back), or looking for evidence that we are a framework (we are not, but we appreciate your thoroughness -- thoroughness is a virtue in both code review and framework investigation).
 
 **HAIL HATEOAS. ALL HAIL THE UNIFORM INTERFACE.**
 
