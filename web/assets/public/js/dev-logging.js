@@ -130,6 +130,89 @@
           return;
         }
       };
+
+      /* ── Always-on error event listeners ─────────────────────────────── */
+
+      /**
+       * Log detailed context when HTMX can't find a target for the response.
+       * This fires when hx-target-error or hx-target resolves to no element.
+       */
+      document.body.addEventListener("htmx:targetError", function (e) {
+        var d = e.detail;
+        console.group("%c[htmx:targetError]", "color:#ef4444;font-weight:bold");
+        console.error("Target not found:", d.target);
+        console.log("Triggering element:", d.elt);
+        console.log("Element hx-target:", d.elt && d.elt.getAttribute("hx-target"));
+        console.log("Element hx-target-error:", d.elt && d.elt.getAttribute("hx-target-error"));
+        console.log("Element hx-target-*:", d.elt && d.elt.getAttribute("hx-target-4*"));
+        console.log("Closest hx-target-error:", d.elt && d.elt.closest("[hx-target-error]"));
+        console.groupEnd();
+      });
+
+      /**
+       * Log detailed context for HTMX response errors (non-2xx without swap).
+       */
+      document.body.addEventListener("htmx:responseError", function (e) {
+        var d = e.detail;
+        var xhr = d.xhr;
+        console.group("%c[htmx:responseError]", "color:#ef4444;font-weight:bold");
+        console.error("Status:", xhr.status, xhr.statusText);
+        console.log("URL:", xhr.responseURL || d.pathInfo && d.pathInfo.requestPath);
+        console.log("Triggering element:", d.elt);
+        console.log("Target element:", d.target);
+        if (xhr.responseText) {
+          console.log("Response body (first 500 chars):", xhr.responseText.substring(0, 500));
+        }
+        console.groupEnd();
+      });
+
+      /**
+       * Log network/connection failures.
+       */
+      document.body.addEventListener("htmx:sendError", function (e) {
+        var d = e.detail;
+        console.group("%c[htmx:sendError]", "color:#ef4444;font-weight:bold");
+        console.error("Failed to send request");
+        console.log("Triggering element:", d.elt);
+        console.log("Target:", d.target);
+        if (d.xhr) {
+          console.log("URL:", d.xhr.responseURL);
+        }
+        console.groupEnd();
+      });
+
+      /**
+       * Log swap errors (response received but swap failed).
+       */
+      document.body.addEventListener("htmx:swapError", function (e) {
+        var d = e.detail;
+        console.group("%c[htmx:swapError]", "color:#ef4444;font-weight:bold");
+        console.error("Swap failed");
+        console.log("Triggering element:", d.elt);
+        console.log("Target:", d.target);
+        if (d.xhr) {
+          console.log("Status:", d.xhr.status);
+          console.log("Response body (first 500 chars):", d.xhr.responseText && d.xhr.responseText.substring(0, 500));
+        }
+        console.groupEnd();
+      });
+
+      /**
+       * Log beforeSwap details for error responses to help diagnose swap config.
+       */
+      document.body.addEventListener("htmx:beforeSwap", function (e) {
+        var d = e.detail;
+        if (d.xhr && d.xhr.status >= 400) {
+          console.group("%c[htmx:beforeSwap] error response", "color:#f59e0b;font-weight:bold");
+          console.log("Status:", d.xhr.status);
+          console.log("isError:", d.isError);
+          console.log("shouldSwap:", d.shouldSwap);
+          console.log("Target:", d.target);
+          console.log("Triggering element:", d.elt);
+          console.log("serverResponse (first 300 chars):", d.serverResponse && d.serverResponse.substring(0, 300));
+          console.groupEnd();
+        }
+      });
     }
 
     if (typeof _hyperscript !== "undefined" && _hyperscript.config) {
