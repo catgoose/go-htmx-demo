@@ -60,10 +60,13 @@ jobs:
           GO_VER=$(sed -n 's/^go \([0-9]*\.[0-9]*\).*/\1/p' go.mod)
           sed -i "s/- Go [0-9]\+\.[0-9]\++ (latest)/- Go ${GO_VER}+ (latest)/" README.md
 
+      - name: Update vendored assets
+        run: mage updateAssets
+
       - name: Check for changes
         id: check-changes
         run: |
-          git add go.mod go.sum README.md
+          git add go.mod go.sum README.md web/assets/public/
           if git diff --staged --quiet; then
             echo "changes_detected=false" >> $GITHUB_OUTPUT
           else
@@ -75,7 +78,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore: update Go dependencies and Go version" \
+          git commit -m "chore: update dependencies and vendored assets" \
             --author="${{ github.actor }} <${{ github.actor }}@users.noreply.github.com>"
           git stash push -u -m "ci: build artifacts"
           git pull --rebase origin main
@@ -308,15 +311,8 @@ jobs:
           cp README.harmony.md README.md
           rm README.harmony.md
 
-          # Remove pipeline workflow (harmony doesn't sync or run the full pipeline)
+          # Remove dothog-only workflows
           rm .github/workflows/pipeline.yml
-
-          # Neuter main.yml: keep build/test but remove commit/push
-          sed -i '/- name: Check for changes/,$ d' .github/workflows/main.yml
-          sed -i '/^  push:/,/^      - main$/ d' .github/workflows/main.yml
-
-          # Screenshots: drop publish job
-          sed -i '/^  publish:/,$ d' .github/workflows/screenshots.yml
 
       - name: Push to harmony
         run: |
