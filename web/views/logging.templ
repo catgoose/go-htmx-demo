@@ -22,6 +22,13 @@ templ LoggingPage() {
 			</div>
 		</div>
 
+		<!-- SSE connection for live error trace updates -->
+		// setup:feature:sse:start
+		<div hx-ext="sse" sse-connect="/sse/error-traces">
+			<div sse-swap="error-trace" style="display:none"></div>
+		</div>
+		// setup:feature:sse:end
+
 		<!-- Error Generators -->
 		<div class="card bg-base-100 shadow border border-base-300">
 			<div class="card-body p-4">
@@ -29,6 +36,7 @@ templ LoggingPage() {
 				<p class="text-sm text-base-content/70 mb-3">
 					Each button triggers a real server error with contextual slog entries along the way.
 					The per-request log buffer is promoted to the error trace store on failure.
+					New traces appear below in real-time via SSE.
 				</p>
 				<div class="flex flex-wrap gap-2">
 					<button
@@ -82,6 +90,9 @@ templ LoggingPage() {
 			</div>
 		</div>
 
+		<!-- Simulated Report Output -->
+		<div id="logging-report-output"></div>
+
 		<!-- How It Works -->
 		<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 			@loggingPatternCard("Buffer", "Per-request slog buffer on ctx", "Every slog call during a request is captured in a lightweight buffer. No shared locks on the hot path.")
@@ -120,31 +131,42 @@ templ LoggingTracesList(traces []requestlog.TraceSummary) {
 						<th></th>
 					</tr>
 				</thead>
-				<tbody>
+				<tbody id="logging-traces-tbody">
 					for _, t := range traces {
-						{{ reportURL := fmt.Sprintf("/demo/logging/report/%s", t.RequestID) }}
-						<tr>
-							<td class="text-xs font-mono whitespace-nowrap">{ t.CreatedAt }</td>
-							<td>
-								@loggingStatusBadge(t.StatusCode)
-							</td>
-							<td class="font-mono text-xs">{ t.Method }</td>
-							<td class="font-mono text-xs max-w-xs truncate" title={ t.Route }>{ t.Route }</td>
-							<td class="text-xs max-w-sm truncate" title={ t.ErrorChain }>{ t.ErrorChain }</td>
-							<td>
-								<button
-									class="btn btn-xs btn-primary btn-outline"
-									hx-get={ reportURL }
-									hx-target="#logging-report-output"
-									hx-swap="innerHTML"
-								>View Report</button>
-							</td>
-						</tr>
+						@loggingTraceRow(t)
 					}
 				</tbody>
 			</table>
 		</div>
 	}
+}
+
+templ loggingTraceRow(t requestlog.TraceSummary) {
+	{{ reportURL := fmt.Sprintf("/demo/logging/report/%s", t.RequestID) }}
+	<tr>
+		<td class="text-xs font-mono whitespace-nowrap">{ t.CreatedAt }</td>
+		<td>
+			@loggingStatusBadge(t.StatusCode)
+		</td>
+		<td class="font-mono text-xs">{ t.Method }</td>
+		<td class="font-mono text-xs max-w-xs truncate" title={ t.Route }>{ t.Route }</td>
+		<td class="text-xs max-w-sm truncate" title={ t.ErrorChain }>{ t.ErrorChain }</td>
+		<td>
+			<button
+				class="btn btn-xs btn-primary btn-outline"
+				hx-get={ reportURL }
+				hx-target="#logging-report-output"
+				hx-swap="innerHTML"
+			>View Report</button>
+		</td>
+	</tr>
+}
+
+// LoggingTraceRowOOB renders a new trace row as an OOB swap that prepends to the tbody.
+templ LoggingTraceRowOOB(t requestlog.TraceSummary) {
+	<tbody id="logging-traces-tbody" hx-swap-oob="afterbegin">
+		@loggingTraceRow(t)
+	</tbody>
 }
 
 templ loggingStatusBadge(code int) {

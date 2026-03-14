@@ -127,6 +127,11 @@ func ErrorHandlerMiddleware(reqLogStore *requestlog.Store) echo.MiddlewareFunc {
 						entries = buf.Entries
 					}
 					userID, _ := c.Get("azureId").(string)
+				// setup:feature:auth:start
+				if userID == "" {
+					logger.WithContext(c.Request().Context()).Warn("Error trace missing UserID: azureId not set on echo context")
+				}
+				// setup:feature:auth:end
 					reqLogStore.Promote(requestlog.ErrorTrace{
 						RequestID:  requestID,
 						ErrorChain: err.Error(),

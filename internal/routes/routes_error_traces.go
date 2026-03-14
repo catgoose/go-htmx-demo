@@ -1,8 +1,10 @@
 package routes
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
+	"time"
 
 	"catgoose/dothog/internal/requestlog"
 	"catgoose/dothog/internal/routes/handler"
@@ -79,16 +81,21 @@ func (ar *appRoutes) handleErrorTraceDelete(c echo.Context) error {
 
 func (ar *appRoutes) buildErrorTracesContent(c echo.Context) (hypermedia.FilterBar, templ.Component, error) {
 	const perPage = 20
-	q := c.QueryParam("q")
-	status := c.QueryParam("status")
-	sort := c.QueryParam("sort")
-	dir := c.QueryParam("dir")
 	page, _ := strconv.Atoi(c.QueryParam("page"))
 	if page < 1 {
 		page = 1
 	}
+	f := requestlog.TraceFilter{
+		Q:       c.QueryParam("q"),
+		Status:  c.QueryParam("status"),
+		Method:  c.QueryParam("method"),
+		Sort:    c.QueryParam("sort"),
+		Dir:     c.QueryParam("dir"),
+		Page:    page,
+		PerPage: perPage,
+	}
 
-	traces, total, err := ar.reqLogStore.ListTraces(q, status, sort, dir, page, perPage)
+	traces, total, err := ar.reqLogStore.ListTraces(f)
 	if err != nil {
 		return hypermedia.FilterBar{}, nil, err
 	}
@@ -97,21 +104,36 @@ func (ar *appRoutes) buildErrorTracesContent(c echo.Context) (hypermedia.FilterB
 	listURL := errorTracesBase + "/list"
 
 	bar := hypermedia.NewFilterBar(listURL, target,
-		hypermedia.SearchField("q", "Search routes, errors, request IDs\u2026", q),
-		hypermedia.SelectField("status", "Status", status,
-			hypermedia.SelectOptions(status,
+		hypermedia.SearchField("q", "Search routes, errors, request IDs, users\u2026", f.Q),
+		hypermedia.SelectField("status", "Status", f.Status,
+			hypermedia.SelectOptions(f.Status,
 				"", "All",
 				"4xx", "4xx Client",
 				"5xx", "5xx Server",
+				"400", "400",
+				"401", "401",
+				"403", "403",
+				"404", "404",
+				"500", "500",
+				"502", "502",
+				"504", "504",
+			)),
+		hypermedia.SelectField("method", "Method", f.Method,
+			hypermedia.SelectOptions(f.Method,
+				"", "All",
+				"GET", "GET",
+				"POST", "POST",
+				"PUT", "PUT",
+				"DELETE", "DELETE",
 			)),
 	)
 
 	sortBase := traceStripParams(c.Request().URL, "sort", "dir")
 	cols := []hypermedia.TableCol{
-		hypermedia.SortableCol("CreatedAt", "Time", sort, dir, sortBase, target, "#filter-form"),
-		hypermedia.SortableCol("StatusCode", "Status", sort, dir, sortBase, target, "#filter-form"),
-		hypermedia.SortableCol("Method", "Method", sort, dir, sortBase, target, "#filter-form"),
-		hypermedia.SortableCol("Route", "Route", sort, dir, sortBase, target, "#filter-form"),
+		hypermedia.SortableCol("CreatedAt", "Time", f.Sort, f.Dir, sortBase, target, "#filter-form"),
+		hypermedia.SortableCol("StatusCode", "Status", f.Sort, f.Dir, sortBase, target, "#filter-form"),
+		hypermedia.SortableCol("Method", "Method", f.Sort, f.Dir, sortBase, target, "#filter-form"),
+		hypermedia.SortableCol("Route", "Route", f.Sort, f.Dir, sortBase, target, "#filter-form"),
 		{Label: "Error"},
 		{Label: "IP"},
 		{Label: ""},
@@ -144,104 +166,166 @@ func traceStripParams(u *url.URL, params ...string) string {
 	return cp.String()
 }
 
-// SeedErrorTraces inserts demo error trace data into the store.
+// SeedErrorTraces inserts 1000 demo error traces spread over the past 3 years.
 func SeedErrorTraces(store *requestlog.Store) {
-	traces := []requestlog.ErrorTrace{
+	// Check if already seeded
+	existing, _, _ := store.ListTraces(requestlog.TraceFilter{Page: 1, PerPage: 1})
+	if len(existing) > 0 {
+		return
+	}
+
+	type errorTemplate struct {
+		ErrorChain string
+		StatusCode int
+		Route      string
+		Method     string
+		Entries    []requestlog.Entry
+	}
+
+	templates := []errorTemplate{
 		{
-			RequestID: "demo-a1b2c3d4e5f6", ErrorChain: "get user 42: sql: no rows in result set",
-			StatusCode: 404, Route: "/api/users/42", Method: "GET",
-			UserAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-			RemoteIP: "192.168.1.100", UserID: "alice@contoso.com",
+			ErrorChain: "get user %d: sql: no rows in result set",
+			StatusCode: 404, Route: "/api/users/%d", Method: "GET",
 			Entries: []requestlog.Entry{
-				{Level: "INFO", Message: "Request started", Attrs: "method=GET path=/api/users/42"},
-				{Level: "INFO", Message: "Querying user by ID", Attrs: "user_id=42"},
-				{Level: "ERROR", Message: "User not found", Attrs: "user_id=42 error=sql: no rows in result set"},
+				{Level: "INFO", Message: "Querying user by ID"},
+				{Level: "ERROR", Message: "User not found"},
 			},
 		},
 		{
-			RequestID: "demo-f6e5d4c3b2a1", ErrorChain: "process order: validate inventory: insufficient stock for SKU-1234",
+			ErrorChain: "process order: validate inventory: insufficient stock for SKU-%04d",
 			StatusCode: 422, Route: "/api/orders", Method: "POST",
-			UserAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-			RemoteIP: "10.0.0.50", UserID: "bob@contoso.com",
 			Entries: []requestlog.Entry{
-				{Level: "INFO", Message: "Request started", Attrs: "method=POST path=/api/orders"},
-				{Level: "INFO", Message: "Parsing order payload", Attrs: "items=3"},
-				{Level: "INFO", Message: "Validating inventory", Attrs: "sku=SKU-1234 requested=10"},
-				{Level: "WARN", Message: "Low stock detected", Attrs: "sku=SKU-1234 available=2 requested=10"},
-				{Level: "ERROR", Message: "Insufficient stock", Attrs: "sku=SKU-1234"},
+				{Level: "INFO", Message: "Parsing order payload"},
+				{Level: "INFO", Message: "Validating inventory"},
+				{Level: "WARN", Message: "Low stock detected"},
+				{Level: "ERROR", Message: "Insufficient stock"},
 			},
 		},
 		{
-			RequestID: "demo-1122334455aa", ErrorChain: "render dashboard: query metrics: context deadline exceeded",
+			ErrorChain: "render dashboard: query metrics: context deadline exceeded",
 			StatusCode: 504, Route: "/dashboard", Method: "GET",
-			UserAgent: "Mozilla/5.0 (X11; Linux x86_64; rv:109.0)",
-			RemoteIP: "172.16.0.25", UserID: "charlie@contoso.com",
 			Entries: []requestlog.Entry{
-				{Level: "INFO", Message: "Request started", Attrs: "method=GET path=/dashboard"},
-				{Level: "INFO", Message: "Fetching metrics", Attrs: "range=7d"},
-				{Level: "WARN", Message: "Query slow", Attrs: "elapsed_ms=4500"},
-				{Level: "ERROR", Message: "Context deadline exceeded", Attrs: "timeout=5s"},
+				{Level: "INFO", Message: "Fetching metrics"},
+				{Level: "WARN", Message: "Query slow"},
+				{Level: "ERROR", Message: "Context deadline exceeded"},
 			},
 		},
 		{
-			RequestID: "demo-aabb11223344", ErrorChain: "upload file: multipart: NextPart: unexpected EOF",
+			ErrorChain: "upload file: multipart: NextPart: unexpected EOF",
 			StatusCode: 400, Route: "/api/files/upload", Method: "POST",
-			UserAgent: "curl/8.1.2",
-			RemoteIP: "192.168.1.55", UserID: "",
 			Entries: []requestlog.Entry{
-				{Level: "INFO", Message: "Request started", Attrs: "method=POST path=/api/files/upload"},
-				{Level: "INFO", Message: "Parsing multipart form", Attrs: "content_length=1048576"},
-				{Level: "ERROR", Message: "Multipart parse failed", Attrs: "error=unexpected EOF"},
+				{Level: "INFO", Message: "Parsing multipart form"},
+				{Level: "ERROR", Message: "Multipart parse failed"},
 			},
 		},
 		{
-			RequestID: "demo-55667788ccdd", ErrorChain: "save settings: database is locked",
+			ErrorChain: "save settings: database is locked",
 			StatusCode: 500, Route: "/settings/theme", Method: "POST",
-			UserAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-			RemoteIP: "10.0.0.12", UserID: "dana@contoso.com",
 			Entries: []requestlog.Entry{
-				{Level: "INFO", Message: "Request started", Attrs: "method=POST path=/settings/theme"},
-				{Level: "INFO", Message: "Updating theme", Attrs: "theme=dark session=abc-123"},
-				{Level: "ERROR", Message: "Database write failed", Attrs: "error=database is locked table=SessionSettings"},
+				{Level: "INFO", Message: "Updating theme"},
+				{Level: "ERROR", Message: "Database write failed"},
 			},
 		},
 		{
-			RequestID: "demo-99aabbccddee", ErrorChain: "fetch report: connect: connection refused",
+			ErrorChain: "fetch report: connect: connection refused",
 			StatusCode: 502, Route: "/api/reports/monthly", Method: "GET",
-			UserAgent: "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
-			RemoteIP: "172.16.0.30", UserID: "eve@contoso.com",
 			Entries: []requestlog.Entry{
-				{Level: "INFO", Message: "Request started", Attrs: "method=GET path=/api/reports/monthly"},
-				{Level: "INFO", Message: "Calling reporting service", Attrs: "url=http://reports-svc:8080/monthly"},
-				{Level: "ERROR", Message: "Upstream connection refused", Attrs: "host=reports-svc:8080 error=connection refused"},
+				{Level: "INFO", Message: "Calling reporting service"},
+				{Level: "ERROR", Message: "Upstream connection refused"},
 			},
 		},
 		{
-			RequestID: "demo-eeff00112233", ErrorChain: "authenticate: token expired at 2026-03-13T23:59:59Z",
+			ErrorChain: "authenticate: token expired",
 			StatusCode: 401, Route: "/api/protected/data", Method: "GET",
-			UserAgent: "PostmanRuntime/7.32.3",
-			RemoteIP: "192.168.1.200", UserID: "",
 			Entries: []requestlog.Entry{
-				{Level: "INFO", Message: "Request started", Attrs: "method=GET path=/api/protected/data"},
-				{Level: "WARN", Message: "Token validation failed", Attrs: "reason=expired exp=2026-03-13T23:59:59Z"},
-				{Level: "ERROR", Message: "Authentication failed", Attrs: "error=token expired"},
+				{Level: "WARN", Message: "Token validation failed"},
+				{Level: "ERROR", Message: "Authentication failed"},
 			},
 		},
 		{
-			RequestID: "demo-44556677aabb", ErrorChain: "list items: UNIQUE constraint failed: items.name",
+			ErrorChain: "create item: UNIQUE constraint failed: items.name",
 			StatusCode: 409, Route: "/demo/inventory/items", Method: "POST",
-			UserAgent: "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-			RemoteIP: "10.0.0.5", UserID: "frank@contoso.com",
 			Entries: []requestlog.Entry{
-				{Level: "INFO", Message: "Request started", Attrs: "method=POST path=/demo/inventory/items"},
-				{Level: "INFO", Message: "Creating item", Attrs: "name=Widget category=Electronics"},
-				{Level: "ERROR", Message: "Insert failed", Attrs: "error=UNIQUE constraint failed: items.name name=Widget"},
+				{Level: "INFO", Message: "Creating item"},
+				{Level: "ERROR", Message: "Insert failed"},
+			},
+		},
+		{
+			ErrorChain: "authorize /admin/settings: role viewer cannot access admin resource",
+			StatusCode: 403, Route: "/admin/settings", Method: "GET",
+			Entries: []requestlog.Entry{
+				{Level: "INFO", Message: "Authenticating user"},
+				{Level: "WARN", Message: "Authorization denied"},
+			},
+		},
+		{
+			ErrorChain: "update item %d: optimistic lock: version mismatch",
+			StatusCode: 409, Route: "/api/items/%d", Method: "PUT",
+			Entries: []requestlog.Entry{
+				{Level: "INFO", Message: "Loading item for update"},
+				{Level: "ERROR", Message: "Version conflict detected"},
+			},
+		},
+		{
+			ErrorChain: "delete user %d: foreign key constraint: user has active orders",
+			StatusCode: 409, Route: "/api/users/%d", Method: "DELETE",
+			Entries: []requestlog.Entry{
+				{Level: "INFO", Message: "Checking user dependencies"},
+				{Level: "ERROR", Message: "Cannot delete: active orders exist"},
+			},
+		},
+		{
+			ErrorChain: "parse JSON body: unexpected end of JSON input",
+			StatusCode: 400, Route: "/api/webhooks/stripe", Method: "POST",
+			Entries: []requestlog.Entry{
+				{Level: "INFO", Message: "Receiving webhook"},
+				{Level: "ERROR", Message: "Malformed JSON body"},
 			},
 		},
 	}
 
-	for i := range traces {
-		traces[i].Entries[0].Time = traces[i].Entries[0].Time // time.Time zero is fine for demo
-		store.Promote(traces[i])
+	users := []string{
+		"alice@contoso.com", "bob@contoso.com", "charlie@contoso.com",
+		"dana@contoso.com", "eve@contoso.com", "frank@contoso.com",
+		"grace@contoso.com", "hank@contoso.com", "",
+	}
+	userAgents := []string{
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+		"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)",
+		"Mozilla/5.0 (X11; Linux x86_64; rv:109.0)",
+		"curl/8.1.2",
+		"PostmanRuntime/7.32.3",
+	}
+	ips := []string{
+		"192.168.1.100", "10.0.0.50", "172.16.0.25", "192.168.1.55",
+		"10.0.0.12", "172.16.0.30", "192.168.1.200", "10.0.0.5",
+	}
+
+	now := time.Now()
+	threeYears := 3 * 365 * 24 * time.Hour
+	const count = 1000
+
+	for i := 0; i < count; i++ {
+		// Spread evenly over 3 years
+		offset := threeYears * time.Duration(i) / count
+		createdAt := now.Add(-threeYears + offset)
+
+		tmpl := templates[i%len(templates)]
+		id := i + 1
+
+		errorChain := fmt.Sprintf(tmpl.ErrorChain, id)
+		route := fmt.Sprintf(tmpl.Route, id)
+
+		store.PromoteAt(requestlog.ErrorTrace{
+			RequestID:  fmt.Sprintf("seed-%08x", i),
+			ErrorChain: errorChain,
+			StatusCode: tmpl.StatusCode,
+			Route:      route,
+			Method:     tmpl.Method,
+			UserAgent:  userAgents[i%len(userAgents)],
+			RemoteIP:   ips[i%len(ips)],
+			UserID:     users[i%len(users)],
+			Entries:    tmpl.Entries,
+		}, createdAt)
 	}
 }

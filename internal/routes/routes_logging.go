@@ -3,13 +3,18 @@
 package routes
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 
 	"catgoose/dothog/internal/logger"
+	"catgoose/dothog/internal/requestlog"
 	"catgoose/dothog/internal/routes/handler"
+	"catgoose/dothog/internal/shared"
+	"catgoose/dothog/internal/ssebroker"
 	"catgoose/dothog/web/views"
 
 	"github.com/labstack/echo/v4"
@@ -18,6 +23,19 @@ import (
 const loggingBase = "/demo/logging"
 
 func (ar *appRoutes) initLoggingRoutes() {
+	// setup:feature:sse:start
+	broker := ssebroker.NewSSEBroker()
+
+	// Wire up SSE broadcasting on error trace promotion.
+	if ar.reqLogStore != nil {
+		ar.reqLogStore.SetOnPromote(func(summary requestlog.TraceSummary) {
+			broadcastErrorTrace(broker, summary)
+		})
+	}
+
+	ar.e.GET("/sse/error-traces", handleErrorTracesSSE(broker))
+	// setup:feature:sse:end
+
 	ar.e.GET(loggingBase, handler.HandleComponent(views.LoggingPage()))
 
 	// Error trigger endpoints — generate real errors with contextual slog entries.
@@ -72,7 +90,9 @@ func (ar *appRoutes) initLoggingRoutes() {
 		if ar.reqLogStore == nil {
 			return handler.RenderComponent(c, views.LoggingTracesList(nil))
 		}
-		traces, _, err := ar.reqLogStore.ListTraces("", "", "CreatedAt", "desc", 1, 20)
+		traces, _, err := ar.reqLogStore.ListTraces(requestlog.TraceFilter{
+			Sort: "CreatedAt", Dir: "desc", Page: 1, PerPage: 20,
+		})
 		if err != nil {
 			return handler.HandleHypermediaError(c, 500, "Failed to load traces", err)
 		}
@@ -90,7 +110,6 @@ func (ar *appRoutes) initLoggingRoutes() {
 			return handler.HandleHypermediaError(c, 404, "Trace not found or expired", nil)
 		}
 
-		// Build the report payload as it would be sent to IssueReporter
 		payload := map[string]any{
 			"request_id":  trace.RequestID,
 			"error_chain": trace.ErrorChain,
@@ -101,7 +120,7 @@ func (ar *appRoutes) initLoggingRoutes() {
 			"remote_ip":   trace.RemoteIP,
 			"user_id":     trace.UserID,
 			"created_at":  trace.CreatedAt,
-			"log_entries":  trace.Entries,
+			"log_entries": trace.Entries,
 		}
 		jsonBytes, err := json.MarshalIndent(payload, "", "  ")
 		if err != nil {
@@ -110,3 +129,47 @@ func (ar *appRoutes) initLoggingRoutes() {
 		return handler.RenderComponent(c, views.LoggingReportOutput(trace, string(jsonBytes)))
 	})
 }
+
+// setup:feature:sse:start
+
+func handleErrorTracesSSE(broker *ssebroker.SSEBroker) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		c.Response().Header().Set("Content-Type", "text/event-stream")
+		c.Response().Header().Set("Cache-Control", "no-cache")
+		c.Response().Header().Set("Connection", "keep-alive")
+		c.Response().WriteHeader(http.StatusOK)
+
+		flusher := c.Response().Writer.(http.Flusher)
+		ch, unsub := broker.Subscribe(ssebroker.TopicErrorTraces)
+		defer unsub()
+
+		ctx := c.Request().Context()
+		for {
+			select {
+			case <-ctx.Done():
+				return nil
+			case msg, ok := <-ch:
+				if !ok {
+					return nil
+				}
+				fmt.Fprint(c.Response(), msg)
+				flusher.Flush()
+			}
+		}
+	}
+}
+
+func broadcastErrorTrace(broker *ssebroker.SSEBroker, summary requestlog.TraceSummary) {
+	if !broker.HasSubscribers(ssebroker.TopicErrorTraces) {
+		return
+	}
+	buf := new(bytes.Buffer)
+	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "broadcast error trace")
+	if err := views.LoggingTraceRowOOB(summary).Render(ctx, buf); err != nil {
+		return
+	}
+	msg := ssebroker.NewSSEMessage("error-trace", buf.String()).String()
+	broker.Publish(ssebroker.TopicErrorTraces, msg)
+}
+
+// setup:feature:sse:end

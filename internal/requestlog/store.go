@@ -74,7 +74,8 @@ var tableName = schema.ErrorTracesTable.Name
 // Store is a SQLite-backed store of error request log entries.
 // Only requests that encounter errors are promoted here.
 type Store struct {
-	db *sqlx.DB
+	db        *sqlx.DB
+	onPromote func(TraceSummary) // optional callback fired after each promote
 }
 
 // NewStore creates a Store backed by the given database connection.
@@ -82,17 +83,31 @@ func NewStore(db *sqlx.DB) *Store {
 	return &Store{db: db}
 }
 
+// SetOnPromote registers a callback that is invoked after each successful promote.
+// Used to broadcast new error traces via SSE.
+func (s *Store) SetOnPromote(fn func(TraceSummary)) {
+	s.onPromote = fn
+}
+
 // Promote persists an error trace to the database. This should only
 // be called when the request resulted in an error.
 func (s *Store) Promote(trace ErrorTrace) {
+	s.promoteAt(trace, dbrepo.GetNow())
+}
+
+// PromoteAt persists an error trace with a specific timestamp. Used for seeding.
+func (s *Store) PromoteAt(trace ErrorTrace, createdAt time.Time) {
+	s.promoteAt(trace, createdAt)
+}
+
+func (s *Store) promoteAt(trace ErrorTrace, createdAt time.Time) {
 	data, err := json.Marshal(trace.Entries)
 	if err != nil {
 		return
 	}
 	insertCols := schema.ErrorTracesTable.InsertColumns()
 	query := dbrepo.InsertInto(tableName, insertCols...)
-	now := dbrepo.GetNow()
-	_, _ = s.db.Exec(query,
+	_, execErr := s.db.Exec(query,
 		sql.Named("RequestID", trace.RequestID),
 		sql.Named("ErrorChain", trace.ErrorChain),
 		sql.Named("StatusCode", trace.StatusCode),
@@ -102,9 +117,21 @@ func (s *Store) Promote(trace ErrorTrace) {
 		sql.Named("RemoteIP", trace.RemoteIP),
 		sql.Named("UserID", trace.UserID),
 		sql.Named("Entries", string(data)),
-		sql.Named("CreatedAt", now),
-		sql.Named("UpdatedAt", now),
+		sql.Named("CreatedAt", createdAt),
+		sql.Named("UpdatedAt", createdAt),
 	)
+	if execErr == nil && s.onPromote != nil {
+		s.onPromote(TraceSummary{
+			RequestID:  trace.RequestID,
+			ErrorChain: trace.ErrorChain,
+			StatusCode: trace.StatusCode,
+			Route:      trace.Route,
+			Method:     trace.Method,
+			RemoteIP:   trace.RemoteIP,
+			UserID:     trace.UserID,
+			CreatedAt:  createdAt.Format("2006-01-02 15:04:05"),
+		})
+	}
 }
 
 // errorTraceRow maps to a row in the ErrorTraces table.
@@ -131,26 +158,40 @@ var summaryCols = dbrepo.Columns(
 	"RemoteIP", "UserID", "CreatedAt",
 )
 
+// TraceFilter holds all filter parameters for ListTraces.
+type TraceFilter struct {
+	Q      string
+	Status string
+	Method string
+	Sort   string
+	Dir    string
+	Page   int
+	PerPage int
+}
+
 // ListTraces returns a page of trace summaries matching the given filters.
-func (s *Store) ListTraces(q string, statusFilter string, sort string, dir string, page, perPage int) ([]TraceSummary, int, error) {
+func (s *Store) ListTraces(f TraceFilter) ([]TraceSummary, int, error) {
 	w := dbrepo.NewWhere()
-	if q != "" {
-		pattern := "%" + q + "%"
-		w.And("(Route LIKE @Q OR ErrorChain LIKE @Q OR RequestID LIKE @Q)", sql.Named("Q", pattern))
+	if f.Q != "" {
+		pattern := "%" + f.Q + "%"
+		w.And("(Route LIKE @Q OR ErrorChain LIKE @Q OR RequestID LIKE @Q OR UserID LIKE @Q)", sql.Named("Q", pattern))
 	}
-	if statusFilter != "" {
+	if f.Status != "" {
 		code := 0
-		switch statusFilter {
+		switch f.Status {
 		case "4xx":
 			w.And("StatusCode >= 400 AND StatusCode < 500")
 		case "5xx":
 			w.And("StatusCode >= 500")
 		default:
-			fmt.Sscanf(statusFilter, "%d", &code)
+			fmt.Sscanf(f.Status, "%d", &code)
 			if code > 0 {
 				w.And("StatusCode = @StatusCode", sql.Named("StatusCode", code))
 			}
 		}
+	}
+	if f.Method != "" {
+		w.And("Method = @Method", sql.Named("Method", f.Method))
 	}
 
 	// Count total
@@ -164,17 +205,17 @@ func (s *Store) ListTraces(q string, statusFilter string, sort string, dir strin
 	orderCol := "CreatedAt"
 	orderDir := "DESC"
 	validSorts := map[string]bool{"CreatedAt": true, "StatusCode": true, "Route": true, "Method": true}
-	if validSorts[sort] {
-		orderCol = sort
+	if validSorts[f.Sort] {
+		orderCol = f.Sort
 	}
-	if dir == "asc" {
+	if f.Dir == "asc" {
 		orderDir = "ASC"
 	}
 
-	offset := (page - 1) * perPage
+	offset := (f.Page - 1) * f.PerPage
 	dataQuery := fmt.Sprintf("SELECT %s FROM %s %s ORDER BY %s %s LIMIT @Limit OFFSET @Offset",
 		summaryCols, tableName, w.String(), orderCol, orderDir)
-	args := append(w.Args(), sql.Named("Limit", perPage), sql.Named("Offset", offset))
+	args := append(w.Args(), sql.Named("Limit", f.PerPage), sql.Named("Offset", offset))
 
 	var rows []TraceSummary
 	if err := s.db.Select(&rows, dataQuery, args...); err != nil {
