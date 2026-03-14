@@ -108,13 +108,36 @@ func ErrorHandlerMiddleware(reqLogStore *requestlog.Store) echo.MiddlewareFunc {
 				return nil
 			}
 
+			// Determine status code from error type before promoting.
+			statusCode := http.StatusInternalServerError
+			var hhe *hypermedia.HTTPError
+			var he *echo.HTTPError
+			if errors.As(err, &hhe) {
+				statusCode = hhe.EC.StatusCode
+			} else if errors.As(err, &he) {
+				statusCode = he.Code
+			}
+
 			// Promote per-request log buffer to the shared store on error.
 			if reqLogStore != nil {
 				requestID := GetRequestID(c)
 				if requestID != "" {
-					if buf := requestlog.GetBuffer(c.Request().Context()); buf != nil && len(buf.Entries) > 0 {
-						reqLogStore.Promote(requestID, buf.Entries)
+					var entries []requestlog.Entry
+					if buf := requestlog.GetBuffer(c.Request().Context()); buf != nil {
+						entries = buf.Entries
 					}
+					userID, _ := c.Get("azureId").(string)
+					reqLogStore.Promote(requestlog.ErrorTrace{
+						RequestID:  requestID,
+						ErrorChain: err.Error(),
+						StatusCode: statusCode,
+						Route:      c.Request().URL.Path,
+						Method:     c.Request().Method,
+						UserAgent:  c.Request().UserAgent(),
+						RemoteIP:   c.RealIP(),
+						UserID:     userID,
+						Entries:    entries,
+					})
 				}
 			}
 
@@ -124,14 +147,12 @@ func ErrorHandlerMiddleware(reqLogStore *requestlog.Store) echo.MiddlewareFunc {
 			}
 
 			// 1. HTTPError — rich error with hypermedia controls
-			var hhe *hypermedia.HTTPError
-			if errors.As(err, &hhe) {
+			if hhe != nil {
 				return handleErrorWithContext(c, hhe.EC)
 			}
 
 			// 2. echo.HTTPError — convert to HTML for HTMX requests
-			var he *echo.HTTPError
-			if errors.As(err, &he) {
+			if he != nil {
 				message := ""
 				if he.Message != nil {
 					if msg, ok := he.Message.(string); ok {

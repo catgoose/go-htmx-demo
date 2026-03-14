@@ -43,6 +43,32 @@ func GetBuffer(ctx context.Context) *Buffer {
 	return buf
 }
 
+// ErrorTrace contains all the information captured when a request errors.
+type ErrorTrace struct {
+	RequestID  string
+	ErrorChain string
+	StatusCode int
+	Route      string
+	Method     string
+	UserAgent  string
+	RemoteIP   string
+	UserID     string
+	Entries    []Entry
+	CreatedAt  string
+}
+
+// TraceSummary is a lightweight row for list views (no log entries).
+type TraceSummary struct {
+	RequestID  string `db:"RequestID"`
+	ErrorChain string `db:"ErrorChain"`
+	StatusCode int    `db:"StatusCode"`
+	Route      string `db:"Route"`
+	Method     string `db:"Method"`
+	RemoteIP   string `db:"RemoteIP"`
+	UserID     string `db:"UserID"`
+	CreatedAt  string `db:"CreatedAt"`
+}
+
 var tableName = schema.ErrorTracesTable.Name
 
 // Store is a SQLite-backed store of error request log entries.
@@ -56,13 +82,10 @@ func NewStore(db *sqlx.DB) *Store {
 	return &Store{db: db}
 }
 
-// Promote persists a per-request buffer to the database. This should only
+// Promote persists an error trace to the database. This should only
 // be called when the request resulted in an error.
-func (s *Store) Promote(requestID string, entries []Entry) {
-	if len(entries) == 0 {
-		return
-	}
-	data, err := json.Marshal(entries)
+func (s *Store) Promote(trace ErrorTrace) {
+	data, err := json.Marshal(trace.Entries)
 	if err != nil {
 		return
 	}
@@ -70,7 +93,14 @@ func (s *Store) Promote(requestID string, entries []Entry) {
 	query := dbrepo.InsertInto(tableName, insertCols...)
 	now := dbrepo.GetNow()
 	_, _ = s.db.Exec(query,
-		sql.Named("RequestID", requestID),
+		sql.Named("RequestID", trace.RequestID),
+		sql.Named("ErrorChain", trace.ErrorChain),
+		sql.Named("StatusCode", trace.StatusCode),
+		sql.Named("Route", trace.Route),
+		sql.Named("Method", trace.Method),
+		sql.Named("UserAgent", trace.UserAgent),
+		sql.Named("RemoteIP", trace.RemoteIP),
+		sql.Named("UserID", trace.UserID),
 		sql.Named("Entries", string(data)),
 		sql.Named("CreatedAt", now),
 		sql.Named("UpdatedAt", now),
@@ -79,24 +109,112 @@ func (s *Store) Promote(requestID string, entries []Entry) {
 
 // errorTraceRow maps to a row in the ErrorTraces table.
 type errorTraceRow struct {
-	Entries string `db:"Entries"`
+	RequestID  string `db:"RequestID"`
+	ErrorChain string `db:"ErrorChain"`
+	StatusCode int    `db:"StatusCode"`
+	Route      string `db:"Route"`
+	Method     string `db:"Method"`
+	UserAgent  string `db:"UserAgent"`
+	RemoteIP   string `db:"RemoteIP"`
+	UserID     string `db:"UserID"`
+	Entries    string `db:"Entries"`
+	CreatedAt  string `db:"CreatedAt"`
 }
 
-// Get returns all captured entries for a request ID, or nil if not found.
-func (s *Store) Get(requestID string) []Entry {
+var selectCols = dbrepo.Columns(
+	"RequestID", "ErrorChain", "StatusCode", "Route", "Method",
+	"UserAgent", "RemoteIP", "UserID", "Entries", "CreatedAt",
+)
+
+var summaryCols = dbrepo.Columns(
+	"RequestID", "ErrorChain", "StatusCode", "Route", "Method",
+	"RemoteIP", "UserID", "CreatedAt",
+)
+
+// ListTraces returns a page of trace summaries matching the given filters.
+func (s *Store) ListTraces(q string, statusFilter string, sort string, dir string, page, perPage int) ([]TraceSummary, int, error) {
+	w := dbrepo.NewWhere()
+	if q != "" {
+		pattern := "%" + q + "%"
+		w.And("(Route LIKE @Q OR ErrorChain LIKE @Q OR RequestID LIKE @Q)", sql.Named("Q", pattern))
+	}
+	if statusFilter != "" {
+		code := 0
+		switch statusFilter {
+		case "4xx":
+			w.And("StatusCode >= 400 AND StatusCode < 500")
+		case "5xx":
+			w.And("StatusCode >= 500")
+		default:
+			fmt.Sscanf(statusFilter, "%d", &code)
+			if code > 0 {
+				w.And("StatusCode = @StatusCode", sql.Named("StatusCode", code))
+			}
+		}
+	}
+
+	// Count total
+	countQuery := fmt.Sprintf("SELECT COUNT(*) FROM %s %s", tableName, w.String())
+	var total int
+	if err := s.db.Get(&total, countQuery, w.Args()...); err != nil {
+		return nil, 0, fmt.Errorf("count error traces: %w", err)
+	}
+
+	// Sort
+	orderCol := "CreatedAt"
+	orderDir := "DESC"
+	validSorts := map[string]bool{"CreatedAt": true, "StatusCode": true, "Route": true, "Method": true}
+	if validSorts[sort] {
+		orderCol = sort
+	}
+	if dir == "asc" {
+		orderDir = "ASC"
+	}
+
+	offset := (page - 1) * perPage
+	dataQuery := fmt.Sprintf("SELECT %s FROM %s %s ORDER BY %s %s LIMIT @Limit OFFSET @Offset",
+		summaryCols, tableName, w.String(), orderCol, orderDir)
+	args := append(w.Args(), sql.Named("Limit", perPage), sql.Named("Offset", offset))
+
+	var rows []TraceSummary
+	if err := s.db.Select(&rows, dataQuery, args...); err != nil {
+		return nil, 0, fmt.Errorf("list error traces: %w", err)
+	}
+	return rows, total, nil
+}
+
+// DeleteTrace removes a single trace by request ID.
+func (s *Store) DeleteTrace(requestID string) error {
+	query := fmt.Sprintf("DELETE FROM %s WHERE RequestID = @RequestID", tableName)
+	_, err := s.db.Exec(query, sql.Named("RequestID", requestID))
+	return err
+}
+
+// Get returns the full error trace for a request ID, or nil if not found.
+func (s *Store) Get(requestID string) *ErrorTrace {
 	w := dbrepo.NewWhere().And("RequestID = @RequestID", sql.Named("RequestID", requestID))
-	query, args := dbrepo.NewSelect(tableName, "Entries").Where(w).Build()
+	query, args := dbrepo.NewSelect(tableName, selectCols).Where(w).Build()
 
 	var row errorTraceRow
-	err := s.db.Get(&row, query, args...)
-	if err != nil {
+	if err := s.db.Get(&row, query, args...); err != nil {
 		return nil
 	}
 	var entries []Entry
 	if err := json.Unmarshal([]byte(row.Entries), &entries); err != nil {
-		return nil
+		entries = nil
 	}
-	return entries
+	return &ErrorTrace{
+		RequestID:  row.RequestID,
+		ErrorChain: row.ErrorChain,
+		StatusCode: row.StatusCode,
+		Route:      row.Route,
+		Method:     row.Method,
+		UserAgent:  row.UserAgent,
+		RemoteIP:   row.RemoteIP,
+		UserID:     row.UserID,
+		Entries:    entries,
+		CreatedAt:  row.CreatedAt,
+	}
 }
 
 // StartCleanup runs a background goroutine that deletes entries older than ttl.

@@ -94,6 +94,9 @@ func main() {
 	}
 	reqLogStore := requestlog.NewStore(traceDB)
 	reqLogStore.StartCleanup(appCtx, 24*time.Hour, 1*time.Hour)
+	// setup:feature:demo:start
+	routes.SeedErrorTraces(reqLogStore)
+	// setup:feature:demo:end
 
 	// setup:feature:database:start
 	if cfg.EnableDatabase {

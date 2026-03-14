@@ -78,11 +78,11 @@ func (ar *appRoutes) InitRoutes() error {
 	reportHandler := func(c echo.Context) error {
 		requestID := c.Param("requestID")
 		description := c.FormValue("description")
-		var entries []requestlog.Entry
+		var trace *requestlog.ErrorTrace
 		if ar.reqLogStore != nil && requestID != "" {
-			entries = ar.reqLogStore.Get(requestID)
+			trace = ar.reqLogStore.Get(requestID)
 		}
-		if err := ar.issueReporter.Report(requestID, description, entries); err != nil {
+		if err := ar.issueReporter.Report(requestID, description, trace); err != nil {
 			logger.WithContext(c.Request().Context()).Error("Issue report failed",
 				"reported_request_id", requestID, "error", err)
 			c.Response().Header().Set("HX-Trigger", `{"showAlert":"Failed to submit report. Please try again."}`)
@@ -103,7 +103,10 @@ func (ar *appRoutes) InitRoutes() error {
 		return handler.RenderComponent(c, corecomponents.ReportIssueModal(cfg))
 	})
 
+	ar.initErrorTracesRoutes()
+
 	// setup:feature:demo:start
+	ar.initLoggingRoutes()
 	ar.initControlsGalleryRoutes()
 	ar.initComponentsRoutes()
 	ar.initComponents2Routes()
