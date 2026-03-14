@@ -1,10 +1,19 @@
-// Package requestlog provides an in-memory ring buffer that captures recent
-// slog records per request ID so they can be retrieved for debugging.
+// Package requestlog provides per-request log capture with promote-on-error
+// semantics. Each request buffers its slog records locally; only when an error
+// occurs is the buffer promoted to a SQLite-backed Store for later retrieval.
 package requestlog
 
 import (
-	"sync"
+	"context"
+	"database/sql"
+	"encoding/json"
+	"fmt"
 	"time"
+
+	dbrepo "catgoose/dothog/internal/database/repository"
+	"catgoose/dothog/internal/database/schema"
+
+	"github.com/jmoiron/sqlx"
 )
 
 // Entry is a single captured log record.
@@ -15,65 +24,100 @@ type Entry struct {
 	Attrs   string    `json:"attrs,omitempty"`
 }
 
-// requestBucket holds all captured entries for one request.
-type requestBucket struct {
-	entries []Entry
-	created time.Time
+// Buffer is a per-request log buffer stored in the request context.
+// It is not thread-safe — each request is handled by a single goroutine.
+type Buffer struct {
+	Entries []Entry
 }
 
-// Store is a bounded, thread-safe ring buffer of request log entries.
-// When the maximum number of tracked requests is exceeded the oldest
-// request's entries are evicted.
+type bufferKey struct{}
+
+// NewBufferContext returns a new context with an empty Buffer attached.
+func NewBufferContext(ctx context.Context) context.Context {
+	return context.WithValue(ctx, bufferKey{}, &Buffer{})
+}
+
+// GetBuffer retrieves the per-request Buffer from the context, or nil.
+func GetBuffer(ctx context.Context) *Buffer {
+	buf, _ := ctx.Value(bufferKey{}).(*Buffer)
+	return buf
+}
+
+var tableName = schema.ErrorTracesTable.Name
+
+// Store is a SQLite-backed store of error request log entries.
+// Only requests that encounter errors are promoted here.
 type Store struct {
-	mu      sync.RWMutex
-	buckets map[string]*requestBucket
-	order   []string // insertion order for eviction
-	maxReqs int
+	db *sqlx.DB
 }
 
-// NewStore creates a Store that retains logs for up to maxRequests recent requests.
-func NewStore(maxRequests int) *Store {
-	if maxRequests <= 0 {
-		maxRequests = 500
-	}
-	return &Store{
-		buckets: make(map[string]*requestBucket, maxRequests),
-		order:   make([]string, 0, maxRequests),
-		maxReqs: maxRequests,
-	}
+// NewStore creates a Store backed by the given database connection.
+func NewStore(db *sqlx.DB) *Store {
+	return &Store{db: db}
 }
 
-// Append adds a log entry for the given request ID.
-func (s *Store) Append(requestID string, e Entry) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	b, ok := s.buckets[requestID]
-	if !ok {
-		// Evict oldest if at capacity.
-		if len(s.order) >= s.maxReqs {
-			oldest := s.order[0]
-			s.order = s.order[1:]
-			delete(s.buckets, oldest)
-		}
-		b = &requestBucket{created: time.Now()}
-		s.buckets[requestID] = b
-		s.order = append(s.order, requestID)
+// Promote persists a per-request buffer to the database. This should only
+// be called when the request resulted in an error.
+func (s *Store) Promote(requestID string, entries []Entry) {
+	if len(entries) == 0 {
+		return
 	}
-	b.entries = append(b.entries, e)
+	data, err := json.Marshal(entries)
+	if err != nil {
+		return
+	}
+	insertCols := schema.ErrorTracesTable.InsertColumns()
+	query := dbrepo.InsertInto(tableName, insertCols...)
+	now := dbrepo.GetNow()
+	_, _ = s.db.Exec(query,
+		sql.Named("RequestID", requestID),
+		sql.Named("Entries", string(data)),
+		sql.Named("CreatedAt", now),
+		sql.Named("UpdatedAt", now),
+	)
+}
+
+// errorTraceRow maps to a row in the ErrorTraces table.
+type errorTraceRow struct {
+	Entries string `db:"Entries"`
 }
 
 // Get returns all captured entries for a request ID, or nil if not found.
 func (s *Store) Get(requestID string) []Entry {
-	s.mu.RLock()
-	defer s.mu.RUnlock()
+	w := dbrepo.NewWhere().And("RequestID = @RequestID", sql.Named("RequestID", requestID))
+	query, args := dbrepo.NewSelect(tableName, "Entries").Where(w).Build()
 
-	b, ok := s.buckets[requestID]
-	if !ok {
+	var row errorTraceRow
+	err := s.db.Get(&row, query, args...)
+	if err != nil {
 		return nil
 	}
-	out := make([]Entry, len(b.entries))
-	copy(out, b.entries)
-	return out
+	var entries []Entry
+	if err := json.Unmarshal([]byte(row.Entries), &entries); err != nil {
+		return nil
+	}
+	return entries
 }
 
+// StartCleanup runs a background goroutine that deletes entries older than ttl.
+// It stops when ctx is cancelled.
+func (s *Store) StartCleanup(ctx context.Context, ttl time.Duration, interval time.Duration) {
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				s.deleteOlderThan(ttl)
+			}
+		}
+	}()
+}
+
+func (s *Store) deleteOlderThan(ttl time.Duration) {
+	cutoff := time.Now().Add(-ttl)
+	query := fmt.Sprintf("DELETE FROM %s WHERE CreatedAt < @Cutoff", tableName)
+	_, _ = s.db.Exec(query, sql.Named("Cutoff", cutoff))
+}

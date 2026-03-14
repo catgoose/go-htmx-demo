@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"catgoose/dothog/internal/logger"
+	"catgoose/dothog/internal/requestlog"
 	"catgoose/dothog/internal/routes/hypermedia"
 	"catgoose/dothog/internal/routes/response"
 	corecomponents "catgoose/dothog/web/components/core"
@@ -96,13 +97,25 @@ func handleErrorWithContext(c echo.Context, ec hypermedia.ErrorContext) error {
 		Send()
 }
 
-// ErrorHandlerMiddleware automatically wraps errors returned by handlers in HandleError
-func ErrorHandlerMiddleware() echo.MiddlewareFunc {
+// ErrorHandlerMiddleware automatically wraps errors returned by handlers in HandleError.
+// When a reqLogStore is provided, the per-request log buffer is promoted to
+// the shared store on error so it can be retrieved for issue reports.
+func ErrorHandlerMiddleware(reqLogStore *requestlog.Store) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			err := next(c)
 			if err == nil {
 				return nil
+			}
+
+			// Promote per-request log buffer to the shared store on error.
+			if reqLogStore != nil {
+				requestID := GetRequestID(c)
+				if requestID != "" {
+					if buf := requestlog.GetBuffer(c.Request().Context()); buf != nil && len(buf.Entries) > 0 {
+						reqLogStore.Promote(requestID, buf.Entries)
+					}
+				}
 			}
 
 			// If the response is already committed, don't modify it

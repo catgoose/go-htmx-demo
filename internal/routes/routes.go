@@ -150,6 +150,7 @@ func InitEcho(ctx context.Context, staticFS fs.FS, cfg *config.AppConfig,
 	// setup:feature:session_settings:start
 	settingsRepo repository.SessionSettingsRepository,
 	// setup:feature:session_settings:end
+	reqLogStore *requestlog.Store,
 ) (*echo.Echo, error) {
 	e := echo.New()
 
@@ -184,7 +185,7 @@ func InitEcho(ctx context.Context, staticFS fs.FS, cfg *config.AppConfig,
 	}
 	// setup:feature:auth:end
 
-	e.Use(middleware.ErrorHandlerMiddleware())
+	e.Use(middleware.ErrorHandlerMiddleware(reqLogStore))
 
 	// setup:feature:session_settings:start
 	if settingsRepo != nil {

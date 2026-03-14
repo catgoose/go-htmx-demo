@@ -12,6 +12,18 @@ var SessionSettingsTable = NewTable("SessionSettings").
 
 // setup:feature:session_settings:end
 
+var ErrorTracesTable = NewTable("ErrorTraces").
+	Columns(
+		AutoIncrCol("Id"),
+		Col("RequestID", TypeVarchar(64)).NotNull().Unique(),
+		Col("Entries", TypeText()).NotNull(),
+	).
+	WithTimestamps().
+	Indexes(
+		Index("idx_error_traces_request_id", "RequestID"),
+		Index("idx_error_traces_created_at", "CreatedAt"),
+	)
+
 var UsersTable = NewTable("Users").
 	Columns(
 		AutoIncrCol("ID"),
