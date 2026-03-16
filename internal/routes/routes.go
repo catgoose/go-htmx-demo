@@ -112,6 +112,7 @@ func (ar *appRoutes) InitRoutes() error {
 	ar.initErrorTracesRoutes()
 
 	// setup:feature:demo:start
+	ar.initReportDemoRoutes()
 	ar.initLoggingRoutes()
 	ar.initControlsGalleryRoutes()
 	ar.initComponentsRoutes()

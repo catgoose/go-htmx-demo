@@ -61,19 +61,19 @@ func (ar *appRoutes) handleConfigInfo(c echo.Context) error {
 	}
 
 	entries := []admininfo.ConfigEntry{
-		{"SERVER_LISTEN_PORT", cfg.ServerPort},
-		{"APP_NAME", defaultStr(cfg.AppName, "(not set)")},
-		{"ENABLE_DATABASE", fmt.Sprintf("%t", cfg.EnableDatabase)},
-		{"INIT_REPO", fmt.Sprintf("%t", cfg.InitRepo)},
-		{"CROONER_DISABLED", fmt.Sprintf("%t", cfg.CroonerDisabled)},
-		{"SESSION_SECRET", maskSecret(cfg.SessionSecret)},
-		{"CSRF_ROTATE_PER_REQUEST", fmt.Sprintf("%t", cfg.CSRFRotatePerRequest)},
+		{Key: "SERVER_LISTEN_PORT", Value: cfg.ServerPort},
+		{Key: "APP_NAME", Value: defaultStr(cfg.AppName, "(not set)")},
+		{Key: "ENABLE_DATABASE", Value: fmt.Sprintf("%t", cfg.EnableDatabase)},
+		{Key: "INIT_REPO", Value: fmt.Sprintf("%t", cfg.InitRepo)},
+		{Key: "CROONER_DISABLED", Value: fmt.Sprintf("%t", cfg.CroonerDisabled)},
+		{Key: "SESSION_SECRET", Value: maskSecret(cfg.SessionSecret)},
+		{Key: "CSRF_ROTATE_PER_REQUEST", Value: fmt.Sprintf("%t", cfg.CSRFRotatePerRequest)},
 	}
 	if len(cfg.CSRFPerRequestPaths) > 0 {
-		entries = append(entries, admininfo.ConfigEntry{"CSRF_PER_REQUEST_PATHS", fmt.Sprintf("%v", cfg.CSRFPerRequestPaths)})
+		entries = append(entries, admininfo.ConfigEntry{Key: "CSRF_PER_REQUEST_PATHS", Value: fmt.Sprintf("%v", cfg.CSRFPerRequestPaths)})
 	}
 	if len(cfg.CSRFExemptPaths) > 0 {
-		entries = append(entries, admininfo.ConfigEntry{"CSRF_EXEMPT_PATHS", fmt.Sprintf("%v", cfg.CSRFExemptPaths)})
+		entries = append(entries, admininfo.ConfigEntry{Key: "CSRF_EXEMPT_PATHS", Value: fmt.Sprintf("%v", cfg.CSRFExemptPaths)})
 	}
 
 	return handler.RenderBaseLayout(c, views.AdminConfigPage(entries))

@@ -271,7 +271,7 @@ func SeedErrorTraces(store *requestlog.Store) {
 			Entries: []requestlog.Entry{
 				{Level: "INFO", Message: "Request started", Attrs: "method=GET path=/admin/settings"},
 				{Level: "INFO", Message: "Authenticating user", Attrs: "session_id=sess-{hex} method=bearer_token"},
-				{Level: "INFO", Message: "User authenticated", Attrs: "user_id=usr-{id} email=user{id}@contoso.com roles=[viewer]"},
+				{Level: "INFO", Message: "User authenticated", Attrs: "user_id=usr-{id} email=user{id}@example.com roles=[viewer]"},
 				{Level: "INFO", Message: "Checking authorization", Attrs: "resource=/admin/settings required_role=admin user_roles=[viewer]"},
 				{Level: "WARN", Message: "Authorization denied", Attrs: "user_id=usr-{id} resource=/admin/settings reason=insufficient_role required=admin actual=viewer"},
 			},
@@ -309,9 +309,9 @@ func SeedErrorTraces(store *requestlog.Store) {
 	}
 
 	users := []string{
-		"alice@contoso.com", "bob@contoso.com", "charlie@contoso.com",
-		"dana@contoso.com", "eve@contoso.com", "frank@contoso.com",
-		"grace@contoso.com", "hank@contoso.com", "",
+		"alice@example.com", "bob@example.com", "charlie@example.com",
+		"dana@example.com", "eve@example.com", "frank@example.com",
+		"grace@example.com", "hank@example.com", "",
 	}
 	userAgents := []string{
 		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
