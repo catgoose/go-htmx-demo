@@ -15,7 +15,9 @@ import (
 	"strconv"
 	"strings"
 
+	// setup:feature:demo:start
 	"catgoose/dothog/internal/setup"
+	// setup:feature:demo:end
 
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
@@ -564,6 +566,8 @@ func downloadFile(url, filepath string) error {
 	return sh.Run("curl", "-Lso", filepath, url)
 }
 
+// setup:feature:demo:start
+
 // SetupTo copies the template to dest, runs setup there, and leaves this repo
 // untouched. Use it to preview exactly what a consumer gets after running setup.
 //
@@ -668,6 +672,8 @@ func parseFeatureFlag(val string) []string {
 	}
 	return features
 }
+
+// setup:feature:demo:end
 
 // Lint runs static analysis and style checks on the codebase.
 func Lint() error {
