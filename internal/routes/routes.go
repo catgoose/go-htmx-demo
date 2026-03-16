@@ -63,7 +63,9 @@ func NewAppRoutes(ctx context.Context, e *echo.Echo, reqLogStore *requestlog.Sto
 
 func (ar *appRoutes) InitRoutes() error {
 	ar.e.GET("/", handler.HandleComponent(views.ArchitecturePage()))
-	ar.e.GET("/user/dashboard", handler.HandleComponent(views.UserDashboardPage()))
+	// setup:feature:session_settings:start
+	ar.initUserSettingsRoutes()
+	// setup:feature:session_settings:end
 	// setup:feature:demo:start
 	ar.e.GET("/welcome", handler.HandleComponent(views.WelcomePage()))
 	// setup:feature:demo:end

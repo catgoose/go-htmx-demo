@@ -29,3 +29,24 @@ type ConfigEntry struct {
 	Key   string
 	Value string
 }
+
+// UserPreferences holds per-session user preferences.
+// These are stored in-memory keyed by session cookie; applications should
+// persist them to their own database when needed.
+type UserPreferences struct {
+	PageSize             int
+	DateFormat           string
+	CompactTables        bool
+	EmailOnError         bool
+	DesktopNotifications bool
+	ReduceMotion         bool
+	HighContrast         bool
+}
+
+// DefaultUserPreferences returns sensible defaults.
+func DefaultUserPreferences() UserPreferences {
+	return UserPreferences{
+		PageSize:   20,
+		DateFormat: "relative",
+	}
+}
