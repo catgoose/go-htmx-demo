@@ -611,7 +611,7 @@ func rangeFilterField(field hypermedia.FilterField, bar hypermedia.FilterBar) te
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\" class=\"range range-sm\" _=\"on input put my value into next <output/>\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\" class=\"range range-sm\" x-on:input=\"$el.nextElementSibling.textContent = $el.value\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

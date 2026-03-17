@@ -401,7 +401,7 @@ func backButton(ctrl hypermedia.Control) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, " _=\"on click send showAlert(detail: 'Go Back intercepted — this is where navigation would happen') to body\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 19, " x-on:click=\"$dispatch('show-alert', 'Go Back intercepted — this is where navigation would happen')\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -542,7 +542,7 @@ func genericDismiss(ctrl hypermedia.Control) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" _=\"on click tell #error-message-content transition opacity to 0 over 300ms then remove me\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "\" x-on:click=\"\n\t\t\tconst el = document.getElementById('error-message-content');\n\t\t\tel.style.transition = 'opacity 0.3s ease';\n\t\t\tel.style.opacity = '0';\n\t\t\tsetTimeout(() => el.remove(), 300);\n\t\t\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -553,7 +553,7 @@ func genericDismiss(ctrl hypermedia.Control) templ.Component {
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(ctrl.Label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/controls.templ`, Line: 120, Col: 14}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/controls.templ`, Line: 125, Col: 14}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
@@ -603,7 +603,7 @@ func genericReportButton(ctrl hypermedia.Control) templ.Component {
 		var templ_7745c5c3_Var25 string
 		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(ctrl.Label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/controls.templ`, Line: 132, Col: 14}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/controls.templ`, Line: 137, Col: 14}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 		if templ_7745c5c3_Err != nil {

@@ -130,7 +130,7 @@ templ rangeFilterField(field hypermedia.FilterField, bar hypermedia.FilterBar) {
 			step={ field.Step }
 			value={ field.Value }
 			class="range range-sm"
-			_="on input put my value into next <output/>"
+			x-on:input="$el.nextElementSibling.textContent = $el.value"
 			{ filterHxAttrs(field, bar)... }
 			disabled?={ field.Disabled }
 		/>

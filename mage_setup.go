@@ -31,7 +31,6 @@ var featureLabels = map[string]string{
 	setup.FeatureAvatar:          "Avatar Photos (requires Graph)",
 	setup.FeatureDemo:            "Demo Content",
 	setup.FeatureSessionSettings: "Session Settings (SQLite)",
-	setup.FeatureAlpine:          "Alpine.js (client-side state)",
 }
 
 // featureLabelOrder is the display order for the feature multi-select.
@@ -44,7 +43,6 @@ var featureLabelOrder = []string{
 	setup.FeatureCaddy,
 	setup.FeatureDemo,
 	setup.FeatureSessionSettings,
-	setup.FeatureAlpine,
 }
 
 func init() {
