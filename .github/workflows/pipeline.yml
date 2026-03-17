@@ -211,6 +211,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
   screenshots:
+    if: github.event_name == 'workflow_dispatch'
     needs: [update-deps, go-test, e2e-test]
     runs-on: ubuntu-latest
     steps:
@@ -260,6 +261,7 @@ jobs:
           path: docs/screenshots/
 
   publish-screenshots:
+    if: github.event_name == 'workflow_dispatch'
     needs: [screenshots]
     runs-on: ubuntu-latest
     steps:
