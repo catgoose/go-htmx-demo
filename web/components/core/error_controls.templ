@@ -18,6 +18,8 @@ templ ErrorControls(controls []hypermedia.Control) {
 						@dismissButton(ctrl)
 					case hypermedia.ControlKindBack:
 						@errorBackButton(ctrl)
+					case hypermedia.ControlKindHome:
+						@errorHomeButton(ctrl)
 				case hypermedia.ControlKindReport:
 					@reportButton(ctrl)
 				}
@@ -78,6 +80,15 @@ templ errorBackButton(ctrl hypermedia.Control) {
 	<button
 		class="inline-flex items-center px-3 py-1 text-xs font-medium rounded border border-base-content/20 bg-base-100 text-base-content hover:bg-base-200 focus:outline-none"
 		x-on:click="$dispatch('show-alert', 'Go Back intercepted — this is where navigation would happen')"
+	>
+		{ ctrl.Label }
+	</button>
+}
+
+templ errorHomeButton(ctrl hypermedia.Control) {
+	<button
+		{ hxAttrsFromControl(ctrl)... }
+		class="inline-flex items-center px-3 py-1 text-xs font-medium rounded border border-base-content/20 bg-base-100 text-base-content hover:bg-base-200 focus:outline-none"
 	>
 		{ ctrl.Label }
 	</button>

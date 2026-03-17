@@ -70,6 +70,8 @@ templ control(ctrl hypermedia.Control) {
 			@genericButton(ctrl)
 		case hypermedia.ControlKindBack:
 			@backButton(ctrl)
+		case hypermedia.ControlKindHome:
+			@homeButton(ctrl)
 		case hypermedia.ControlKindLink:
 			@genericLink(ctrl)
 		case hypermedia.ControlKindDismiss:
@@ -95,6 +97,17 @@ templ backButton(ctrl hypermedia.Control) {
 		class={ "btn btn-sm " + variantClass(ctrl.Variant) }
 		disabled?={ ctrl.Disabled }
 		x-on:click="$dispatch('show-alert', 'Go Back intercepted — this is where navigation would happen')"
+	>
+		@heroIcon(string(ctrl.Icon))
+		{ ctrl.Label }
+	</button>
+}
+
+templ homeButton(ctrl hypermedia.Control) {
+	<button
+		class={ "btn btn-sm " + variantClass(ctrl.Variant) }
+		disabled?={ ctrl.Disabled }
+		x-on:click={ "$dispatch('show-alert', 'Go Home intercepted — would navigate to " + ctrl.Href + "')" }
 	>
 		@heroIcon(string(ctrl.Icon))
 		{ ctrl.Label }
