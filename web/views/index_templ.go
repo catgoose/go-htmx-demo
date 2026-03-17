@@ -215,7 +215,7 @@ func settingsModal(currentTheme string) templ.Component {
 			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<dialog id=\"settings-modal\" class=\"modal\"><div class=\"modal-box bg-base-100 text-base-content w-full max-w-2xl\"><form method=\"dialog\"><button class=\"btn btn-sm btn-circle btn-ghost absolute right-2 top-2\">✕</button></form><h3 class=\"font-bold text-lg mb-4\">Settings</h3><div class=\"form-control mb-2\"><label class=\"label\"><span class=\"label-text font-medium\">Theme</span></label><div class=\"grid grid-cols-4 gap-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 15, "<dialog id=\"settings-modal\" class=\"modal\" x-data><div class=\"modal-box bg-base-100 text-base-content w-full max-w-2xl\"><form method=\"dialog\"><button class=\"btn btn-sm btn-circle btn-ghost absolute right-2 top-2\">✕</button></form><h3 class=\"font-bold text-lg mb-4\">Settings</h3><div class=\"form-control mb-2\"><label class=\"label\"><span class=\"label-text font-medium\">Theme</span></label><div class=\"grid grid-cols-4 gap-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -292,9 +292,9 @@ func settingsThemeOption(theme string, current string) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var11 string
-		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs("document.documentElement.dataset.theme = '" + theme + "'; fetch('/settings/theme', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'theme=" + theme + "' }); document.getElementById('settings-modal').close()")
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs("document.documentElement.dataset.theme = '" + theme + "'; fetch('/settings/theme', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded'}, body: 'theme=" + theme + "' }); $el.closest('dialog').close()")
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/index.templ`, Line: 123, Col: 263}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/index.templ`, Line: 123, Col: 243}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
