@@ -8,13 +8,13 @@ require (
 	github.com/a-h/templ v0.3.1001
 	github.com/catgoose/crooner v1.4.0
 	github.com/catgoose/dio v1.0.24
+	github.com/catgoose/fraggle v0.0.1
+	github.com/catgoose/tracy v0.0.1
 	github.com/charmbracelet/huh v1.0.0
-	github.com/denisenkom/go-mssqldb v0.12.3
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/labstack/echo/v4 v4.15.1
-	github.com/lib/pq v1.10.9
 	github.com/magefile/mage v1.16.1
 	github.com/mattn/go-sqlite3 v1.14.37
 	github.com/microsoft/kiota-abstractions-go v1.9.4
@@ -54,6 +54,7 @@ require (
 	github.com/coreos/go-oidc/v3 v3.17.0 // indirect
 	github.com/creack/pty v1.1.24 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
+	github.com/denisenkom/go-mssqldb v0.12.3 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
 	github.com/fatih/color v1.19.0 // indirect
@@ -72,6 +73,7 @@ require (
 	github.com/kylelemons/godebug v1.1.0 // indirect
 	github.com/labstack/gommon v0.4.2 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
+	github.com/lib/pq v1.12.0 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect

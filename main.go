@@ -2,15 +2,17 @@ package main
 
 import (
 	"catgoose/dothog/internal/config"
-	// setup:feature:database:start
+	dialect "github.com/catgoose/fraggle"
+	// setup:feature:session_settings:start
 	"catgoose/dothog/internal/database"
-	"catgoose/dothog/internal/database/dialect"
+	// setup:feature:session_settings:end
+	// setup:feature:database:start
 	dbrepo "catgoose/dothog/internal/database/repository"
 	"catgoose/dothog/internal/database/schema"
 	"github.com/jmoiron/sqlx"
 	// setup:feature:database:end
 	"catgoose/dothog/internal/logger"
-	"catgoose/dothog/internal/requestlog"
+	"github.com/catgoose/tracy"
 	"catgoose/dothog/internal/routes"
 	// setup:feature:session_settings:start
 	"catgoose/dothog/internal/repository"
@@ -49,7 +51,7 @@ func must(fs fs.FS, err error) fs.FS {
 
 func main() {
 	logger.SetHandlerWrapper(func(h slog.Handler) slog.Handler {
-		return requestlog.NewHandler(h)
+		return tracy.NewHandler(h)
 	})
 	logger.Init()
 	flag.Parse()
@@ -76,7 +78,7 @@ func main() {
 	defer cancel()
 
 	// Error trace store — persists error request logs to SQLite for debugging.
-	traceDB, err := database.OpenSQLite(appCtx, "db/error_traces.db")
+	traceDB, err := dialect.OpenSQLite(appCtx, "db/error_traces.db")
 	if err != nil {
 		logger.Fatal("Failed to open error traces database", "error", err)
 	}
@@ -85,15 +87,10 @@ func main() {
 			logger.Info("Error closing error traces database", "error", closeErr)
 		}
 	}()
-	traceDialect, err := dialect.New(dialect.SQLite)
-	if err != nil {
-		logger.Fatal("Failed to create error traces dialect", "error", err)
+	reqLogStore := tracy.NewStore(traceDB)
+	if err := reqLogStore.InitSchema(); err != nil {
+		logger.Fatal("Failed to init error traces schema", "error", err)
 	}
-	traceManager := dbrepo.NewManager(traceDB, traceDialect, schema.ErrorTracesTable)
-	if err := traceManager.EnsureSchema(appCtx); err != nil {
-		logger.Fatal("Failed to ensure error traces schema", "error", err)
-	}
-	reqLogStore := requestlog.NewStore(traceDB)
 	reqLogStore.StartCleanup(appCtx, 90*24*time.Hour, 1*time.Hour)
 	// setup:feature:demo:start
 	routes.SeedErrorTraces(reqLogStore)
@@ -101,7 +98,7 @@ func main() {
 
 	// setup:feature:database:start
 	if cfg.EnableDatabase {
-		db, d, err := database.OpenURL(appCtx, cfg.DatabaseURL)
+		db, d, err := dialect.OpenURL(appCtx, cfg.DatabaseURL)
 		if err != nil {
 			logger.Fatal("Failed to open database", "error", err)
 		}

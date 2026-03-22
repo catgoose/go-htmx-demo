@@ -8,8 +8,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// setTestDefaults ensures required env vars are set for non-demo apps.
+func setTestDefaults(t *testing.T) {
+	t.Helper()
+	if os.Getenv("APP_NAME") == "" {
+		os.Setenv("APP_NAME", "test-app")
+		t.Cleanup(func() { os.Unsetenv("APP_NAME") })
+	}
+}
+
 func TestGetConfig(t *testing.T) {
 	ResetForTesting()
+	setTestDefaults(t)
 
 	os.Setenv("SERVER_LISTEN_PORT", "9090")
 	defer os.Unsetenv("SERVER_LISTEN_PORT")
@@ -18,7 +28,6 @@ func TestGetConfig(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, "9090", config.ServerPort)
 
-	// Subsequent calls return the same instance
 	config2, err := GetConfig()
 	require.NoError(t, err)
 	assert.Equal(t, config, config2)
@@ -26,8 +35,8 @@ func TestGetConfig(t *testing.T) {
 
 func TestGetConfigDefaults(t *testing.T) {
 	ResetForTesting()
+	setTestDefaults(t)
 
-	// Unset everything — config should use Go defaults
 	os.Unsetenv("SERVER_LISTEN_PORT")
 	os.Unsetenv("DATABASE_URL")
 
@@ -39,6 +48,7 @@ func TestGetConfigDefaults(t *testing.T) {
 
 func TestMustGetConfig(t *testing.T) {
 	ResetForTesting()
+	setTestDefaults(t)
 
 	os.Setenv("SERVER_LISTEN_PORT", "7070")
 	defer os.Unsetenv("SERVER_LISTEN_PORT")
@@ -68,6 +78,7 @@ func TestConfigEnvOverride(t *testing.T) {
 
 func TestConfigSingleton(t *testing.T) {
 	ResetForTesting()
+	setTestDefaults(t)
 
 	os.Setenv("SERVER_LISTEN_PORT", "1234")
 	defer os.Unsetenv("SERVER_LISTEN_PORT")
