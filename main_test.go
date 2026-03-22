@@ -35,7 +35,11 @@ func setupAppEcho(t *testing.T) *echo.Echo {
 	require.NotNil(t, cfg)
 
 	ctx := context.Background()
-	e, err := routes.InitEcho(ctx, staticFS, cfg, nil, nil)
+	e, err := routes.InitEcho(ctx, staticFS, cfg,
+		// setup:feature:session_settings:start
+		nil,
+		// setup:feature:session_settings:end
+		nil)
 	require.NoError(t, err)
 	require.NotNil(t, e)
 

@@ -6,7 +6,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/a-h/templ v0.3.1001
-	github.com/catgoose/crooner v1.3.23
+	github.com/catgoose/crooner v1.4.0
 	github.com/catgoose/dio v1.0.24
 	github.com/charmbracelet/huh v1.0.0
 	github.com/denisenkom/go-mssqldb v0.12.3
@@ -14,6 +14,7 @@ require (
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/jmoiron/sqlx v1.4.0
 	github.com/labstack/echo/v4 v4.15.1
+	github.com/lib/pq v1.10.9
 	github.com/magefile/mage v1.16.1
 	github.com/mattn/go-sqlite3 v1.14.37
 	github.com/microsoft/kiota-abstractions-go v1.9.4

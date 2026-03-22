@@ -7,6 +7,7 @@ import (
 	"catgoose/dothog/internal/database/dialect"
 	dbrepo "catgoose/dothog/internal/database/repository"
 	"catgoose/dothog/internal/database/schema"
+	"github.com/jmoiron/sqlx"
 	// setup:feature:database:end
 	"catgoose/dothog/internal/logger"
 	"catgoose/dothog/internal/requestlog"
@@ -100,7 +101,7 @@ func main() {
 
 	// setup:feature:database:start
 	if cfg.EnableDatabase {
-		db, err := database.Open(appCtx, cfg.DBEngine)
+		db, d, err := database.OpenURL(appCtx, cfg.DatabaseURL)
 		if err != nil {
 			logger.Fatal("Failed to open database", "error", err)
 		}
@@ -110,12 +111,8 @@ func main() {
 			}
 		}()
 
-		d, err := dialect.New(cfg.DBEngine)
-		if err != nil {
-			logger.Fatal("Failed to create dialect", "error", err)
-		}
-
-		repoManager := dbrepo.NewManager(db, d,
+		dbx := sqlx.NewDb(db, string(d.Engine()))
+		repoManager := dbrepo.NewManager(dbx, d,
 			// setup:feature:session_settings:start
 			schema.SessionSettingsTable,
 			// setup:feature:session_settings:end
@@ -206,7 +203,7 @@ func main() {
 				logger.Error("Photo sync failed", "error", err)
 			}
 		}
-		if err := graph.InitAndSyncUserCache(appCtx, userCache, cfg.AzureRefreshUsersHour, graphClient.FetchAllEnabledUsers, afterSync); err != nil {
+		if err := graph.InitAndSyncUserCache(appCtx, userCache, cfg.GraphUserCacheRefreshHour, graphClient.FetchAllEnabledUsers, afterSync); err != nil {
 			logger.Fatal("Failed to initialize user cache", "error", err)
 		}
 	} else {

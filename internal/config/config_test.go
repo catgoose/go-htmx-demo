@@ -4,8 +4,6 @@ import (
 	"os"
 	"testing"
 
-	"catgoose/dothog/internal/logger"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -26,6 +24,19 @@ func TestGetConfig(t *testing.T) {
 	assert.Equal(t, config, config2)
 }
 
+func TestGetConfigDefaults(t *testing.T) {
+	ResetForTesting()
+
+	// Unset everything — config should use Go defaults
+	os.Unsetenv("SERVER_LISTEN_PORT")
+	os.Unsetenv("DATABASE_URL")
+
+	config, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, "3000", config.ServerPort)
+	assert.Equal(t, "sqlite:///db/app.db", config.DatabaseURL)
+}
+
 func TestMustGetConfig(t *testing.T) {
 	ResetForTesting()
 
@@ -36,15 +47,23 @@ func TestMustGetConfig(t *testing.T) {
 	assert.Equal(t, "7070", config.ServerPort)
 }
 
-func TestMustGetConfigPanic(t *testing.T) {
+func TestConfigEnvOverride(t *testing.T) {
 	ResetForTesting()
-	logger.Init()
 
-	os.Unsetenv("SERVER_LISTEN_PORT")
+	os.Setenv("SERVER_LISTEN_PORT", "5555")
+	os.Setenv("DATABASE_URL", "postgres://localhost/test")
+	os.Setenv("APP_NAME", "testapp")
+	defer func() {
+		os.Unsetenv("SERVER_LISTEN_PORT")
+		os.Unsetenv("DATABASE_URL")
+		os.Unsetenv("APP_NAME")
+	}()
 
-	assert.Panics(t, func() {
-		MustGetConfig()
-	})
+	config, err := GetConfig()
+	require.NoError(t, err)
+	assert.Equal(t, "5555", config.ServerPort)
+	assert.Equal(t, "postgres://localhost/test", config.DatabaseURL)
+	assert.Equal(t, "testapp", config.AppName)
 }
 
 func TestConfigSingleton(t *testing.T) {
@@ -63,12 +82,4 @@ func TestConfigSingleton(t *testing.T) {
 
 	assert.Equal(t, config1, config2)
 	assert.Equal(t, config1, config3)
-}
-
-func TestAppConfigFields(t *testing.T) {
-	config := &AppConfig{
-		ServerPort: "5555",
-	}
-
-	assert.Equal(t, "5555", config.ServerPort)
 }

@@ -18,7 +18,8 @@ func TestParseEngine(t *testing.T) {
 		{"mssql", MSSQL, false},
 		{"sqlite3", SQLite, false},
 		{"sqlite", SQLite, false},
-		{"postgres", "", true},
+		{"postgres", Postgres, false},
+		{"postgresql", Postgres, false},
 		{"", "", true},
 	}
 	for _, tt := range tests {
@@ -42,6 +43,10 @@ func TestNew(t *testing.T) {
 	sqlite, err := New(SQLite)
 	require.NoError(t, err)
 	assert.Equal(t, SQLite, sqlite.Engine())
+
+	pg, err := New(Postgres)
+	require.NoError(t, err)
+	assert.Equal(t, Postgres, pg.Engine())
 
 	_, err = New(Engine("unknown"))
 	require.Error(t, err)
@@ -84,4 +89,25 @@ func TestSQLiteDialect(t *testing.T) {
 
 	assert.Equal(t, "DROP TABLE IF EXISTS Users", d.DropTableIfExists("Users"))
 	assert.Equal(t, "CREATE INDEX IF NOT EXISTS idx_users_mail ON Users(Mail)", d.CreateIndexIfNotExists("idx_users_mail", "Users", "Mail"))
+}
+
+func TestPostgresDialect(t *testing.T) {
+	d := PostgresDialect{}
+
+	assert.Equal(t, Postgres, d.Engine())
+	assert.Equal(t, "LIMIT @Limit OFFSET @Offset", d.Pagination())
+	assert.Equal(t, "SERIAL PRIMARY KEY", d.AutoIncrement())
+	assert.Equal(t, "NOW()", d.Now())
+	assert.Equal(t, "TIMESTAMPTZ", d.TimestampType())
+	assert.Equal(t, "VARCHAR(255)", d.StringType(255))
+	assert.Equal(t, "VARCHAR(255)", d.VarcharType(255))
+	assert.Equal(t, "INTEGER", d.IntType())
+	assert.Equal(t, "TEXT", d.TextType())
+	assert.Empty(t, d.LastInsertIDQuery())
+	assert.False(t, d.SupportsLastInsertID())
+
+	assert.Equal(t, "DROP TABLE IF EXISTS Users", d.DropTableIfExists("Users"))
+	assert.Equal(t, "CREATE INDEX IF NOT EXISTS idx_users_mail ON Users(Mail)", d.CreateIndexIfNotExists("idx_users_mail", "Users", "Mail"))
+	assert.Contains(t, d.TableExistsQuery(), "information_schema")
+	assert.Contains(t, d.TableColumnsQuery(), "information_schema")
 }

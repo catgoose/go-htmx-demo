@@ -74,7 +74,9 @@ func NewAppRoutes(ctx context.Context, e *echo.Echo, reqLogStore *requestlog.Sto
 func (ar *appRoutes) InitRoutes() error {
 	// Register known origins for ?from= breadcrumb resolution.
 	// Home (bit 0) is pre-registered. Additional pages register here.
+	// setup:feature:demo:start
 	hypermedia.RegisterFrom(hypermedia.FromDashboard, hypermedia.Breadcrumb{Label: "Dashboard", Href: "/dashboard"})
+	// setup:feature:demo:end
 
 	ar.e.GET("/", handler.HandleComponent(views.ArchitecturePage()))
 	// setup:feature:session_settings:start

@@ -11,8 +11,9 @@ import "fmt"
 type Engine string
 
 const (
-	MSSQL  Engine = "sqlserver"
-	SQLite Engine = "sqlite3"
+	MSSQL    Engine = "sqlserver"
+	SQLite   Engine = "sqlite3"
+	Postgres Engine = "postgres"
 )
 
 // ParseEngine converts a string to an Engine, returning an error for unknown values.
@@ -22,8 +23,12 @@ func ParseEngine(s string) (Engine, error) {
 		return MSSQL, nil
 	case "sqlite3", "sqlite":
 		return SQLite, nil
+	// setup:feature:postgres:start
+	case "postgres", "postgresql":
+		return Postgres, nil
+	// setup:feature:postgres:end
 	default:
-		return "", fmt.Errorf("unknown database engine: %q (expected sqlserver, mssql, sqlite3, or sqlite)", s)
+		return "", fmt.Errorf("unknown database engine: %q (expected sqlserver, mssql, sqlite3, sqlite, postgres, or postgresql)", s)
 	}
 }
 
@@ -120,6 +125,10 @@ func New(engine Engine) (Dialect, error) {
 	// setup:feature:mssql:end
 	case SQLite:
 		return SQLiteDialect{}, nil
+	// setup:feature:postgres:start
+	case Postgres:
+		return PostgresDialect{}, nil
+	// setup:feature:postgres:end
 	default:
 		return nil, fmt.Errorf("unsupported database engine: %q", engine)
 	}
