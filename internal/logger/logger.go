@@ -11,8 +11,9 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/catgoose/promolog"
 	"catgoose/dothog/internal/shared"
+
+	"github.com/catgoose/promolog"
 
 	"github.com/catgoose/dio"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -122,11 +123,10 @@ func Get() *slog.Logger {
 	}
 	mu.RUnlock()
 
-	mu.Lock()
-	defer mu.Unlock()
-	if logger == nil {
-		Init()
-	}
+	Init()
+
+	mu.RLock()
+	defer mu.RUnlock()
 	return logger
 }
 
