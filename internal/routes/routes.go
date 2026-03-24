@@ -96,6 +96,8 @@ func (ar *appRoutes) InitRoutes() error {
 	// setup:feature:session_settings:end
 	// setup:feature:demo:start
 	ar.e.GET("/welcome", handler.HandleComponent(views.WelcomePage()))
+	ar.e.GET("/hypermedia", handler.HandleComponent(views.PatternsIndexPage()))
+	ar.e.GET("/demo", handler.HandleComponent(views.DemoIndexPage()))
 	// setup:feature:demo:end
 
 	// Health check endpoint — returns structured ops metadata.
@@ -171,6 +173,7 @@ func (ar *appRoutes) InitRoutes() error {
 	actLog := demo.NewActivityLog(200)
 	board := demo.NewKanbanBoard()
 	queue := demo.NewApprovalQueue()
+	ar.initAdminSettingsRoutes(broker)
 	ar.initAdminRoutes(db, actLog, broker)
 	ar.initPeopleRoutes(db, broker, actLog)
 	ar.initKanbanRoutes(board, actLog, broker)
