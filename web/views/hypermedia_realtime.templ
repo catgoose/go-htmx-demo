@@ -181,10 +181,13 @@ templ RealtimePage(initial ssebroker.SystemStats, snap MetricsSnapshot, services
 				</div>
 			</div>
 		</div>
-		<!-- SSE connection (placed after all OOB targets to avoid race on hx-boost navigation) -->
-		<div id="sse-connect-wrapper">
-			@SSEConnectBlock(5)
-		</div>
+		<!-- SSE connection — lazy-loaded to ensure all OOB targets exist in the DOM first -->
+		<div
+			id="sse-connect-wrapper"
+			hx-get="/hypermedia/realtime/sse-connect?interval=5"
+			hx-trigger="load"
+			hx-swap="innerHTML"
+		></div>
 		<!-- Polling Demo (collapsed) -->
 		<details class="collapse collapse-arrow bg-base-100 shadow border border-base-300 mt-4">
 			<summary class="collapse-title text-sm font-semibold">Polling Demo</summary>
@@ -216,7 +219,6 @@ templ RealtimePage(initial ssebroker.SystemStats, snap MetricsSnapshot, services
 // Swapping this block closes the old EventSource and opens a new one at the given interval.
 templ SSEConnectBlock(interval int) {
 	<div hx-ext="sse" sse-connect={ fmt.Sprintf("/sse/dashboard?interval=%d", interval) } hx-swap="innerHTML settle:0 transition:false">
-		<div sse-swap="system-stats" style="display:none"></div>
 		<div sse-swap="dashboard-metrics" style="display:none"></div>
 		<div sse-swap="dashboard-services" style="display:none"></div>
 		<div sse-swap="dashboard-events" style="display:none"></div>
@@ -410,11 +412,12 @@ templ oobEventItem(evt DashboardEvent) {
 
 // --- OOB Composites (rendered server-side, sent via SSE) ---
 
-// MetricsOOB emits KPI cards + all metrics charts via OOB swaps.
-templ MetricsOOB(snap MetricsSnapshot) {
+// MetricsOOB emits KPI cards + all metrics charts + dashboard system stats via OOB swaps.
+templ MetricsOOB(snap MetricsSnapshot, stats ssebroker.SystemStats) {
 	@oobKpiCard("kpi-rps", "Requests/s", fmtRPS(snap.RPS), "text-primary")
 	@oobKpiCard("kpi-errors", "Error Rate", fmtPct(snap.ErrorPct), "text-error")
 	@oobKpiCard("kpi-latency", "P99 Latency", fmtMs(snap.P99Ms), "text-warning")
+	@oobKpiCard("kpi-goroutines", "Goroutines", fmt.Sprintf("%d", stats.Goroutines), "text-info")
 	@oobNetworkChart(snap)
 	@oobCpuMemGauges(snap)
 	@oobConnPool(snap)
@@ -423,6 +426,12 @@ templ MetricsOOB(snap MetricsSnapshot) {
 	@oobThroughputSplitChart(snap)
 	@oobDiskIOChart(snap)
 	@oobRequestDistChart(snap)
+	@oobStatsCard("stat-uptime", "Uptime", stats.Uptime)
+	@oobStatsCard("stat-goroutines", "Goroutines", fmt.Sprintf("%d", stats.Goroutines))
+	@oobStatsCard("stat-heapalloc", "Heap Alloc", fmt.Sprintf("%.2f MB", stats.HeapAllocMB))
+	@oobStatsCard("stat-gccycles", "GC Cycles", fmt.Sprintf("%d", stats.GCCycles))
+	@oobStatsCard("stat-numcpu", "CPUs", fmt.Sprintf("%d", stats.NumCPU))
+	@oobStatsCard("stat-liveobjects", "Live Objects", fmt.Sprintf("%d", stats.LiveObjects))
 }
 
 // ServicesOOB emits the services bar chart and per-service latency via OOB swap.

@@ -91,8 +91,11 @@ func handleSSESystem(broker *ssebroker.SSEBroker) echo.HandlerFunc {
 	}
 }
 
-// handleSSEDashboard multiplexes 4 SSE topics into one event stream.
+// handleSSEDashboard multiplexes 3 SSE topics into one event stream.
 // Accepts ?interval=N (1–60 seconds) to throttle per-topic updates.
+// Note: system-stats is NOT subscribed here — the dashboard only renders 6 of 21
+// stat cards, so the full SystemStatsOOB would produce oobErrorNoTarget for the
+// missing 15. Instead, dashboard stats are included in MetricsOOB.
 func handleSSEDashboard(broker *ssebroker.SSEBroker) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		interval := 5 * time.Second
@@ -112,8 +115,6 @@ func handleSSEDashboard(broker *ssebroker.SSEBroker) echo.HandlerFunc {
 			return fmt.Errorf("streaming unsupported")
 		}
 
-		chStats, unsubStats := broker.Subscribe(ssebroker.TopicSystemStats)
-		defer unsubStats()
 		chMetrics, unsubMetrics := broker.Subscribe(ssebroker.TopicDashMetrics)
 		defer unsubMetrics()
 		chServices, unsubServices := broker.Subscribe(ssebroker.TopicDashServices)
@@ -135,11 +136,6 @@ func handleSSEDashboard(broker *ssebroker.SSEBroker) echo.HandlerFunc {
 			select {
 			case <-ctx.Done():
 				return nil
-			case msg, ok := <-chStats:
-				if !ok {
-					return nil
-				}
-				forward("stats", msg)
 			case msg, ok := <-chMetrics:
 				if !ok {
 					return nil
@@ -388,9 +384,12 @@ func (ar *appRoutes) publishMetrics(broker *ssebroker.SSEBroker) {
 			snap.ConnIdle = connIdle
 			snap.ConnWait = connWait
 
+			// Collect runtime stats for dashboard system metrics cards
+			stats := ssebroker.CollectRuntimeStats(ar.startTime)
+
 			buf := statsBufPool.Get().(*bytes.Buffer)
 			buf.Reset()
-			if err := views.MetricsOOB(snap).Render(shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "publish metrics"), buf); err != nil {
+			if err := views.MetricsOOB(snap, stats).Render(shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "publish metrics"), buf); err != nil {
 				statsBufPool.Put(buf)
 				continue
 			}
