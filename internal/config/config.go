@@ -52,6 +52,9 @@ type AppConfig struct {
 	// setup:feature:graph:start
 	GraphUserCacheRefreshHour int
 	// setup:feature:graph:end
+
+	// Internal API
+	InternalAPIKey string
 }
 
 func buildConfig() (*AppConfig, error) {
@@ -112,6 +115,9 @@ func buildConfig() (*AppConfig, error) {
 	// setup:feature:graph:start
 	cfg.GraphUserCacheRefreshHour = envInt("GRAPH_USERCACHE_REFRESH_HOUR", 5)
 	// setup:feature:graph:end
+
+	// Internal API
+	cfg.InternalAPIKey = env("INTERNAL_API_KEY", "")
 
 	return cfg, nil
 }

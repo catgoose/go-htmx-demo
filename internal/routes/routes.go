@@ -206,6 +206,7 @@ func (ar *appRoutes) InitRoutes() error {
 	if err != nil {
 		return fmt.Errorf("handler init: %w", err)
 	}
+	ar.initAPIRoutes(cfg.InternalAPIKey)
 	handler.InitRouteSet(ar.e, cfg.AppName)
 	ar.healthCfg.Name = cfg.AppName
 	return nil
