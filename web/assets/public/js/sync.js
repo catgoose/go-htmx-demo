@@ -8,11 +8,17 @@
 const DB_NAME = 'dothog_sync';
 const QUEUE_STORE = 'sync_queue';
 
+/** @type {IDBDatabase|null} */
+let _syncDB = null;
+
 /**
- * Open the sync database.
+ * Open the sync database, reusing an existing connection if available.
  * @returns {Promise<IDBDatabase>}
  */
 function openSyncDB() {
+  if (_syncDB) {
+    return Promise.resolve(_syncDB);
+  }
   return new Promise((resolve, reject) => {
     const req = indexedDB.open(DB_NAME, 1);
     req.onupgradeneeded = () => {
@@ -25,7 +31,11 @@ function openSyncDB() {
         store.createIndex('status', 'status', { unique: false });
       }
     };
-    req.onsuccess = () => resolve(req.result);
+    req.onsuccess = () => {
+      _syncDB = req.result;
+      _syncDB.onclose = () => { _syncDB = null; };
+      resolve(_syncDB);
+    };
     req.onerror = () => reject(req.error);
   });
 }
@@ -158,9 +168,19 @@ async function flushQueue() {
     schema_version: 1,
   };
 
+  /** @type {Record<string, string>} */
+  const headers = { 'Content-Type': 'application/json' };
+  if (typeof document !== 'undefined') {
+    /** @type {HTMLMetaElement|null} */
+    const csrfMeta = document.querySelector('meta[name="csrf-token"]');
+    if (csrfMeta) {
+      headers['X-CSRF-Token'] = csrfMeta.content;
+    }
+  }
+
   const res = await fetch('/sync', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: headers,
     body: JSON.stringify(payload),
   });
 

@@ -4,6 +4,8 @@ package routes
 import (
 	"fmt"
 	"net/http"
+	"net/http/httptest"
+	"strings"
 	"time"
 
 	"catgoose/dothog/internal/logger"
@@ -76,6 +78,9 @@ func (ar *appRoutes) handleSync(c echo.Context) error {
 func (ar *appRoutes) processSyncOperation(c echo.Context, index int, op SyncOperation) SyncResult {
 	// Creates (no version) are accepted without version check
 	if op.Version == nil {
+		if err := ar.replayOperation(c, op); err != nil {
+			return SyncResult{Index: index, Status: SyncError, Message: fmt.Sprintf("replay failed: %v", err)}
+		}
 		return SyncResult{
 			Index:   index,
 			Status:  SyncApplied,
@@ -87,6 +92,9 @@ func (ar *appRoutes) processSyncOperation(c echo.Context, index int, op SyncOper
 	table, id, ok := parseResourceURL(op.URL)
 	if !ok {
 		// Unknown resource — accept without version check
+		if err := ar.replayOperation(c, op); err != nil {
+			return SyncResult{Index: index, Status: SyncError, Message: fmt.Sprintf("replay failed: %v", err)}
+		}
 		return SyncResult{
 			Index:   index,
 			Status:  SyncApplied,
@@ -96,6 +104,9 @@ func (ar *appRoutes) processSyncOperation(c echo.Context, index int, op SyncOper
 
 	// If no version checker is configured, accept all
 	if ar.versionChecker == nil {
+		if err := ar.replayOperation(c, op); err != nil {
+			return SyncResult{Index: index, Status: SyncError, Message: fmt.Sprintf("replay failed: %v", err)}
+		}
 		return SyncResult{
 			Index:   index,
 			Status:  SyncApplied,
@@ -132,11 +143,40 @@ func (ar *appRoutes) processSyncOperation(c echo.Context, index int, op SyncOper
 		}
 	}
 
-	// Version matches — accept
+	// Version matches — replay and accept
+	if err := ar.replayOperation(c, op); err != nil {
+		return SyncResult{Index: index, Status: SyncError, Message: fmt.Sprintf("replay failed: %v", err)}
+	}
 	return SyncResult{
 		Index:      index,
 		Status:     SyncApplied,
 		Message:    "applied",
 		NewVersion: currentVersion + 1,
 	}
+}
+
+// replayOperation executes a queued sync operation against the Echo router.
+func (ar *appRoutes) replayOperation(c echo.Context, op SyncOperation) error {
+	body := strings.NewReader(op.Body)
+	req, err := http.NewRequestWithContext(c.Request().Context(), op.Method, op.URL, body)
+	if err != nil {
+		return fmt.Errorf("build replay request: %w", err)
+	}
+	req.Header.Set("Content-Type", op.ContentType)
+	// Copy auth/session headers from the original sync request
+	for _, h := range []string{"Cookie", "Authorization"} {
+		if v := c.Request().Header.Get(h); v != "" {
+			req.Header.Set(h, v)
+		}
+	}
+	// Mark as HTMX so handlers return fragments (we discard the response body)
+	req.Header.Set("HX-Request", "true")
+
+	rec := httptest.NewRecorder()
+	ar.e.ServeHTTP(rec, req)
+
+	if rec.Code >= 400 {
+		return fmt.Errorf("replay returned %d", rec.Code)
+	}
+	return nil
 }

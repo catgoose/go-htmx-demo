@@ -29,6 +29,9 @@ func TestHandleSync_EmptyBatch(t *testing.T) {
 
 func TestHandleSync_SingleOperation(t *testing.T) {
 	e := echo.New()
+	e.Any("/*", func(c echo.Context) error {
+		return c.String(http.StatusOK, "ok")
+	})
 	ar := &appRoutes{e: e}
 
 	body := `{
@@ -56,6 +59,9 @@ func TestHandleSync_SingleOperation(t *testing.T) {
 
 func TestHandleSync_MultipleOperations(t *testing.T) {
 	e := echo.New()
+	e.Any("/*", func(c echo.Context) error {
+		return c.String(http.StatusOK, "ok")
+	})
 	ar := &appRoutes{e: e}
 
 	body := `{
