@@ -167,6 +167,7 @@ func (ar *appRoutes) InitRoutes() error {
 	ar.initErrorTracesRoutes()
 
 	// setup:feature:demo:start
+	ar.initPwaRoutes()
 	ar.initReportDemoRoutes()
 	ar.initLoggingRoutes()
 	ar.initControlsGalleryRoutes()

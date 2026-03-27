@@ -1,0 +1,225 @@
+// setup:feature:demo
+
+package views
+
+// PwaIndexPage renders the /pwa offline forms landing page.
+templ PwaIndexPage() {
+	<div class="p-4 space-y-6 max-w-4xl mx-auto">
+		<div class="space-y-1">
+			<h1 class="text-2xl font-bold">PWA Offline Forms</h1>
+			<p class="text-sm text-base-content/60">Collect data offline. Forms are saved locally and synced automatically when you reconnect.</p>
+		</div>
+
+		<div class="alert alert-info shadow-sm">
+			<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+			</svg>
+			<span class="text-sm">Data is saved locally when offline and synced when back online. Install this app to your home screen for the best experience.</span>
+		</div>
+
+		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+			@pwaFormCard("/pwa/inspection", "Site Inspection", "Record site conditions, inspector details, and observations.", "M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4")
+			@pwaFormCard("/pwa/report", "Field Report", "Submit field reports with category, priority, and actions taken.", "M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z")
+			@pwaFormCard("/pwa/notes", "General Notes", "Quick notes with subject, body, and tags.", "M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z")
+		</div>
+	</div>
+}
+
+templ pwaFormCard(href, title, description, iconPath string) {
+	<a href={ templ.URL(href) } class="card bg-base-100 shadow border border-base-300 hover:border-primary/30 hover:shadow-md transition-all cursor-pointer">
+		<div class="card-body p-4">
+			<div class="flex items-start gap-3">
+				<div class="bg-base-200 rounded-lg p-2 shrink-0">
+					<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-base-content/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d={ iconPath }></path>
+					</svg>
+				</div>
+				<div>
+					<h3 class="font-semibold text-sm">{ title }</h3>
+					<p class="text-xs text-base-content/50 mt-1">{ description }</p>
+				</div>
+			</div>
+		</div>
+	</a>
+}
+
+// PwaSiteInspectionForm renders the site inspection data collection form.
+templ PwaSiteInspectionForm() {
+	<div class="p-4 max-w-2xl mx-auto">
+		<div class="card bg-base-100 shadow border border-base-300">
+			<div class="card-body">
+				<h2 class="card-title text-lg">Site Inspection</h2>
+				<p class="text-sm text-base-content/60 mb-4">Record site conditions and observations.</p>
+				<form hx-post="/pwa/inspection" hx-swap="outerHTML" class="space-y-4">
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Location</span>
+						</label>
+						<input type="text" name="location" class="input input-bordered w-full" placeholder="Site address or description" required/>
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Inspector Name</span>
+						</label>
+						<input type="text" name="inspector" class="input input-bordered w-full" placeholder="Your name" required/>
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Date</span>
+						</label>
+						<input type="date" name="date" class="input input-bordered w-full" x-data x-init="$el.valueAsDate = new Date()"/>
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Condition</span>
+						</label>
+						<select name="condition" class="select select-bordered w-full">
+							<option value="good">Good</option>
+							<option value="fair">Fair</option>
+							<option value="poor">Poor</option>
+							<option value="critical">Critical</option>
+						</select>
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Notes</span>
+						</label>
+						<textarea name="notes" class="textarea textarea-bordered w-full" rows="4" placeholder="Observations, issues, or comments"></textarea>
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Photo Reference</span>
+						</label>
+						<input type="text" name="photo_ref" class="input input-bordered w-full" placeholder="Photo filename or description"/>
+					</div>
+					<div class="form-control mt-6">
+						<button type="submit" class="btn btn-primary">Submit Inspection</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+}
+
+// PwaFieldReportForm renders the field report data collection form.
+templ PwaFieldReportForm() {
+	<div class="p-4 max-w-2xl mx-auto">
+		<div class="card bg-base-100 shadow border border-base-300">
+			<div class="card-body">
+				<h2 class="card-title text-lg">Field Report</h2>
+				<p class="text-sm text-base-content/60 mb-4">Submit a field report with category and priority.</p>
+				<form hx-post="/pwa/report" hx-swap="outerHTML" class="space-y-4">
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Reporter Name</span>
+						</label>
+						<input type="text" name="reporter" class="input input-bordered w-full" placeholder="Your name" required/>
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Date</span>
+						</label>
+						<input type="date" name="date" class="input input-bordered w-full" x-data x-init="$el.valueAsDate = new Date()"/>
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Category</span>
+						</label>
+						<select name="category" class="select select-bordered w-full">
+							<option value="maintenance">Maintenance</option>
+							<option value="safety">Safety</option>
+							<option value="environmental">Environmental</option>
+							<option value="equipment">Equipment</option>
+							<option value="other">Other</option>
+						</select>
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Priority</span>
+						</label>
+						<select name="priority" class="select select-bordered w-full">
+							<option value="low">Low</option>
+							<option value="medium" selected>Medium</option>
+							<option value="high">High</option>
+							<option value="urgent">Urgent</option>
+						</select>
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Description</span>
+						</label>
+						<textarea name="description" class="textarea textarea-bordered w-full" rows="4" placeholder="Describe the situation" required></textarea>
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Action Taken</span>
+						</label>
+						<textarea name="action_taken" class="textarea textarea-bordered w-full" rows="3" placeholder="Actions taken or recommended"></textarea>
+					</div>
+					<div class="form-control mt-6">
+						<button type="submit" class="btn btn-primary">Submit Report</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+}
+
+// PwaNotesForm renders the general notes form.
+templ PwaNotesForm() {
+	<div class="p-4 max-w-2xl mx-auto">
+		<div class="card bg-base-100 shadow border border-base-300">
+			<div class="card-body">
+				<h2 class="card-title text-lg">General Notes</h2>
+				<p class="text-sm text-base-content/60 mb-4">Quick notes with optional tags.</p>
+				<form hx-post="/pwa/notes" hx-swap="outerHTML" class="space-y-4">
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Author</span>
+						</label>
+						<input type="text" name="author" class="input input-bordered w-full" placeholder="Your name" required/>
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Subject</span>
+						</label>
+						<input type="text" name="subject" class="input input-bordered w-full" placeholder="Note subject" required/>
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Body</span>
+						</label>
+						<textarea name="body" class="textarea textarea-bordered w-full" rows="8" placeholder="Write your notes here..." required></textarea>
+					</div>
+					<div class="form-control">
+						<label class="label">
+							<span class="label-text">Tags</span>
+						</label>
+						<input type="text" name="tags" class="input input-bordered w-full" placeholder="Comma-separated tags (e.g. safety, urgent, follow-up)"/>
+					</div>
+					<div class="form-control mt-6">
+						<button type="submit" class="btn btn-primary">Save Notes</button>
+					</div>
+				</form>
+			</div>
+		</div>
+	</div>
+}
+
+// PwaFormSuccess renders a success confirmation after form submission.
+templ PwaFormSuccess(message string) {
+	<div class="p-4 max-w-2xl mx-auto">
+		<div class="alert alert-success shadow-sm">
+			<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+				<path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+			</svg>
+			<div>
+				<h3 class="font-bold">Success</h3>
+				<div class="text-sm">{ message }</div>
+			</div>
+		</div>
+		<div class="mt-4">
+			<a href="/pwa" class="btn btn-ghost btn-sm">Back to PWA Forms</a>
+		</div>
+	</div>
+}
