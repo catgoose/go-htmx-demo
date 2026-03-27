@@ -1,14 +1,21 @@
 // setup:feature:demo
 /**
- * Alpine.js component that populates the context bar from <link rel="related"> tags.
- * Reads link relations from the document head and renders them as navigation links.
+ * Alpine.js component that populates the context bar from <link> tags.
+ * Reads link relations from the document head and renders them.
+ * - rel="bookmark" — frecent (user's frequently visited pages) — left side
+ * - rel="related" — declared related pages — right side
  * @returns {AlpineComponent}
  */
 function contextBar() {
   return {
-    links: [],
+    frecent: [],
+    related: [],
     init() {
-      this.links = Array.from(document.querySelectorAll('head link[rel="related"]'))
+      this.frecent = this.readLinks('bookmark');
+      this.related = this.readLinks('related');
+    },
+    readLinks(rel) {
+      return Array.from(document.querySelectorAll('head link[rel="' + rel + '"]'))
         .map(function(el) { return { href: el.getAttribute('href'), title: el.getAttribute('title') }; })
         .filter(function(l) { return l.href && l.title && l.href !== window.location.pathname; });
     }

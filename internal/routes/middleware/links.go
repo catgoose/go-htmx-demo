@@ -7,14 +7,15 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// LinkRelationsMiddleware looks up registered link relations for the
-// current request path and stores them on the context for template rendering.
-// It also emits an RFC 8288 Link HTTP header.
+// LinkRelationsMiddleware collects link relations from all registered
+// LinkSource implementations and stores them on the context for template
+// rendering. It also emits an RFC 8288 Link HTTP header.
 func LinkRelationsMiddleware() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			path := c.Request().URL.Path
-			links := hypermedia.LinksFor(path)
+			ctx := c.Request().Context()
+			links := hypermedia.AllSourceLinks(ctx, path)
 			if len(links) > 0 {
 				// Set RFC 8288 Link header
 				c.Response().Header().Set("Link", hypermedia.LinkHeader(links))

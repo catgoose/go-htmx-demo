@@ -118,7 +118,7 @@ func (ar *appRoutes) InitRoutes() error {
 	// setup:feature:demo:start
 	ar.e.GET("/welcome", handler.HandleComponent(views.WelcomePage()))
 	ar.e.GET("/hypermedia", handler.HandleComponent(views.PatternsIndexPage()))
-	ar.e.GET("/demo", handler.HandleComponent(views.DemoIndexPage()))
+	ar.e.GET("/demo", ar.handleDemoIndex)
 	// setup:feature:demo:end
 
 	// Health check endpoint — returns structured ops metadata.
@@ -185,6 +185,7 @@ func (ar *appRoutes) InitRoutes() error {
 	ar.initVendorContactRoutes(db, actLog, broker)
 	ar.initDashboardRoutes(db, board, queue, actLog)
 	ar.initAdminErrorReportsRoutes(db)
+	ar.initFrecency(db)
 	// setup:feature:demo:end
 	ar.e.RouteNotFound("/*", handler.HandleNotFound)
 	cfg, err := config.GetConfig()
