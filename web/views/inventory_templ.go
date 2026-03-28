@@ -580,7 +580,7 @@ func InventoryEditRow(item demo.Item, isNew bool, saveURL, cancelURL string) tem
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\"></td><td><input type=\"number\" name=\"stock\" class=\"input input-sm w-20\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\" inputmode=\"decimal\"></td><td><input type=\"number\" name=\"stock\" class=\"input input-sm w-20\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -593,7 +593,7 @@ func InventoryEditRow(item demo.Item, isNew bool, saveURL, cancelURL string) tem
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "\"></td><td><input type=\"checkbox\" name=\"active\" value=\"true\" class=\"toggle toggle-sm\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "\" inputmode=\"numeric\"></td><td><input type=\"checkbox\" name=\"active\" value=\"true\" class=\"toggle toggle-sm\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
