@@ -91,7 +91,7 @@ func NavBar(items []hypermedia.NavItem) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" popover class=\"nav-mega-panel m-0 w-full border-b border-base-300 shadow-lg bg-base-100\" style=\"position: fixed; top: auto; left: 0; right: 0;\" _=\"on mouseleave call me.hidePopover()\"><div class=\"max-w-6xl mx-auto px-6 py-4\"><div class=\"flex flex-wrap gap-6\">")
+				templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, "\" popover class=\"nav-mega-panel border-b border-base-300 shadow-lg bg-base-100\" style=\"position: fixed; inset: unset; left: 0; width: 100vw; margin: 0; padding: 0;\" _=\"on mouseleave call me.hidePopover()\"><div class=\"max-w-6xl mx-auto px-6 py-4\"><div class=\"flex flex-wrap gap-6\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
