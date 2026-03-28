@@ -131,6 +131,12 @@ func (ar *appRoutes) initLinkRelations() {
 		hypermedia.Rel("/admin/error-traces", "Error Traces"),
 	)
 
+	// ── Settings ────────────────────────────────────────────────────
+
+	hypermedia.Link("/settings", "related", "/user/settings", "Preferences")
+	hypermedia.Link("/settings", "related", "/admin/config", "Admin Config")
+	hypermedia.Link("/settings", "related", "/admin/settings", "Control Panel")
+
 	// ── Action relations ────────────────────────────────────────────
 
 	// List pages with create forms

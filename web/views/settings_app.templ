@@ -1,7 +1,9 @@
 package views
 
+import "catgoose/dothog/internal/routes/hypermedia"
+
 // AppSettingsPage renders the /settings page with an inline theme picker.
-templ AppSettingsPage(currentTheme string) {
+templ AppSettingsPage(currentTheme string, links []hypermedia.LinkRelation) {
 	<div class="max-w-2xl mx-auto space-y-6">
 		<h1 class="text-2xl font-bold">Settings</h1>
 		<div class="card bg-base-100 shadow-sm border border-base-300">
@@ -38,17 +40,30 @@ templ AppSettingsPage(currentTheme string) {
 				</details>
 			</div>
 		</div>
-		<div class="card bg-base-100 shadow-sm border border-base-300">
-			<div class="card-body">
-				<details open>
-					<summary class="font-semibold text-lg cursor-pointer">Quick Links</summary>
-					<ul class="menu mt-1">
-						<li><a href="/user/settings">Preferences</a></li>
-						<li><a href="/admin/config">Admin Config</a></li>
-					</ul>
-				</details>
+		if len(links) > 0 {
+			<div class="card bg-base-100 shadow-sm border border-base-300">
+				<div class="card-body">
+					<details open>
+						<summary class="font-semibold text-lg cursor-pointer">Related</summary>
+						<ul class="menu mt-1">
+							for _, link := range links {
+								if link.Rel == "related" || link.Rel == "up" {
+									<li>
+										<a href={ templ.URL(link.Href) }>
+											if link.Rel == "up" {
+												↑ { link.Title }
+											} else {
+												{ link.Title }
+											}
+										</a>
+									</li>
+								}
+							}
+						</ul>
+					</details>
+				</div>
 			</div>
-		</div>
+		}
 	</div>
 }
 
