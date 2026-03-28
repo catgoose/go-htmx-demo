@@ -298,7 +298,7 @@ func InitEcho(ctx context.Context, staticFS fs.FS, cfg *config.AppConfig,
 	// setup:feature:offline:start
 	// Serve the service worker from the root so it can control all pages.
 	e.GET("/sw.js", func(c echo.Context) error {
-		f, err := staticFS.Open("sw.js")
+		f, err := staticFS.Open("js/sw.js")
 		if err != nil {
 			return echo.NewHTTPError(http.StatusNotFound)
 		}
