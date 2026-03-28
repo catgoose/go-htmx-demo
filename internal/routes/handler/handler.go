@@ -106,6 +106,11 @@ func getLayoutCtx(c echo.Context) layoutCtx {
 		crumbs = append([]hypermedia.Breadcrumb{{Label: hypermedia.BreadcrumbLabelHome, Href: "/"}}, pathCrumbs...)
 	}
 
+	// Fallback: derive breadcrumbs from the link registry's rel="up" chain.
+	if len(crumbs) == 0 {
+		crumbs = hypermedia.BreadcrumbsFromLinks(c.Request().URL.Path)
+	}
+
 	if label, ok := c.Get(pageLabel).(string); ok && label != "" && len(crumbs) > 0 {
 		crumbs[len(crumbs)-1].Label = label
 	}
