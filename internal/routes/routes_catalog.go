@@ -5,6 +5,7 @@ package routes
 import (
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
+	hx "catgoose/dothog/internal/routes/htmx"
 	"catgoose/dothog/internal/routes/hypermedia"
 	"catgoose/dothog/internal/routes/params"
 	"catgoose/dothog/web/views"
@@ -34,9 +35,12 @@ func (cat *catalogRoutes) handleCatalogPage(c echo.Context) error {
 }
 
 func (cat *catalogRoutes) handleCatalogItems(c echo.Context) error {
-	_, container, err := cat.buildCatalogContent(c)
+	bar, container, err := cat.buildCatalogContent(c)
 	if err != nil {
 		return handler.HandleHypermediaError(c, 500, "Failed to load items", err)
+	}
+	if hx.IsBoosted(c) {
+		return handler.RenderBaseLayout(c, views.CatalogPage(bar, container))
 	}
 	setTableReplaceURL(c, catalogBase)
 	return handler.RenderComponent(c, container)
