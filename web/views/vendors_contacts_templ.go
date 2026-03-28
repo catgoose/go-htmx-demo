@@ -430,7 +430,7 @@ func ContactEditForm(c demo.Contact) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\"></div><div><label class=\"label label-text text-xs\">Role</label> <input type=\"text\" name=\"role\" class=\"input input-xs w-full\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "\" autocomplete=\"name\"></div><div><label class=\"label label-text text-xs\">Role</label> <input type=\"text\" name=\"role\" class=\"input input-xs w-full\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -456,7 +456,7 @@ func ContactEditForm(c demo.Contact) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\"></div><div><label class=\"label label-text text-xs\">Phone</label> <input type=\"text\" name=\"phone\" class=\"input input-xs w-full\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\" inputmode=\"email\" autocomplete=\"email\"></div><div><label class=\"label label-text text-xs\">Phone</label> <input type=\"text\" name=\"phone\" class=\"input input-xs w-full\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -469,7 +469,7 @@ func ContactEditForm(c demo.Contact) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\"></div></div><div class=\"flex gap-2 mt-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "\" inputmode=\"tel\" autocomplete=\"tel\"></div></div><div class=\"flex gap-2 mt-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

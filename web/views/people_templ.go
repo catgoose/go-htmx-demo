@@ -520,7 +520,7 @@ func PersonEditForm(p demo.Person) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\"></div><div><label class=\"label label-text text-xs\">Last Name</label> <input type=\"text\" name=\"last_name\" class=\"input input-sm w-full\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "\" autocomplete=\"given-name\"></div><div><label class=\"label label-text text-xs\">Last Name</label> <input type=\"text\" name=\"last_name\" class=\"input input-sm w-full\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -533,7 +533,7 @@ func PersonEditForm(p demo.Person) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\"></div><div><label class=\"label label-text text-xs\">Email</label> <input type=\"email\" name=\"email\" class=\"input input-sm w-full\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" autocomplete=\"family-name\"></div><div><label class=\"label label-text text-xs\">Email</label> <input type=\"email\" name=\"email\" class=\"input input-sm w-full\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -546,7 +546,7 @@ func PersonEditForm(p demo.Person) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\"></div><div><label class=\"label label-text text-xs\">Phone</label> <input type=\"text\" name=\"phone\" class=\"input input-sm w-full\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" inputmode=\"email\" autocomplete=\"email\"></div><div><label class=\"label label-text text-xs\">Phone</label> <input type=\"text\" name=\"phone\" class=\"input input-sm w-full\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -559,7 +559,7 @@ func PersonEditForm(p demo.Person) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\"></div><div><label class=\"label label-text text-xs\">City</label> <input type=\"text\" name=\"city\" class=\"input input-sm w-full\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" inputmode=\"tel\" autocomplete=\"tel\"></div><div><label class=\"label label-text text-xs\">City</label> <input type=\"text\" name=\"city\" class=\"input input-sm w-full\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -572,7 +572,7 @@ func PersonEditForm(p demo.Person) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "\"></div><div><label class=\"label label-text text-xs\">State</label> <input type=\"text\" name=\"state\" class=\"input input-sm w-full\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "\" autocomplete=\"address-level2\"></div><div><label class=\"label label-text text-xs\">State</label> <input type=\"text\" name=\"state\" class=\"input input-sm w-full\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -585,7 +585,7 @@ func PersonEditForm(p demo.Person) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\"></div><div><label class=\"label label-text text-xs\">Department</label> <select name=\"department\" class=\"select select-sm w-full\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\" autocomplete=\"address-level1\"></div><div><label class=\"label label-text text-xs\">Department</label> <select name=\"department\" class=\"select select-sm w-full\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
