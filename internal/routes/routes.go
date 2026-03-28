@@ -24,6 +24,7 @@ import (
 	"fmt"
 	"io/fs"
 	"net/http"
+	"os"
 	"time"
 	// setup:feature:auth:start
 	"github.com/catgoose/crooner"
@@ -246,7 +247,12 @@ func InitEcho(ctx context.Context, staticFS fs.FS, cfg *config.AppConfig,
 	e.Use(echoMiddleware.RequestLogger())
 	e.Use(echoMiddleware.Recover())
 	e.Use(echoMiddleware.Secure())
-	e.Use(echoMiddleware.Gzip())
+	// Skip gzip when running behind the templ proxy (mage watch).
+	// Echo's chunked gzip responses cause h2 framing errors through
+	// the templ-proxy → Caddy chain. Caddy handles compression instead.
+	if os.Getenv("TEMPL_PROXY") == "" {
+		e.Use(echoMiddleware.Gzip())
+	}
 
 	// setup:feature:auth:start
 	if cfg != nil && !cfg.CroonerDisabled && cfg.CroonerConfig != nil {

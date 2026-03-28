@@ -451,6 +451,9 @@ func EnvCheck() error {
 
 // Watch runs Tailwind, Templ, Air, and Caddy in watch mode
 func Watch() error {
+	// Signal to the Go server that it's behind the templ proxy chain.
+	// Echo skips gzip middleware when this is set — Caddy handles compression.
+	os.Setenv("TEMPL_PROXY", "true")
 	errc := make(chan error, 4)
 
 	go func() {
