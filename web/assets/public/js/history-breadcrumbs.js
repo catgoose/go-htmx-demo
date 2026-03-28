@@ -19,14 +19,30 @@ function historyBreadcrumbs() {
       // Remove current page if already in history (prevents duplicates on refresh)
       history = history.filter(function(h) { return h.path !== current; });
 
-      // Fix stale titles from before path-derived titles were implemented
-      history = history.map(function(h) { return { path: h.path, title: titleFromPath(h.path) }; });
+      // Fix stale titles — only regenerate if title looks like a raw path segment
+      // (lowercase, single word, or just "dothog"). Keep good titles like "Linda Davis".
+      history = history.map(function(h) {
+        if (!h.title || h.title === 'dothog' || h.title === h.path) {
+          return { path: h.path, title: titleFromPath(h.path) };
+        }
+        return h;
+      });
 
       // The trail is the history WITHOUT the current page
       this.trail = history.slice(-MAX);
 
-      // Push current page onto history for next navigation
-      history.push({ path: current, title: titleFromPath(current) });
+      // Push current page onto history for next navigation.
+      // Try to read the page label from the hierarchy breadcrumbs (last crumb is
+      // plain text, not a link — it's the server-set page label like "Linda Davis").
+      var pageTitle = titleFromPath(current);
+      var crumbItems = document.querySelectorAll('.breadcrumbs li:last-child span, .breadcrumbs li:last-child');
+      if (crumbItems.length > 0) {
+        var lastCrumb = crumbItems[crumbItems.length - 1];
+        if (lastCrumb && lastCrumb.textContent && lastCrumb.textContent.trim()) {
+          pageTitle = lastCrumb.textContent.trim();
+        }
+      }
+      history.push({ path: current, title: pageTitle });
 
       // Cap the history
       if (history.length > MAX + 1) {
