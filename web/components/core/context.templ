@@ -224,7 +224,11 @@ templ LocalContextBar(links []hypermedia.LinkRelation, currentPath string) {
 						<span class="text-base-content/25 font-medium whitespace-nowrap">{ group.Name }</span>
 					}
 					for _, item := range group.Items {
-						<a href={ templ.URL(item.Href) } class="link link-hover text-base-content/50 hover:text-base-content whitespace-nowrap">{ item.Title }</a>
+						if item.IsUp {
+							<a href={ templ.URL(item.Href) } class="link link-hover text-base-content/50 hover:text-base-content whitespace-nowrap">↑ { item.Title }</a>
+						} else {
+							<a href={ templ.URL(item.Href) } class="link link-hover text-base-content/50 hover:text-base-content whitespace-nowrap">{ item.Title }</a>
+						}
 					}
 					if i < len(groups) - 1 {
 						<div class="w-px h-3 bg-base-300 shrink-0"></div>
@@ -236,10 +240,23 @@ templ LocalContextBar(links []hypermedia.LinkRelation, currentPath string) {
 	</div>
 }
 
-// localGroups returns only the rings the current page directly belongs to.
+// localGroups returns only the rings the current page directly belongs to,
+// prepended with the hub parent link (rel="up") when present.
 func localGroups(links []hypermedia.LinkRelation, currentPath string) []contextBarGroup {
-	seen := map[string]int{}
 	var groups []contextBarGroup
+
+	// Prepend hub parent link if present, matching ContextBar behaviour.
+	for _, l := range links {
+		if l.Rel == "up" {
+			groups = append(groups, contextBarGroup{
+				IsHub: true,
+				Items: []contextBarItem{{Href: l.Href, Title: l.Title, IsUp: true}},
+			})
+			break
+		}
+	}
+
+	seen := map[string]int{}
 	for _, l := range links {
 		if l.Href == currentPath || l.Rel != "related" || l.Group == "" {
 			continue
@@ -257,8 +274,11 @@ func localGroups(links []hypermedia.LinkRelation, currentPath string) []contextB
 			})
 		}
 	}
-	// Sort items within each group
+	// Sort items within each ring group (skip hub parent group at index 0 if present)
 	for i := range groups {
+		if groups[i].IsHub {
+			continue
+		}
 		sort.Slice(groups[i].Items, func(a, b int) bool {
 			return groups[i].Items[a].Title < groups[i].Items[b].Title
 		})
