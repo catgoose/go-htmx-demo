@@ -2,12 +2,29 @@ package components
 
 import "catgoose/dothog/internal/routes/hypermedia"
 
-// contextBarGroups groups related links by their Group field, preserving order.
+// contextBarItem is a link with its display type.
+type contextBarItem struct {
+	Href  string
+	Title string
+	IsUp  bool // true for hub parent (rel="up"), false for ring sibling (rel="related")
+}
+
+type contextBarGroup struct {
+	Name  string
+	IsHub bool // true if this group contains hub links (center→spoke)
+	Items []contextBarItem
+}
+
+// contextBarGroups groups links by their Group field, preserving order.
+// Includes both rel="related" (ring/hub-center) and rel="up" (hub-spoke→parent).
 func contextBarGroups(links []hypermedia.LinkRelation, currentPath string) []contextBarGroup {
 	seen := map[string]int{}
 	var groups []contextBarGroup
 	for _, l := range links {
-		if l.Rel != "related" || l.Href == currentPath {
+		if l.Href == currentPath {
+			continue
+		}
+		if l.Rel != "related" && l.Rel != "up" {
 			continue
 		}
 		idx, ok := seen[l.Group]
@@ -16,14 +33,17 @@ func contextBarGroups(links []hypermedia.LinkRelation, currentPath string) []con
 			seen[l.Group] = idx
 			groups = append(groups, contextBarGroup{Name: l.Group})
 		}
-		groups[idx].Links = append(groups[idx].Links, l)
+		isUp := l.Rel == "up"
+		if isUp {
+			groups[idx].IsHub = true
+		}
+		groups[idx].Items = append(groups[idx].Items, contextBarItem{
+			Href:  l.Href,
+			Title: l.Title,
+			IsUp:  isUp,
+		})
 	}
 	return groups
-}
-
-type contextBarGroup struct {
-	Name  string
-	Links []hypermedia.LinkRelation
 }
 
 // ContextStrip renders a unified bar with breadcrumbs on the left and
@@ -56,10 +76,18 @@ templ ContextBar(links []hypermedia.LinkRelation, currentPath string) {
 						<div class="w-px h-4 bg-base-300 shrink-0"></div>
 					}
 					if group.Name != "" {
-						<span class="text-base-content/30 text-xs font-medium whitespace-nowrap">{ group.Name }</span>
+						if group.IsHub {
+							<span class="text-base-content/30 text-xs font-medium whitespace-nowrap">↑ { group.Name }</span>
+						} else {
+							<span class="text-base-content/30 text-xs font-medium whitespace-nowrap">○ { group.Name }</span>
+						}
 					}
-					for _, link := range group.Links {
-						<a href={ templ.URL(link.Href) } class="link link-hover text-base-content/60 hover:text-base-content whitespace-nowrap">{ link.Title }</a>
+					for _, item := range group.Items {
+						if item.IsUp {
+							<a href={ templ.URL(item.Href) } class="link link-hover text-base-content/40 hover:text-base-content whitespace-nowrap">{ item.Title }</a>
+						} else {
+							<a href={ templ.URL(item.Href) } class="link link-hover text-base-content/60 hover:text-base-content whitespace-nowrap">{ item.Title }</a>
+						}
 					}
 				}
 			</div>

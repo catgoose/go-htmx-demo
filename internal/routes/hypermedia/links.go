@@ -154,10 +154,10 @@ func Hub(centerPath, centerTitle string, spokes ...RelEntry) {
 				Group: centerTitle,
 			})
 		}
-		// Spoke -> center
-		if !hasLink(linksMap[spoke.Path], centerPath, "related") {
+		// Spoke -> center (uses rel="up" to indicate parent)
+		if !hasLink(linksMap[spoke.Path], centerPath, "up") {
 			linksMap[spoke.Path] = append(linksMap[spoke.Path], LinkRelation{
-				Rel:   "related",
+				Rel:   "up",
 				Href:  centerPath,
 				Title: centerTitle,
 				Group: centerTitle,
