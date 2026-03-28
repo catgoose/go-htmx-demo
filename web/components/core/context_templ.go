@@ -25,6 +25,8 @@ type contextBarGroup struct {
 
 // contextBarGroups groups links by their Group field, preserving order.
 // Includes both rel="related" (ring/hub-center) and rel="up" (hub-spoke→parent).
+// For hub centers (all links in one hub group), it resolves each spoke's Ring
+// memberships so the children are displayed in their ring groups.
 func contextBarGroups(links []hypermedia.LinkRelation, currentPath string) []contextBarGroup {
 	seen := map[string]int{}
 	var groups []contextBarGroup
@@ -51,7 +53,76 @@ func contextBarGroups(links []hypermedia.LinkRelation, currentPath string) []con
 			IsUp:  isUp,
 		})
 	}
+
+	// If we have exactly one hub group (this is a hub center page),
+	// resolve spokes into their ring groups for richer display.
+	if len(groups) == 1 && groups[0].IsHub {
+		return resolveHubChildGroups(groups[0], currentPath)
+	}
 	return groups
+}
+
+// resolveHubChildGroups takes a hub center's flat spoke list and regroups
+// them by looking up each spoke's ring memberships from the registry.
+func resolveHubChildGroups(hub contextBarGroup, currentPath string) []contextBarGroup {
+	seen := map[string]int{}
+	var groups []contextBarGroup
+	placed := map[string]bool{}
+
+	// For each spoke, find its ring group names from the registry
+	for _, item := range hub.Items {
+		spokeLinks := hypermedia.LinksFor(item.Href, "related")
+		for _, sl := range spokeLinks {
+			if sl.Group != "" && sl.Group != hub.Name && !placed[item.Href+"|"+sl.Group] {
+				idx, ok := seen[sl.Group]
+				if !ok {
+					idx = len(groups)
+					seen[sl.Group] = idx
+					groups = append(groups, contextBarGroup{Name: sl.Group})
+				}
+				if !hasItem(groups[idx].Items, item.Href) {
+					groups[idx].Items = append(groups[idx].Items, contextBarItem{
+						Href:  item.Href,
+						Title: item.Title,
+					})
+				}
+				placed[item.Href+"|"+sl.Group] = true
+			}
+		}
+	}
+
+	// Any spokes not in any ring go into an "Other" group
+	var ungrouped []contextBarItem
+	for _, item := range hub.Items {
+		inRing := false
+		for _, g := range groups {
+			if hasItem(g.Items, item.Href) {
+				inRing = true
+				break
+			}
+		}
+		if !inRing {
+			ungrouped = append(ungrouped, item)
+		}
+	}
+	if len(ungrouped) > 0 {
+		groups = append(groups, contextBarGroup{Name: "", Items: ungrouped})
+	}
+
+	if len(groups) == 0 {
+		// Fallback: no rings found, show original hub group
+		return []contextBarGroup{hub}
+	}
+	return groups
+}
+
+func hasItem(items []contextBarItem, href string) bool {
+	for _, it := range items {
+		if it.Href == href {
+			return true
+		}
+	}
+	return false
 }
 
 // ContextStrip renders a unified bar with breadcrumbs on the left and
@@ -216,7 +287,7 @@ func contextBarGroupItems(group contextBarGroup) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(group.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/context.templ`, Line: 94, Col: 87}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/context.templ`, Line: 165, Col: 87}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -236,7 +307,7 @@ func contextBarGroupItems(group contextBarGroup) templ.Component {
 				var templ_7745c5c3_Var5 templ.SafeURL
 				templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(item.Href))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/context.templ`, Line: 98, Col: 33}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/context.templ`, Line: 169, Col: 33}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 				if templ_7745c5c3_Err != nil {
@@ -249,7 +320,7 @@ func contextBarGroupItems(group contextBarGroup) templ.Component {
 				var templ_7745c5c3_Var6 string
 				templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(item.Title)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/context.templ`, Line: 98, Col: 139}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/context.templ`, Line: 169, Col: 139}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 				if templ_7745c5c3_Err != nil {
@@ -267,7 +338,7 @@ func contextBarGroupItems(group contextBarGroup) templ.Component {
 				var templ_7745c5c3_Var7 templ.SafeURL
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(item.Href))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/context.templ`, Line: 100, Col: 33}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/context.templ`, Line: 171, Col: 33}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -280,7 +351,7 @@ func contextBarGroupItems(group contextBarGroup) templ.Component {
 				var templ_7745c5c3_Var8 string
 				templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(item.Title)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/context.templ`, Line: 100, Col: 135}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/context.templ`, Line: 171, Col: 135}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 				if templ_7745c5c3_Err != nil {
@@ -326,7 +397,7 @@ func ContextLink(href, label, from string) templ.Component {
 		var templ_7745c5c3_Var10 templ.SafeURL
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinURLErrs(templ.URL(hypermedia.FromNav(href, from)))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/context.templ`, Line: 109, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/context.templ`, Line: 180, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -339,7 +410,7 @@ func ContextLink(href, label, from string) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/context.templ`, Line: 112, Col: 9}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/context.templ`, Line: 183, Col: 9}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {

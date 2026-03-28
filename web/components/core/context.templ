@@ -17,6 +17,8 @@ type contextBarGroup struct {
 
 // contextBarGroups groups links by their Group field, preserving order.
 // Includes both rel="related" (ring/hub-center) and rel="up" (hub-spoke→parent).
+// For hub centers (all links in one hub group), it resolves each spoke's Ring
+// memberships so the children are displayed in their ring groups.
 func contextBarGroups(links []hypermedia.LinkRelation, currentPath string) []contextBarGroup {
 	seen := map[string]int{}
 	var groups []contextBarGroup
@@ -43,7 +45,76 @@ func contextBarGroups(links []hypermedia.LinkRelation, currentPath string) []con
 			IsUp:  isUp,
 		})
 	}
+
+	// If we have exactly one hub group (this is a hub center page),
+	// resolve spokes into their ring groups for richer display.
+	if len(groups) == 1 && groups[0].IsHub {
+		return resolveHubChildGroups(groups[0], currentPath)
+	}
 	return groups
+}
+
+// resolveHubChildGroups takes a hub center's flat spoke list and regroups
+// them by looking up each spoke's ring memberships from the registry.
+func resolveHubChildGroups(hub contextBarGroup, currentPath string) []contextBarGroup {
+	seen := map[string]int{}
+	var groups []contextBarGroup
+	placed := map[string]bool{}
+
+	// For each spoke, find its ring group names from the registry
+	for _, item := range hub.Items {
+		spokeLinks := hypermedia.LinksFor(item.Href, "related")
+		for _, sl := range spokeLinks {
+			if sl.Group != "" && sl.Group != hub.Name && !placed[item.Href+"|"+sl.Group] {
+				idx, ok := seen[sl.Group]
+				if !ok {
+					idx = len(groups)
+					seen[sl.Group] = idx
+					groups = append(groups, contextBarGroup{Name: sl.Group})
+				}
+				if !hasItem(groups[idx].Items, item.Href) {
+					groups[idx].Items = append(groups[idx].Items, contextBarItem{
+						Href:  item.Href,
+						Title: item.Title,
+					})
+				}
+				placed[item.Href+"|"+sl.Group] = true
+			}
+		}
+	}
+
+	// Any spokes not in any ring go into an "Other" group
+	var ungrouped []contextBarItem
+	for _, item := range hub.Items {
+		inRing := false
+		for _, g := range groups {
+			if hasItem(g.Items, item.Href) {
+				inRing = true
+				break
+			}
+		}
+		if !inRing {
+			ungrouped = append(ungrouped, item)
+		}
+	}
+	if len(ungrouped) > 0 {
+		groups = append(groups, contextBarGroup{Name: "", Items: ungrouped})
+	}
+
+	if len(groups) == 0 {
+		// Fallback: no rings found, show original hub group
+		return []contextBarGroup{hub}
+	}
+	return groups
+}
+
+func hasItem(items []contextBarItem, href string) bool {
+	for _, it := range items {
+		if it.Href == href {
+			return true
+		}
+	}
+	return false
 }
 
 // ContextStrip renders a unified bar with breadcrumbs on the left and
