@@ -76,6 +76,9 @@ func (ar *appRoutes) initHypermediaRoutes() {
 	ar.e.POST(hypermediaBase+"/interactions/preview", s.handleInteractionsPreview)
 	ar.e.POST(hypermediaBase+"/interactions/comment", s.handleInteractionsComment)
 
+	// Standards page
+	ar.e.GET(hypermediaBase+"/standards", handler.HandleComponent(views.HypermediaStandardsPage()))
+
 	// State page
 	ar.e.GET(hypermediaBase+"/state", s.handleStatePage)
 	ar.e.POST(hypermediaBase+"/state/like", s.handleStateLike)

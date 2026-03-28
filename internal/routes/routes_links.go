@@ -38,6 +38,7 @@ func (ar *appRoutes) initLinkRelations() {
 		hypermedia.Rel("/hypermedia/components3", "Components 3"),
 		hypermedia.Rel("/hypermedia/realtime", "Realtime"),
 		hypermedia.Rel("/hypermedia/links", "Links"),
+		hypermedia.Rel("/hypermedia/standards", "Standards"),
 	)
 
 	hypermedia.Hub("/admin", "Admin",
@@ -105,6 +106,7 @@ func (ar *appRoutes) initLinkRelations() {
 		hypermedia.Rel("/hypermedia/errors", "Errors"),
 		hypermedia.Rel("/hypermedia/realtime", "Realtime"),
 		hypermedia.Rel("/hypermedia/links", "Links"),
+		hypermedia.Rel("/hypermedia/standards", "Standards"),
 	)
 
 	// Hypermedia: component gallery pages
