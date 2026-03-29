@@ -117,7 +117,8 @@ templ AppSettingsPage(currentTheme string, currentLayout string) {
 	</div>
 }
 
-// themeDropdown renders a dropdown select for choosing a DaisyUI theme.
+// themeDropdown renders a dropdown select for choosing a DaisyUI theme,
+// grouped by light/dark category, with a visual color-swatch grid below.
 templ themeDropdown(currentTheme string) {
 	<div x-data={ "{ current: '" + currentTheme + "' }" }>
 		<div class="flex items-center gap-3">
@@ -131,15 +132,40 @@ templ themeDropdown(currentTheme string) {
 				x-model="current"
 				x-on:change={ "document.documentElement.dataset.theme = current; var t = document.querySelector('meta[name=\"csrf-token\"]'); fetch('/settings/theme', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': t ? t.content : ''}, body: 'theme=' + current }); if (window.dothogChannel) window.dothogChannel.postMessage({type:'theme-change',theme:current})" }
 			>
-				for _, theme := range DaisyThemes {
-					<option
-						value={ theme }
-						selected?={ theme == currentTheme }
-					>
-						{ theme }
-					</option>
+				for _, cat := range ThemeCategories {
+					<optgroup label={ cat.Label }>
+						for _, theme := range cat.Themes {
+							<option value={ theme } selected?={ theme == currentTheme }>{ theme }</option>
+						}
+					</optgroup>
 				}
 			</select>
+		</div>
+		<div class="mt-3">
+			<p class="text-xs text-base-content/60 mb-2">Or pick visually:</p>
+			for _, cat := range ThemeCategories {
+				<div class="mb-2">
+					<p class="text-xs font-medium text-base-content/50 mb-1">{ cat.Label }</p>
+					<div class="flex flex-wrap gap-1.5">
+						for _, theme := range cat.Themes {
+							<button
+								type="button"
+								:class={ "current === '" + theme + "' ? 'ring-2 ring-primary ring-offset-1' : ''" }
+								class="rounded-md overflow-hidden cursor-pointer"
+								x-on:click={ "current = '" + theme + "'; document.documentElement.dataset.theme = current; var t = document.querySelector('meta[name=\"csrf-token\"]'); fetch('/settings/theme', { method: 'POST', headers: {'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRF-Token': t ? t.content : ''}, body: 'theme=' + current }); if (window.dothogChannel) window.dothogChannel.postMessage({type:'theme-change',theme:current})" }
+								title={ theme }
+							>
+								<div data-theme={ theme } class="flex gap-0.5 p-1 bg-base-100">
+									<span class="w-2 h-4 rounded-sm bg-primary"></span>
+									<span class="w-2 h-4 rounded-sm bg-secondary"></span>
+									<span class="w-2 h-4 rounded-sm bg-accent"></span>
+									<span class="w-2 h-4 rounded-sm bg-neutral"></span>
+								</div>
+							</button>
+						}
+					</div>
+				</div>
+			}
 		</div>
 	</div>
 }
