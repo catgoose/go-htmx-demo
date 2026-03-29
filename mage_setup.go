@@ -23,26 +23,58 @@ const templateModulePath = "catgoose/dothog"
 
 // featureLabels maps feature tags to human-readable labels.
 var featureLabels = map[string]string{
+	// Core
+	setup.FeatureSessionSettings: "Session Settings (SQLite)",
+	setup.FeatureCSRF:            "CSRF Protection",
+	// Auth
 	setup.FeatureAuth:            "Auth (Crooner)",
 	setup.FeatureGraph:           "Graph API",
+	setup.FeatureAvatar:          "Avatar Photos (requires Graph)",
+	// Data
 	setup.FeatureDatabase:        "Database (MSSQL)",
+	// Real-time
 	setup.FeatureSSE:             "SSE (requires Caddy)",
 	setup.FeatureCaddy:           "Caddy (HTTPS)",
-	setup.FeatureAvatar:          "Avatar Photos (requires Graph)",
+	// Navigation
+	setup.FeatureLinkRelations:   "Link Relations (context bars, breadcrumbs, site map)",
+	// Performance & Security
+	setup.FeatureWebStandards:    "Web Standards (Server-Timing, Vary, Permissions-Policy, Early Hints)",
+	setup.FeatureBrowserAPIs:     "Browser APIs (sendBeacon, BroadcastChannel)",
+	// Mobile & Offline
+	setup.FeatureCapacitor:       "Capacitor (mobile wrapper)",
+	setup.FeatureOffline:         "Offline Mode (service worker, write queue)",
+	setup.FeatureSync:            "Sync (offline data synchronization)",
+	setup.FeaturePWA:             "PWA (Progressive Web App — offline + sync + mobile)",
+	// Demo
 	setup.FeatureDemo:            "Demo Content",
-	setup.FeatureSessionSettings: "Session Settings (SQLite)",
 }
 
 // featureLabelOrder is the display order for the feature multi-select.
 var featureLabelOrder = []string{
+	// Core
+	setup.FeatureSessionSettings,
+	setup.FeatureCSRF,
+	// Auth
 	setup.FeatureAuth,
 	setup.FeatureGraph,
 	setup.FeatureAvatar,
+	// Data
 	setup.FeatureDatabase,
+	// Real-time
 	setup.FeatureSSE,
 	setup.FeatureCaddy,
+	// Navigation
+	setup.FeatureLinkRelations,
+	// Performance & Security
+	setup.FeatureWebStandards,
+	setup.FeatureBrowserAPIs,
+	// Mobile & Offline
+	setup.FeatureCapacitor,
+	setup.FeatureOffline,
+	setup.FeatureSync,
+	setup.FeaturePWA,
+	// Demo
 	setup.FeatureDemo,
-	setup.FeatureSessionSettings,
 }
 
 func init() {
@@ -204,8 +236,10 @@ func runWizard() (*setup.Options, error) {
 	for _, tag := range featureLabelOrder {
 		label := featureLabels[tag]
 		opt := huh.NewOption(label, tag)
-		// Demo and Alpine are opt-in: not preselected by default
-		if tag != setup.FeatureDemo && tag != setup.FeatureAlpine {
+		// Demo, Alpine, PWA, Capacitor, Offline, Sync are opt-in
+		if tag != setup.FeatureDemo && tag != setup.FeatureAlpine &&
+			tag != setup.FeaturePWA && tag != setup.FeatureCapacitor &&
+			tag != setup.FeatureOffline && tag != setup.FeatureSync {
 			opt = opt.Selected(true)
 		}
 		featureOptions = append(featureOptions, opt)
@@ -249,7 +283,7 @@ func runWizard() (*setup.Options, error) {
 		huh.NewGroup(
 			huh.NewMultiSelect[string]().
 				Title("Features").
-				Description("SSE requires Caddy; Avatar requires Graph (auto-included if missing)").
+				Description("Dependencies auto-included: SSE→Caddy, Avatar→Graph, PWA→Offline+Sync+Capacitor, Link Relations→Session Settings").
 				Options(featureOptions...).
 				Value(&features),
 		).Title("Feature Selection"),
