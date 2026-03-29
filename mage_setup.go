@@ -31,7 +31,9 @@ var featureLabels = map[string]string{
 	setup.FeatureGraph:           "Graph API",
 	setup.FeatureAvatar:          "Avatar Photos (requires Graph)",
 	// Data
-	setup.FeatureDatabase:        "Database (MSSQL)",
+	setup.FeatureDatabase:        "Database (fraggle repository layer)",
+	setup.FeatureMSSQL:           "MSSQL dialect",
+	setup.FeaturePostgres:        "PostgreSQL dialect",
 	// Real-time
 	setup.FeatureSSE:             "SSE (requires Caddy)",
 	setup.FeatureCaddy:           "Caddy (HTTPS)",
@@ -60,6 +62,8 @@ var featureLabelOrder = []string{
 	setup.FeatureAvatar,
 	// Data
 	setup.FeatureDatabase,
+	setup.FeatureMSSQL,
+	setup.FeaturePostgres,
 	// Real-time
 	setup.FeatureSSE,
 	setup.FeatureCaddy,
@@ -237,7 +241,7 @@ func runWizard() (*setup.Options, error) {
 		preset     string
 		customize  bool
 		// Guided wizard answers
-		wantDatabase bool
+		dbDialect    string // "sqlite", "mssql", "postgres", "sqlite+mssql", "sqlite+postgres"
 		wantSessions bool
 		wantAuth     bool
 		wantGraph    bool
@@ -326,7 +330,17 @@ func runWizard() (*setup.Options, error) {
 		guidedForm := huh.NewForm(
 			// Core
 			huh.NewGroup(
-				huh.NewConfirm().Title("Need a database beyond SQLite? (MSSQL)").Value(&wantDatabase),
+				huh.NewSelect[string]().
+					Title("Database dialect").
+					Description("SQLite is always included for dev/demo. Pick a production dialect if needed.").
+					Options(
+						huh.NewOption("SQLite only (dev/demo)", "sqlite"),
+						huh.NewOption("SQLite + MSSQL (dev locally, deploy to SQL Server)", "sqlite+mssql"),
+						huh.NewOption("SQLite + PostgreSQL (dev locally, deploy to Postgres)", "sqlite+postgres"),
+						huh.NewOption("MSSQL only", "mssql"),
+						huh.NewOption("PostgreSQL only", "postgres"),
+					).
+					Value(&dbDialect),
 				huh.NewConfirm().Title("Need user sessions? (SQLite persistence)").Value(&wantSessions),
 				huh.NewConfirm().Title("Need CSRF protection?").Value(&wantAuth), // reusing for csrf first pass
 			).Title("Core"),
@@ -382,7 +396,17 @@ func runWizard() (*setup.Options, error) {
 		}
 
 		// Build features from guided answers
-		if wantDatabase { features = append(features, setup.FeatureDatabase) }
+		switch dbDialect {
+		case "mssql":
+			features = append(features, setup.FeatureDatabase, setup.FeatureMSSQL)
+		case "postgres":
+			features = append(features, setup.FeatureDatabase, setup.FeaturePostgres)
+		case "sqlite+mssql":
+			features = append(features, setup.FeatureDatabase, setup.FeatureMSSQL)
+		case "sqlite+postgres":
+			features = append(features, setup.FeatureDatabase, setup.FeaturePostgres)
+		// "sqlite" — database is implicit, nothing extra needed
+		}
 		if wantSessions { features = append(features, setup.FeatureSessionSettings) }
 		if wantAuth { features = append(features, setup.FeatureAuth, setup.FeatureCSRF) }
 		if wantGraph { features = append(features, setup.FeatureGraph) }
