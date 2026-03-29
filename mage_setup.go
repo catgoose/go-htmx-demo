@@ -326,10 +326,22 @@ func runWizard() (*setup.Options, error) {
 	}
 
 	if preset == "flat" {
-		// ── Flat checklist: nothing pre-selected ───────────────────
+		// ── Flat checklist: sensible defaults pre-selected ─────────
+		flatDefaults := map[string]bool{
+			setup.FeatureSessionSettings: true,
+			setup.FeatureCSRF:            true,
+			setup.FeatureSSE:             true,
+			setup.FeatureCaddy:           true,
+			setup.FeatureLinkRelations:   true,
+			setup.FeatureWebStandards:    true,
+		}
 		var featureOptions []huh.Option[string]
 		for _, tag := range featureLabelOrder {
-			featureOptions = append(featureOptions, huh.NewOption(featureLabels[tag], tag))
+			opt := huh.NewOption(featureLabels[tag], tag)
+			if flatDefaults[tag] {
+				opt = opt.Selected(true)
+			}
+			featureOptions = append(featureOptions, opt)
 		}
 		flatForm := huh.NewForm(
 			huh.NewGroup(
