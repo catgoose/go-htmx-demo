@@ -232,14 +232,18 @@ func InitEcho(ctx context.Context, staticFS fs.FS, cfg *config.AppConfig,
 	// before the final 200. Requires HTTP/2+ and a flusher-capable writer.
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			w := c.Response().Writer
-			if flusher, ok := w.(http.Flusher); ok {
-				h := w.Header()
-				h.Add("Link", "</public/css/tailwind.css>; rel=preload; as=style")
-				h.Add("Link", "</public/css/daisyui.css>; rel=preload; as=style")
-				h.Add("Link", "</public/js/htmx.min.js>; rel=preload; as=script")
-				w.WriteHeader(http.StatusEarlyHints) // 103
-				flusher.Flush()
+			// Only send 103 Early Hints on HTTP/2+ connections.
+			// httptest.ResponseRecorder mishandles 1xx status codes.
+			if c.Request().ProtoMajor >= 2 {
+				w := c.Response().Writer
+				if flusher, ok := w.(http.Flusher); ok {
+					h := w.Header()
+					h.Add("Link", "</public/css/tailwind.css>; rel=preload; as=style")
+					h.Add("Link", "</public/css/daisyui.css>; rel=preload; as=style")
+					h.Add("Link", "</public/js/htmx.min.js>; rel=preload; as=script")
+					w.WriteHeader(http.StatusEarlyHints) // 103
+					flusher.Flush()
+				}
 			}
 			return next(c)
 		}
