@@ -12,6 +12,7 @@
   - [Chesterton's Fence](#chestertons-fence)
   - [Server-Side State, Client-Side Rendering](#server-side-state-client-side-rendering)
   - [Content Negotiation](#content-negotiation)
+    - [HAL: Content Negotiation for APIs](#hal-content-negotiation-for-apis)
   - [Mutations Redirect](#mutations-redirect)
   - [Postel's Law](#postels-law-be-conservative-in-what-you-send-liberal-in-what-you-accept)
   - [The Stack](#the-stack)
@@ -190,6 +191,26 @@ When a request carries the `HX-Request: true` header, the server knows the clien
 This is also how error responses work. An HTMX request that fails gets an out-of-band swap to the error banner — the page stays put, the error appears. A non-HTMX request that fails gets a full error page with navigation controls. Both surfaces carry the same information (error message, request ID, recovery actions), but the representation fits the client's rendering model.
 
 The key constraint: every resource must be reachable without JavaScript. Links are `<a>` tags. Forms are `<form>` tags. HTMX enhances them with `hx-get`, `hx-post`, and targeted swaps, but if HTMX fails to load, the page still works — links navigate, forms submit, the server returns full pages. Progressive enhancement isn't a bonus feature. It's the baseline.
+
+### HAL: Content Negotiation for APIs
+
+[HAL](https://datatracker.ietf.org/doc/html/draft-kelly-json-hal) (Hypertext Application Language) extends content negotiation to API consumers. The same resource graph that drives the HTML interface can serve `application/hal+json` — a JSON format that preserves hypermedia affordances through `_links` and `_embedded`:
+
+```json
+{
+  "_links": {
+    "self":   { "href": "/hal/api/books/1", "title": "Hypermedia Systems" },
+    "author": { "href": "/hal/api/authors/1", "title": "Carson Gross" },
+    "up":     { "href": "/hal/api/books", "title": "All Books" }
+  },
+  "title": "Hypermedia Systems",
+  "year": 2023
+}
+```
+
+A browser sees HTML with HTMX controls. A `curl` user or API client sees HAL+JSON with navigable `_links`. Both representations describe the same resource, carry the same relationships, and enable the same transitions — the format changes, the affordances don't. This is content negotiation applied beyond the HTML/fragment split: the resource has three faces (full page, HTMX fragment, HAL+JSON), and each client gets the one it can render.
+
+HAL also demonstrates that HATEOAS isn't an HTML-only idea. The `_links` in a HAL response are the JSON equivalent of `<a>` tags in HTML — they tell the client what's related, where to go next, and what actions are available. The `_embedded` resources are the JSON equivalent of including sub-components inline to reduce round-trips. The principles are the same; only the media type changes. The `/hypermedia/hal` demo makes this visible by rendering HAL+JSON responses as interactive HTML cards — the same data, two views, side by side.
 
 ## Mutations Redirect
 
