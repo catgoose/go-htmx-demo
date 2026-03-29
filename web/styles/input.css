@@ -68,6 +68,23 @@
   :root {
     accent-color: var(--color-primary);
   }
+
+  /* Respect user motion preferences */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Progressive enhancement: hide JS-only elements when scripting is disabled */
+  @media (scripting: none) {
+    .requires-js {
+      display: none !important;
+    }
+  }
 }
 
 @custom-variant dark (&:where(.dark, .dark *));

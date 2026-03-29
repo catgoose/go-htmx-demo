@@ -171,7 +171,7 @@ templ ErrorTraceDetailContent(trace *promolog.ErrorTrace) {
 			</div>
 			<div>
 				<span class="font-medium text-sm text-base-content/60">Error Chain</span>
-				<pre class="mt-1 p-3 bg-base-300 rounded-lg text-xs font-mono whitespace-pre-wrap break-all">{ trace.ErrorChain }</pre>
+				<pre class="mt-1 p-3 bg-base-300 rounded-lg text-xs font-mono whitespace-pre-wrap break-all" translate="no">{ trace.ErrorChain }</pre>
 			</div>
 			if len(trace.Entries) > 0 {
 				<div>
