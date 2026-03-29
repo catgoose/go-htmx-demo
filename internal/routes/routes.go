@@ -232,6 +232,14 @@ func InitEcho(ctx context.Context, staticFS fs.FS, cfg *config.AppConfig,
 	e.Use(echoMiddleware.RequestLogger())
 	e.Use(echoMiddleware.Recover())
 	e.Use(echoMiddleware.Secure())
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			c.Response().Header().Set("Permissions-Policy",
+				"camera=(), microphone=(), geolocation=(), payment=(), usb=()")
+			c.Response().Header().Set("Cross-Origin-Opener-Policy", "same-origin")
+			return next(c)
+		}
+	})
 	// Skip gzip when running behind the templ proxy (mage watch).
 	// Echo's chunked gzip responses cause h2 framing errors through
 	// the templ-proxy → Caddy chain. Caddy handles compression instead.
