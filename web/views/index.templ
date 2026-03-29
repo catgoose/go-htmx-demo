@@ -103,6 +103,24 @@ templ header(csrfToken string, devMode bool, appName string, extraCSS []string) 
 		// setup:feature:demo:start
 		<link rel="manifest" href="/public/images/site.webmanifest"/>
 		// setup:feature:demo:end
+		// setup:feature:demo:start
+		<script type="speculationrules">
+		{
+			"prefetch": [{
+				"where": {
+					"and": [
+						{"href_matches": "/*"},
+						{"not": {"href_matches": "/log/*"}},
+						{"not": {"href_matches": "/sync"}},
+						{"not": {"href_matches": "/health"}},
+						{"not": {"selector_matches": "[hx-get],[hx-post],[hx-put],[hx-delete],[hx-patch]"}}
+					]
+				},
+				"eagerness": "moderate"
+			}]
+		}
+		</script>
+		// setup:feature:demo:end
 		<title>{ appName }</title>
 		if devMode {
 			<script src="/public/js/dev-logging.js"></script>
