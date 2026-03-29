@@ -194,23 +194,9 @@ The key constraint: every resource must be reachable without JavaScript. Links a
 
 ### HAL: Content Negotiation for APIs
 
-[HAL](https://datatracker.ietf.org/doc/html/draft-kelly-json-hal) (Hypertext Application Language) extends content negotiation to API consumers. The same resource graph that drives the HTML interface can serve `application/hal+json` — a JSON format that preserves hypermedia affordances through `_links` and `_embedded`:
+Content negotiation extends beyond the HTML/fragment split. The same resource graph can serve `application/hal+json` — [HAL](https://datatracker.ietf.org/doc/html/draft-kelly-json-hal) adds `_links` and `_embedded` to JSON, giving API clients navigable relationships without out-of-band URL construction. A browser sees HTML with HTMX controls. A `curl` user sees HAL+JSON with link relations. Same resource, same relationships, different media type.
 
-```json
-{
-  "_links": {
-    "self":   { "href": "/hal/api/books/1", "title": "Hypermedia Systems" },
-    "author": { "href": "/hal/api/authors/1", "title": "Carson Gross" },
-    "up":     { "href": "/hal/api/books", "title": "All Books" }
-  },
-  "title": "Hypermedia Systems",
-  "year": 2023
-}
-```
-
-A browser sees HTML with HTMX controls. A `curl` user or API client sees HAL+JSON with navigable `_links`. Both representations describe the same resource, carry the same relationships, and enable the same transitions — the format changes, the affordances don't. This is content negotiation applied beyond the HTML/fragment split: the resource has three faces (full page, HTMX fragment, HAL+JSON), and each client gets the one it can render.
-
-HAL also demonstrates that HATEOAS isn't an HTML-only idea. The `_links` in a HAL response are the JSON equivalent of `<a>` tags in HTML — they tell the client what's related, where to go next, and what actions are available. The `_embedded` resources are the JSON equivalent of including sub-components inline to reduce round-trips. The principles are the same; only the media type changes. The `/hypermedia/hal` demo makes this visible by rendering HAL+JSON responses as interactive HTML cards — the same data, two views, side by side.
+HAL gives JSON what `<a>` tags give HTML. It does not give JSON what `<form>` tags give HTML — and that gap is where the interesting architectural questions live. The `/hypermedia/hal` demo renders both representations side by side so the gap is visible. See [docs/HAL.md](docs/HAL.md) for the full Socratic inquiry into what HAL provides, what it doesn't, and what Fielding would say about both.
 
 ## Mutations Redirect
 
