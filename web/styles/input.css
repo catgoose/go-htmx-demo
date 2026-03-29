@@ -67,6 +67,9 @@
   /* Theming: brand all native form controls */
   :root {
     accent-color: var(--color-primary);
+    /* Dynamic color utilities using color-mix() */
+    --color-primary-hover: color-mix(in oklch, var(--color-primary) 85%, black);
+    --color-primary-subtle: color-mix(in oklch, var(--color-primary) 15%, transparent);
   }
 
   /* Accessibility: disable all motion for users who prefer reduced motion */
