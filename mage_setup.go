@@ -328,7 +328,7 @@ func runWizard() (*setup.Options, error) {
 		// ── Guided wizard: ask about dependencies first ────────────
 
 		guidedForm := huh.NewForm(
-			// Core
+			// Database
 			huh.NewGroup(
 				huh.NewSelect[string]().
 					Title("Database dialect").
@@ -341,14 +341,22 @@ func runWizard() (*setup.Options, error) {
 						huh.NewOption("PostgreSQL only", "postgres"),
 					).
 					Value(&dbDialect),
-				huh.NewConfirm().Title("Need user sessions? (SQLite persistence)").Value(&wantSessions),
-				huh.NewConfirm().Title("Need CSRF protection?").Value(&wantAuth), // reusing for csrf first pass
-			).Title("Core"),
+			).Title("Database"),
 
-			// Auth — only if sessions selected
+			// Navigation — ask first, auto-includes sessions
 			huh.NewGroup(
-				huh.NewConfirm().Title("Need authentication? (Crooner)").Value(&wantAuth),
-			).Title("Authentication").WithHideFunc(func() bool { return !wantSessions }),
+				huh.NewConfirm().Title("Want link relations? (context bars, breadcrumbs, site map)\n  Session settings will be auto-included").Value(&wantLinks),
+			).Title("Navigation"),
+
+			// Sessions — only ask if link relations didn't already include it
+			huh.NewGroup(
+				huh.NewConfirm().Title("Need user sessions? (theme persistence, settings)").Value(&wantSessions),
+			).Title("Sessions").WithHideFunc(func() bool { return wantLinks }),
+
+			// Auth
+			huh.NewGroup(
+				huh.NewConfirm().Title("Need authentication? (Crooner)\n  CSRF protection will be auto-included").Value(&wantAuth),
+			).Title("Authentication"),
 
 			huh.NewGroup(
 				huh.NewConfirm().Title("Need Microsoft Graph API?").Value(&wantGraph),
@@ -362,11 +370,6 @@ func runWizard() (*setup.Options, error) {
 			huh.NewGroup(
 				huh.NewConfirm().Title("Need real-time updates (SSE)?\n  Caddy HTTPS will be auto-included for HTTP/2").Value(&wantSSE),
 			).Title("Real-time"),
-
-			// Navigation
-			huh.NewGroup(
-				huh.NewConfirm().Title("Want link relations? (context bars, breadcrumbs, site map)\n  Session settings will be auto-included").Value(&wantLinks),
-			).Title("Navigation"),
 
 			// Performance & Security
 			huh.NewGroup(
