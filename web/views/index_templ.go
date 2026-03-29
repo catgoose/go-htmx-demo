@@ -342,13 +342,32 @@ func ThemeChanged(theme string) templ.Component {
 	})
 }
 
-// DaisyThemes is the list of available DaisyUI themes for the picker.
-var DaisyThemes = []string{
-	"light", "dark", "cupcake", "emerald", "corporate", "synthwave",
-	"retro", "cyberpunk", "valentine", "garden", "forest", "lofi",
-	"pastel", "fantasy", "wireframe", "luxury", "dracula", "cmyk",
-	"autumn", "business", "acid", "lemonade", "night", "coffee",
-	"winter", "dim", "nord", "sunset", "caramellatte", "abyss", "silk",
+// ThemeCategory groups themes under a label (e.g. "Light", "Dark").
+type ThemeCategory struct {
+	Label  string
+	Themes []string
+}
+
+// ThemeCategories lists DaisyUI themes grouped by light/dark, alphabetically sorted
+// within each category (with "light"/"dark" pinned first in their respective groups).
+var ThemeCategories = []ThemeCategory{
+	{
+		Label:  "Light",
+		Themes: []string{"light", "acid", "autumn", "caramellatte", "cmyk", "corporate", "cupcake", "emerald", "fantasy", "garden", "lemonade", "lofi", "pastel", "retro", "silk", "valentine", "winter", "wireframe"},
+	},
+	{
+		Label:  "Dark",
+		Themes: []string{"dark", "abyss", "business", "coffee", "cyberpunk", "dim", "dracula", "forest", "luxury", "night", "nord", "sunset", "synthwave"},
+	},
+}
+
+// DaisyThemes is the flat list of available DaisyUI themes (used for validation).
+var DaisyThemes []string
+
+func init() {
+	for _, cat := range ThemeCategories {
+		DaisyThemes = append(DaisyThemes, cat.Themes...)
+	}
 }
 
 var _ = templruntime.GeneratedTemplate
