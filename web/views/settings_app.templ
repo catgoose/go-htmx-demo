@@ -5,7 +5,7 @@ import "catgoose/dothog/internal/version"
 // setup:feature:demo:end
 
 // AppSettingsPage renders the /settings page organized into collapsible sections.
-templ AppSettingsPage(currentTheme string, currentLayout string) {
+templ AppSettingsPage(currentTheme string) {
 	<div class="max-w-2xl mx-auto space-y-6">
 		<h1 class="text-2xl font-bold">Settings</h1>
 		<div class="card bg-base-100 shadow-sm border border-base-300">
@@ -18,21 +18,6 @@ templ AppSettingsPage(currentTheme string, currentLayout string) {
 							<p class="text-sm text-base-content/70">Choose a color theme for the application.</p>
 							<div class="mt-2 max-w-xs">
 								@themeDropdown(currentTheme)
-							</div>
-						</div>
-						<div>
-							<h3 class="text-sm font-medium">Layout</h3>
-							<p class="text-sm text-base-content/70">Switch between the classic top nav and a mobile-first bottom nav.</p>
-							<div class="mt-2 max-w-xs">
-								<select
-									class="select select-bordered select-sm w-full"
-									name="layout"
-									hx-post="/settings/layout"
-									hx-swap="none"
-								>
-									<option value="classic" selected?={ currentLayout == "classic" }>Classic (top nav)</option>
-									<option value="app" selected?={ currentLayout == "app" }>App Nav (mobile-first)</option>
-								</select>
 							</div>
 						</div>
 					</div>

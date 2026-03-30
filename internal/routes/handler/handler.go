@@ -2,9 +2,6 @@
 package handler
 
 import (
-	// setup:feature:session_settings:start
-	"catgoose/dothog/internal/domain"
-	// setup:feature:session_settings:end
 	"catgoose/dothog/internal/logger"
 	"catgoose/dothog/internal/routes/hypermedia"
 	"catgoose/dothog/internal/routes/middleware"
@@ -161,23 +158,16 @@ func appNavNavConfig() hypermedia.NavConfig {
 	}
 }
 
-// renderDefaultLayout is the standard dothog layout with nav, breadcrumbs, and theme.
+// renderDefaultLayout uses the responsive AppNavLayout (top nav on desktop, bottom on mobile).
 func renderDefaultLayout(c echo.Context, cmp templ.Component) error {
 	lc := getLayoutCtx(c)
-	// setup:feature:session_settings:start
-	settings := middleware.GetSessionSettings(c)
-	if settings.Layout == domain.LayoutApp {
-		cfg := appNavNavConfig()
-		cfg.Items = hypermedia.SetActiveNavItemPrefix(cfg.Items, lc.path)
-		return RenderComponent(c, views.AppNavLayout(
-			cmp, cfg,
-			lc.csrfToken, dio.Dev(), lc.theme,
-			lc.crumbs, lc.links, lc.path, version.Display(), lc.hubs,
-		))
-	}
-	// setup:feature:session_settings:end
-	nav := appNavComponent(c.Request().URL.Path)
-	return RenderComponent(c, views.Index(cmp, nav, lc.csrfToken, dio.Dev(), lc.theme, lc.crumbs, lc.links, lc.path, version.Display(), appName, lc.hubs))
+	cfg := appNavNavConfig()
+	cfg.Items = hypermedia.SetActiveNavItemPrefix(cfg.Items, lc.path)
+	return RenderComponent(c, views.AppNavLayout(
+		cmp, cfg,
+		lc.csrfToken, dio.Dev(), lc.theme,
+		lc.crumbs, lc.links, lc.path, version.Display(), lc.hubs,
+	))
 }
 
 // AppNavLayoutFunc returns a LayoutFunc that uses the responsive app-nav layout.
