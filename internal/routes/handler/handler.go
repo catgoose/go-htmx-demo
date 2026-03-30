@@ -40,9 +40,9 @@ func appNavComponent(path string) templ.Component {
 		{Label: "Hypermedia", Href: "/hypermedia"},
 		{Label: "Demo", Href: "/demo"},
 		// setup:feature:demo:end
-		// setup:feature:session_settings:start
+		// setup:feature:demo:start
 		{Label: "Preferences", Href: "/user/settings"},
-		// setup:feature:session_settings:end
+		// setup:feature:demo:end
 		{Label: "Settings", Href: "/settings"},
 		{Label: "Admin", Href: "/admin"},
 	}, path)
