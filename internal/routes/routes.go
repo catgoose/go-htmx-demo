@@ -231,27 +231,36 @@ func InitEcho(ctx context.Context, staticFS fs.FS, cfg *config.AppConfig,
 ) (*echo.Echo, error) {
 	e := echo.New()
 
-	// 103 Early Hints: preload critical assets before the handler runs.
-	// Skipped behind the templ proxy (mage watch) where the dev proxy chain
-	// (Go → templ proxy → Caddy) mishandles 1xx responses.
-	if os.Getenv("TEMPL_PROXY") == "" {
-		e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
-			return func(c echo.Context) error {
-				if c.Request().ProtoMajor >= 2 {
-					w := c.Response().Writer
-					if flusher, ok := w.(http.Flusher); ok {
-						h := w.Header()
-						h.Add("Link", "</public/css/tailwind.css>; rel=preload; as=style")
-						h.Add("Link", "</public/css/daisyui.css>; rel=preload; as=style")
-						h.Add("Link", "</public/js/htmx.min.js>; rel=preload; as=script")
-						w.WriteHeader(http.StatusEarlyHints) // 103
-						flusher.Flush()
-					}
-				}
-				return next(c)
+	// Preload critical assets. In production (direct H2), send 103 Early Hints
+	// so the browser fetches CSS/JS while the server generates the response.
+	// Behind the dev proxy chain (TEMPL_PROXY), 1xx responses get mangled, so
+	// fall back to Link headers on the final response — the browser still gets
+	// the preload hint, just slightly later.
+	behindProxy := os.Getenv("TEMPL_PROXY") != ""
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			preloadLinks := []string{
+				"</public/css/tailwind.css>; rel=preload; as=style",
+				"</public/css/daisyui.css>; rel=preload; as=style",
+				"</public/js/htmx.min.js>; rel=preload; as=script",
 			}
-		})
-	}
+			if !behindProxy && c.Request().ProtoMajor >= 2 {
+				w := c.Response().Writer
+				if flusher, ok := w.(http.Flusher); ok {
+					for _, link := range preloadLinks {
+						w.Header().Add("Link", link)
+					}
+					w.WriteHeader(http.StatusEarlyHints) // 103
+					flusher.Flush()
+				}
+			} else {
+				for _, link := range preloadLinks {
+					c.Response().Header().Add("Link", link)
+				}
+			}
+			return next(c)
+		}
+	})
 
 	e.Use(middleware.ServerTimingMiddleware())
 	e.Use(echo.WrapMiddleware(promolog.CorrelationMiddleware))
