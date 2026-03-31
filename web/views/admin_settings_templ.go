@@ -11,7 +11,7 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	ssebroker "github.com/catgoose/tavern"
+	"github.com/catgoose/tavern"
 	"fmt"
 )
 
@@ -21,7 +21,7 @@ type AdminPanelData struct {
 	Version   string
 	Uptime    string
 	Status    string
-	Stats     ssebroker.SystemStats
+	Stats     tavern.SystemStats
 	SSECounts map[string]int
 	Features  []FeatureFlag
 	Routes    []RouteInfo
@@ -242,7 +242,7 @@ func AdminSettingsPage(data AdminPanelData) templ.Component {
 }
 
 // --- Fragments for auto-refresh ---
-func AdminSettingsSystemFragment(stats ssebroker.SystemStats, uptime string) templ.Component {
+func AdminSettingsSystemFragment(stats tavern.SystemStats, uptime string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -301,7 +301,7 @@ func AdminSettingsSSEFragment(counts map[string]int) templ.Component {
 }
 
 // --- Internal components ---
-func adminSystemMetrics(stats ssebroker.SystemStats, uptime string) templ.Component {
+func adminSystemMetrics(stats tavern.SystemStats, uptime string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

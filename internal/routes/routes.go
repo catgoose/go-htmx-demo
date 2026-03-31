@@ -8,13 +8,15 @@ import (
 	"catgoose/dothog/internal/demo"
 	// setup:feature:demo:end
 	// setup:feature:sse:start
-	ssebroker "github.com/catgoose/tavern"
+	"github.com/catgoose/tavern"
 	// setup:feature:sse:end
 	"catgoose/dothog/internal/health"
 	"catgoose/dothog/internal/version"
 	"github.com/catgoose/promolog"
 	"catgoose/dothog/internal/routes/handler"
-	hypermedia "github.com/catgoose/linkwell"
+	// setup:feature:demo:start
+	"github.com/catgoose/linkwell"
+	// setup:feature:demo:end
 	"catgoose/dothog/web/views"
 	"catgoose/dothog/internal/routes/middleware"
 	// setup:feature:session_settings:start
@@ -72,7 +74,7 @@ type appRoutes struct {
 	demoDB *demo.DB
 	// setup:feature:demo:end
 	// setup:feature:sse:start
-	broker *ssebroker.SSEBroker
+	broker *tavern.SSEBroker
 	// setup:feature:sse:end
 }
 
@@ -108,7 +110,7 @@ func (ar *appRoutes) InitRoutes() error {
 	// Register known origins for ?from= breadcrumb resolution.
 	// Home (bit 0) is pre-registered. Additional pages register here.
 	// setup:feature:demo:start
-	hypermedia.RegisterFrom(hypermedia.FromDashboard, hypermedia.Breadcrumb{Label: "Dashboard", Href: "/dashboard"})
+	linkwell.RegisterFrom(linkwell.FromDashboard, linkwell.Breadcrumb{Label: "Dashboard", Href: "/dashboard"})
 	// setup:feature:demo:end
 
 	cfg, err := config.GetConfig()
@@ -164,7 +166,7 @@ func (ar *appRoutes) InitRoutes() error {
 
 	// setup:feature:demo:start
 	// setup:feature:sse:start
-	ar.broker = ssebroker.NewSSEBroker()
+	ar.broker = tavern.NewSSEBroker()
 	// setup:feature:sse:end
 	// setup:feature:session_settings:start
 	ar.initThemeRoutes(ar.broker)
@@ -187,7 +189,7 @@ func (ar *appRoutes) InitRoutes() error {
 	ar.demoDB = db
 	if stored, err := db.ListStoredLinks(); err == nil {
 		for _, s := range stored {
-			hypermedia.LoadStoredLink(s.Source, hypermedia.LinkRelation{
+			linkwell.LoadStoredLink(s.Source, linkwell.LinkRelation{
 				Rel:   s.Rel,
 				Href:  s.Target,
 				Title: s.Title,

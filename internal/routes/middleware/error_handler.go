@@ -10,8 +10,8 @@ import (
 	"github.com/catgoose/porter"
 	// setup:feature:session_settings:end
 	"github.com/catgoose/promolog"
-	hypermedia "github.com/catgoose/linkwell"
-	response "github.com/catgoose/flighty"
+	"github.com/catgoose/linkwell"
+	"github.com/catgoose/flighty"
 	corecomponents "catgoose/dothog/web/components/core"
 
 	"github.com/a-h/templ"
@@ -34,14 +34,14 @@ func handleError(c echo.Context, statusCode int, message string, err error) erro
 	)
 	log.Error("Request error", "error", err)
 
-	opts := hypermedia.ErrorControlOpts{HomeURL: "/", LoginURL: "/login"}
-	controls := hypermedia.ErrorControlsForStatus(statusCode, opts)
+	opts := linkwell.ErrorControlOpts{HomeURL: "/", LoginURL: "/login"}
+	controls := linkwell.ErrorControlsForStatus(statusCode, opts)
 	if statusCode >= 500 {
-		controls = append(controls, hypermedia.ReportIssueButton(hypermedia.LabelReportIssue, requestID))
+		controls = append(controls, linkwell.ReportIssueButton(linkwell.LabelReportIssue, requestID))
 	}
 
 	if c.Request().Header.Get("HX-Request") == "true" {
-		ec := hypermedia.ErrorContext{
+		ec := linkwell.ErrorContext{
 			StatusCode: statusCode,
 			Message:    message,
 			Err:        err,
@@ -51,12 +51,12 @@ func handleError(c echo.Context, statusCode int, message string, err error) erro
 			Controls:   controls,
 		}
 		if ec.OOBTarget == "" {
-			ec.OOBTarget = hypermedia.DefaultErrorStatusTarget
+			ec.OOBTarget = linkwell.DefaultErrorStatusTarget
 		}
 		if ec.OOBSwap == "" {
 			ec.OOBSwap = "innerHTML"
 		}
-		return response.New(c).
+		return flighty.New(c).
 			Status(statusCode).
 			Component(templ.NopComponent).
 			OOB(corecomponents.ErrorStatusFromContext(ec)).
@@ -64,7 +64,7 @@ func handleError(c echo.Context, statusCode int, message string, err error) erro
 	}
 
 	// Non-HTMX: render a full HATEOAS error page with navigation controls
-	ec := hypermedia.ErrorContext{
+	ec := linkwell.ErrorContext{
 		StatusCode: statusCode,
 		Message:    message,
 		Err:        err,
@@ -79,7 +79,7 @@ func handleError(c echo.Context, statusCode int, message string, err error) erro
 
 // handleErrorWithContext renders a full hypermedia error response from an ErrorContext.
 // For HTMX requests the error banner is always delivered as an OOB swap to #error-status.
-func handleErrorWithContext(c echo.Context, ec hypermedia.ErrorContext) error {
+func handleErrorWithContext(c echo.Context, ec linkwell.ErrorContext) error {
 	if errors.Is(c.Request().Context().Err(), context.Canceled) {
 		return nil
 	}
@@ -102,12 +102,12 @@ func handleErrorWithContext(c echo.Context, ec hypermedia.ErrorContext) error {
 
 	// HTMX: deliver error banner via OOB swap
 	if ec.OOBTarget == "" {
-		ec.OOBTarget = hypermedia.DefaultErrorStatusTarget
+		ec.OOBTarget = linkwell.DefaultErrorStatusTarget
 	}
 	if ec.OOBSwap == "" {
 		ec.OOBSwap = "innerHTML"
 	}
-	return response.New(c).
+	return flighty.New(c).
 		Status(ec.StatusCode).
 		Component(templ.NopComponent).
 		OOB(corecomponents.ErrorStatusFromContext(ec)).
@@ -122,7 +122,7 @@ func NewHTTPErrorHandler(reqLogStore *promolog.Store) func(err error, c echo.Con
 	return func(err error, c echo.Context) {
 		// Determine status code from error type before promoting.
 		statusCode := http.StatusInternalServerError
-		var hhe *hypermedia.HTTPError
+		var hhe *linkwell.HTTPError
 		var he *echo.HTTPError
 		if errors.As(err, &hhe) {
 			statusCode = hhe.EC.StatusCode

@@ -3,7 +3,7 @@ package handler
 
 import (
 	"catgoose/dothog/internal/logger"
-	hypermedia "github.com/catgoose/linkwell"
+	"github.com/catgoose/linkwell"
 	"catgoose/dothog/internal/routes/middleware"
 	"catgoose/dothog/internal/version"
 	"catgoose/dothog/web/views"
@@ -33,7 +33,7 @@ func SetPageLabel(c echo.Context, label string) {
 
 // appNavComponent builds the NavBar with the active item set for the given path
 func appNavComponent(path string) templ.Component {
-	items := hypermedia.SetActiveNavItemPrefix([]hypermedia.NavItem{
+	items := linkwell.SetActiveNavItemPrefix([]linkwell.NavItem{
 		// setup:feature:demo:start
 		{Label: "Home", Href: "/"},
 		{Label: "Dashboard", Href: "/dashboard"},
@@ -76,9 +76,9 @@ type layoutCtx struct {
 	csrfToken string
 	theme     string
 	path      string
-	crumbs    []hypermedia.Breadcrumb
-	links     []hypermedia.LinkRelation
-	hubs      []hypermedia.HubEntry
+	crumbs    []linkwell.Breadcrumb
+	links     []linkwell.LinkRelation
+	hubs      []linkwell.HubEntry
 }
 
 // getLayoutCtx extracts CSRF token, theme, and breadcrumbs from the request.
@@ -97,20 +97,20 @@ func getLayoutCtx(c echo.Context) layoutCtx {
 	theme = porter.GetSessionSettings(c).Theme
 	// setup:feature:session_settings:end
 
-	var crumbs []hypermedia.Breadcrumb
+	var crumbs []linkwell.Breadcrumb
 	path := c.Request().URL.Path
 	from := c.QueryParam("from")
 
 	// Priority 1: explicit navigation context via ?from= bitmask
-	if mask := hypermedia.ParseFromParam(from); mask != 0 {
+	if mask := linkwell.ParseFromParam(from); mask != 0 {
 		pathCrumbs := buildPathCrumbs(path, from, getRoutes)
-		crumbs = append(hypermedia.ResolveFromMask(mask), pathCrumbs...)
+		crumbs = append(linkwell.ResolveFromMask(mask), pathCrumbs...)
 	}
 
 	// Priority 2: declared document hierarchy via rel="up" chain
 	// setup:feature:demo:start
 	if len(crumbs) == 0 {
-		crumbs = hypermedia.BreadcrumbsFromLinks(path)
+		crumbs = linkwell.BreadcrumbsFromLinks(path)
 	}
 	// setup:feature:demo:end
 
@@ -118,7 +118,7 @@ func getLayoutCtx(c echo.Context) layoutCtx {
 	if len(crumbs) == 0 {
 		pathCrumbs := buildPathCrumbs(path, from, getRoutes)
 		if len(pathCrumbs) > 1 {
-			crumbs = append([]hypermedia.Breadcrumb{{Label: hypermedia.BreadcrumbLabelHome, Href: "/"}}, pathCrumbs...)
+			crumbs = append([]linkwell.Breadcrumb{{Label: linkwell.BreadcrumbLabelHome, Href: "/"}}, pathCrumbs...)
 		}
 	}
 
@@ -128,7 +128,7 @@ func getLayoutCtx(c echo.Context) layoutCtx {
 
 	// setup:feature:demo:start
 	links := middleware.GetLinkRelations(c)
-	hubs := hypermedia.Hubs()
+	hubs := linkwell.Hubs()
 	// setup:feature:demo:end
 
 	return layoutCtx{
@@ -144,10 +144,10 @@ func getLayoutCtx(c echo.Context) layoutCtx {
 }
 
 // appNavNavConfig returns a NavConfig with icons for use with the AppNavLayout.
-func appNavNavConfig() hypermedia.NavConfig {
-	return hypermedia.NavConfig{
+func appNavNavConfig() linkwell.NavConfig {
+	return linkwell.NavConfig{
 		AppName: appName,
-		Items: []hypermedia.NavItem{
+		Items: []linkwell.NavItem{
 			// setup:feature:demo:start
 			{Label: "Home", Href: "/", Icon: "M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"},
 			{Label: "Dashboard", Href: "/dashboard", Icon: "M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"},
@@ -165,7 +165,7 @@ func appNavNavConfig() hypermedia.NavConfig {
 func renderDefaultLayout(c echo.Context, cmp templ.Component) error {
 	lc := getLayoutCtx(c)
 	cfg := appNavNavConfig()
-	cfg.Items = hypermedia.SetActiveNavItemPrefix(cfg.Items, lc.path)
+	cfg.Items = linkwell.SetActiveNavItemPrefix(cfg.Items, lc.path)
 	return RenderComponent(c, views.AppNavLayout(
 		cmp, cfg,
 		lc.csrfToken, dio.Dev(), lc.theme,
@@ -175,11 +175,11 @@ func renderDefaultLayout(c echo.Context, cmp templ.Component) error {
 
 // AppNavLayoutFunc returns a LayoutFunc that uses the responsive app-nav layout.
 // The NavConfig defines navigation structure and optional custom slots.
-func AppNavLayoutFunc(cfg hypermedia.NavConfig) LayoutFunc {
+func AppNavLayoutFunc(cfg linkwell.NavConfig) LayoutFunc {
 	return func(c echo.Context, cmp templ.Component) error {
 		path := c.Request().URL.Path
 		navCfg := cfg
-		navCfg.Items = hypermedia.SetActiveNavItemPrefix(cfg.Items, path)
+		navCfg.Items = linkwell.SetActiveNavItemPrefix(cfg.Items, path)
 		if navCfg.MaxVisible <= 0 {
 			navCfg.MaxVisible = len(navCfg.Items)
 		}
@@ -218,7 +218,7 @@ func InitRouteSet(e *echo.Echo, name string) {
 // linked breadcrumb; segments with no route are silently skipped. The terminal
 // segment always appears (unlinked). The from param is forwarded on
 // intermediate links.
-func buildPathCrumbs(path, from string, routes map[string]bool) []hypermedia.Breadcrumb {
+func buildPathCrumbs(path, from string, routes map[string]bool) []linkwell.Breadcrumb {
 	trimmed := strings.Trim(path, "/")
 	if trimmed == "" {
 		return nil
@@ -228,7 +228,7 @@ func buildPathCrumbs(path, from string, routes map[string]bool) []hypermedia.Bre
 		return nil
 	}
 
-	var crumbs []hypermedia.Breadcrumb
+	var crumbs []linkwell.Breadcrumb
 	// Intermediate segments: only include if the path is a real route.
 	for i := 0; i < len(segments)-1; i++ {
 		fullPath := "/" + strings.Join(segments[:i+1], "/")
@@ -239,9 +239,9 @@ func buildPathCrumbs(path, from string, routes map[string]bool) []hypermedia.Bre
 		if len(label) > 0 {
 			label = strings.ToUpper(label[:1]) + label[1:]
 		}
-		crumbs = append(crumbs, hypermedia.Breadcrumb{
+		crumbs = append(crumbs, linkwell.Breadcrumb{
 			Label: label,
-			Href:  hypermedia.FromNav(fullPath, from),
+			Href:  linkwell.FromNav(fullPath, from),
 		})
 	}
 
@@ -250,7 +250,7 @@ func buildPathCrumbs(path, from string, routes map[string]bool) []hypermedia.Bre
 	if len(terminal) > 0 {
 		terminal = strings.ToUpper(terminal[:1]) + terminal[1:]
 	}
-	crumbs = append(crumbs, hypermedia.Breadcrumb{Label: terminal})
+	crumbs = append(crumbs, linkwell.Breadcrumb{Label: terminal})
 	return crumbs
 }
 
@@ -287,17 +287,17 @@ func HandleError(c echo.Context, statusCode int, message string, err error) erro
 // from handler arguments and returns it for the middleware to render.
 // When no controls are supplied, sensible defaults are provided based on the
 // status code so that every error response is a navigable hypermedia state.
-func HandleHypermediaError(c echo.Context, statusCode int, message string, err error, controls ...hypermedia.Control) error {
+func HandleHypermediaError(c echo.Context, statusCode int, message string, err error, controls ...linkwell.Control) error {
 	if len(controls) == 0 {
-		opts := hypermedia.ErrorControlOpts{HomeURL: "/", LoginURL: "/login"}
-		controls = hypermedia.ErrorControlsForStatus(statusCode, opts)
+		opts := linkwell.ErrorControlOpts{HomeURL: "/", LoginURL: "/login"}
+		controls = linkwell.ErrorControlsForStatus(statusCode, opts)
 		if statusCode >= 500 {
 			requestID := middleware.GetRequestID(c)
-			controls = append(controls, hypermedia.ReportIssueButton(hypermedia.LabelReportIssue, requestID))
+			controls = append(controls, linkwell.ReportIssueButton(linkwell.LabelReportIssue, requestID))
 		}
 	}
 	ec := middleware.HypermediaError(c, statusCode, message, err, controls...)
-	return hypermedia.NewHTTPError(ec)
+	return linkwell.NewHTTPError(ec)
 }
 
 // HandleNotFound renders a full-page 404 within the base layout for direct
