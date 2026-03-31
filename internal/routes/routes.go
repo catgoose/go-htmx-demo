@@ -185,7 +185,7 @@ func (ar *appRoutes) InitRoutes() error {
 		return nil
 	}
 	// setup:feature:sync:start
-	ar.versionChecker = NewSQLVersionChecker(db.RawDB())
+	ar.versionChecker = nil
 	// setup:feature:sync:end
 	ar.demoDB = db
 	if stored, err := db.ListStoredLinks(); err == nil {

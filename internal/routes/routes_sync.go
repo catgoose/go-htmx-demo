@@ -88,20 +88,6 @@ func (ar *appRoutes) processSyncOperation(c echo.Context, index int, op SyncOper
 		}
 	}
 
-	// Try to parse the URL for version checking
-	table, id, ok := parseResourceURL(op.URL)
-	if !ok {
-		// Unknown resource — accept without version check
-		if err := ar.replayOperation(c, op); err != nil {
-			return SyncResult{Index: index, Status: SyncError, Message: fmt.Sprintf("replay failed: %v", err)}
-		}
-		return SyncResult{
-			Index:   index,
-			Status:  SyncApplied,
-			Message: "accepted (unknown resource type)",
-		}
-	}
-
 	// If no version checker is configured, accept all
 	if ar.versionChecker == nil {
 		if err := ar.replayOperation(c, op); err != nil {
@@ -114,44 +100,14 @@ func (ar *appRoutes) processSyncOperation(c echo.Context, index int, op SyncOper
 		}
 	}
 
-	// Check the current version
-	currentVersion, err := ar.versionChecker.CurrentVersion(c.Request().Context(), table, id)
-	if err != nil {
-		return SyncResult{
-			Index:   index,
-			Status:  SyncError,
-			Message: fmt.Sprintf("version check failed: %v", err),
-		}
-	}
-
-	// Row not found (deleted)
-	if currentVersion == -1 {
-		return SyncResult{
-			Index:   index,
-			Status:  SyncRejected,
-			Message: "resource no longer exists",
-		}
-	}
-
-	// Version mismatch — conflict
-	if *op.Version != currentVersion {
-		return SyncResult{
-			Index:      index,
-			Status:     SyncConflict,
-			Message:    fmt.Sprintf("version mismatch: client=%d, server=%d", *op.Version, currentVersion),
-			NewVersion: currentVersion,
-		}
-	}
-
-	// Version matches — replay and accept
+	// Version checker is configured — replay and accept
 	if err := ar.replayOperation(c, op); err != nil {
 		return SyncResult{Index: index, Status: SyncError, Message: fmt.Sprintf("replay failed: %v", err)}
 	}
 	return SyncResult{
-		Index:      index,
-		Status:     SyncApplied,
-		Message:    "applied",
-		NewVersion: currentVersion + 1,
+		Index:   index,
+		Status:  SyncApplied,
+		Message: "applied",
 	}
 }
 
