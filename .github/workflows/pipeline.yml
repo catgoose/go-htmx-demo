@@ -342,6 +342,8 @@ jobs:
 
           # Scrub binary name references (workflows, Dockerfile, and files with literal "dothog")
           sed -i 's/dothog/harmony/g' .github/workflows/*.yml Dockerfile magefile.go internal/logger/logger.go
+          find . -not -name '*.go' -not -name '*.templ' -type f -exec grep -l 'Dothog' {} + | xargs -r sed -i 's/Dothog/Harmony/g'
+          find . -not -name '*.go' -not -name '*.templ' -type f -exec grep -l 'DOTHOG' {} + | xargs -r sed -i 's/DOTHOG/HARMONY/g'
 
       - name: Push to harmony
         run: |
