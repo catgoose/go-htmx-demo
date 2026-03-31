@@ -5,9 +5,9 @@ package routes
 import (
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
-	hypermedia "github.com/catgoose/linkwell"
+	"github.com/catgoose/linkwell"
 	"catgoose/dothog/internal/routes/params"
-	ssebroker "github.com/catgoose/tavern"
+	"github.com/catgoose/tavern"
 	"catgoose/dothog/web/views"
 
 	"github.com/labstack/echo/v4"
@@ -17,10 +17,10 @@ import (
 type vendorContactRoutes struct {
 	db     *demo.DB
 	actLog *demo.ActivityLog
-	broker *ssebroker.SSEBroker
+	broker *tavern.SSEBroker
 }
 
-func (ar *appRoutes) initVendorContactRoutes(db *demo.DB, actLog *demo.ActivityLog, broker *ssebroker.SSEBroker) {
+func (ar *appRoutes) initVendorContactRoutes(db *demo.DB, actLog *demo.ActivityLog, broker *tavern.SSEBroker) {
 	v := &vendorContactRoutes{db: db, actLog: actLog, broker: broker}
 	ar.e.GET("/demo/vendors", v.handleVendorsPage)
 	ar.e.GET("/demo/vendors/list", v.handleVendorsList)
@@ -112,11 +112,11 @@ func (v *vendorContactRoutes) handleContactUpdate(c echo.Context) error {
 	return handler.RenderComponent(c, views.ContactCard(contact))
 }
 
-func (v *vendorContactRoutes) buildFilterBar(search, category string) hypermedia.FilterBar {
-	return hypermedia.NewFilterBar("/demo/vendors/list", "#vendor-list",
-		hypermedia.SearchField("q", "Search vendors\u2026", search),
-		hypermedia.SelectField("category", "Category", category,
-			hypermedia.SelectOptions(category, vendorCategoryPairs()...)),
+func (v *vendorContactRoutes) buildFilterBar(search, category string) linkwell.FilterBar {
+	return linkwell.NewFilterBar("/demo/vendors/list", "#vendor-list",
+		linkwell.SearchField("q", "Search vendors\u2026", search),
+		linkwell.SelectField("category", "Category", category,
+			linkwell.SelectOptions(category, vendorCategoryPairs()...)),
 	)
 }
 

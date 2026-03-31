@@ -8,7 +8,7 @@ import (
 	// setup:feature:demo:end
 	"catgoose/dothog/internal/logger"
 	"catgoose/dothog/internal/routes/handler"
-	hypermedia "github.com/catgoose/linkwell"
+	"github.com/catgoose/linkwell"
 	"net/http"
 
 	corecomponents "catgoose/dothog/web/components/core"
@@ -78,7 +78,7 @@ func (ar *appRoutes) initReportIssueRoutes() {
 	// The modal auto-opens via HyperScript on load.
 	ar.e.GET("/report-issue/:requestID", func(c echo.Context) error {
 		requestID := c.Param("requestID")
-		cfg := hypermedia.ReportIssueModal(requestID)
+		cfg := linkwell.ReportIssueModal(requestID)
 		return handler.RenderComponent(c, corecomponents.ReportIssueModal(cfg))
 	})
 }

@@ -1,8 +1,8 @@
 package components
 
-import hypermedia "github.com/catgoose/linkwell"
+import "github.com/catgoose/linkwell"
 
-func errorPageTheme(ec hypermedia.ErrorContext) string {
+func errorPageTheme(ec linkwell.ErrorContext) string {
 	if ec.Theme != "" {
 		return ec.Theme
 	}

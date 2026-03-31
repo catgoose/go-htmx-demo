@@ -8,8 +8,8 @@ import (
 
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
-	hx "github.com/catgoose/cheddar"
-	hypermedia "github.com/catgoose/linkwell"
+	"github.com/catgoose/cheddar"
+	"github.com/catgoose/linkwell"
 	"catgoose/dothog/internal/routes/params"
 	"catgoose/dothog/web/views"
 
@@ -48,7 +48,7 @@ func (d *inventoryRoutes) handleInventoryItems(c echo.Context) error {
 	if err != nil {
 		return handler.HandleHypermediaError(c, 500, "Failed to load items", err)
 	}
-	if hx.IsBoosted(c) {
+	if cheddar.IsBoosted(c) {
 		return handler.RenderBaseLayout(c, views.InventoryPage(bar, container))
 	}
 	setTableReplaceURL(c, inventoryBase)
@@ -102,7 +102,7 @@ func (d *inventoryRoutes) handleItemRow(c echo.Context) error {
 	if err != nil {
 		return handler.HandleHypermediaError(c, 404, "Item not found", err)
 	}
-	if !hx.IsHTMX(c) || hx.IsBoosted(c) {
+	if !cheddar.IsHTMX(c) || cheddar.IsBoosted(c) {
 		handler.SetPageLabel(c, item.Name)
 		return handler.RenderBaseLayout(c, views.InventoryDetailPage(item))
 	}
@@ -162,14 +162,14 @@ func (d *inventoryRoutes) handleDeleteItem(c echo.Context) error {
 	return handler.RenderComponent(c, container)
 }
 
-func (d *inventoryRoutes) buildInventoryContent(c echo.Context) (hypermedia.FilterBar, templ.Component, error) {
+func (d *inventoryRoutes) buildInventoryContent(c echo.Context) (linkwell.FilterBar, templ.Component, error) {
 	const perPage = 20
 	tc, err := buildTableContent(c, d.db, parseTableParams(c, perPage),
 		inventoryBase+"/items", "#inventory-table-container",
-		hypermedia.TableCol{Label: "Actions"},
+		linkwell.TableCol{Label: "Actions"},
 	)
 	if err != nil {
-		return hypermedia.FilterBar{}, nil, err
+		return linkwell.FilterBar{}, nil, err
 	}
 	body := views.InventoryItemsBody(tc.Items)
 	container := views.InventoryTableContainer(tc.Cols, body, tc.Info)
