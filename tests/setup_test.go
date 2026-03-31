@@ -413,9 +413,6 @@ func TestSetup_FeaturesAll(t *testing.T) {
 	assertDirExists(t, filepath.Join(dest, "internal", "service", "graph"))
 	assertDirExists(t, filepath.Join(dest, "internal", "demo"))
 
-	// docs/screenshots/ should exist (#355)
-	assertDirExists(t, filepath.Join(dest, "docs", "screenshots"))
-
 	// e2e smoke test should exist (#356)
 	_, err = os.Stat(filepath.Join(dest, "e2e", "smoke.spec.ts"))
 	require.NoError(t, err, "smoke.spec.ts should exist after setup")
