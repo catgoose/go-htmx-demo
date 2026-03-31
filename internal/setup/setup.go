@@ -62,6 +62,7 @@ var featureDeps = map[string][]string{
 	FeatureSync:           {FeatureOffline},
 	FeatureOffline:        {FeatureCapacitor},
 	FeaturePWA:            {FeatureOffline, FeatureSync, FeatureCapacitor},
+	FeatureDemo:            {FeatureSessionSettings},
 	FeatureLinkRelations:  {FeatureSessionSettings},
 	FeatureBrowserAPIs:    {FeatureSSE},
 	FeatureWebStandards:   {FeatureSessionSettings},
@@ -170,7 +171,7 @@ func replaceDothogNames(dir, binaryName, appName string) error {
 		}
 		if info.IsDir() {
 			name := info.Name()
-			if name == ".git" || name == TemplateSetupDir || name == "node_modules" || name == "tests" {
+			if name == ".git" || name == ".claude" || name == TemplateSetupDir || name == "log" || name == "node_modules" || name == "tests" {
 				return filepath.SkipDir
 			}
 			// Skip setup package — it contains "dothog" in replacement
@@ -367,6 +368,7 @@ func Run(ctx context.Context, dir string, opts Options) error {
 	if data, err := os.ReadFile(dockerfilePath); err == nil {
 		content := string(data)
 		content = strings.ReplaceAll(content, "-o /dothog", "-o /"+binaryName)
+		content = strings.ReplaceAll(content, "build /dothog", "build /"+binaryName)
 		content = strings.ReplaceAll(content, "/usr/local/bin/dothog", "/usr/local/bin/"+binaryName)
 		content = strings.ReplaceAll(content, `ENTRYPOINT ["dothog"]`, `ENTRYPOINT ["`+binaryName+`"]`)
 		content = strings.ReplaceAll(content, "SERVER_LISTEN_PORT=3000", "SERVER_LISTEN_PORT="+appTLSPort)
@@ -1095,7 +1097,7 @@ func replaceDefaultFavicons(dir string) {
 // isTextFile returns true for file extensions that may contain setup markers.
 func isTextFile(path string) bool {
 	switch filepath.Ext(path) {
-	case ".go", ".templ", ".mod", ".sum", ".toml", ".yaml", ".yml", ".json", ".js", ".ts", ".css", ".html", ".md", ".txt", ".rb":
+	case ".go", ".templ", ".mod", ".sum", ".toml", ".yaml", ".yml", ".json", ".js", ".ts", ".css", ".html", ".md", ".txt", ".rb", ".webmanifest":
 		return true
 	}
 	// Extensionless files that are known text.
