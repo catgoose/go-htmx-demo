@@ -16,7 +16,6 @@ import (
 	"catgoose/dothog/internal/setup"
 
 	"github.com/charmbracelet/huh"
-	"github.com/magefile/mage/sh"
 )
 
 const templateModulePath = "catgoose/dothog"
