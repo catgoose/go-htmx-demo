@@ -329,26 +329,6 @@ func Run(ctx context.Context, dir string, opts Options) error {
 		}
 	}
 
-	templateReadme := filepath.Join(dir, TemplateSetupDir, "README.template.md")
-	if data, err := os.ReadFile(templateReadme); err == nil {
-		content := string(data)
-		content = strings.ReplaceAll(content, "{{APP_TLS_PORT}}", appTLSPort)
-		content = strings.ReplaceAll(content, "{{TEMPL_HTTP_PORT}}", templHTTPPort)
-		content = strings.ReplaceAll(content, "{{CADDY_TLS_PORT}}", caddyTLSPort)
-		content = strings.ReplaceAll(content, "{{APP_NAME}}", opts.AppName)
-		content = strings.ReplaceAll(content, "{{BINARY_NAME}}", binaryName)
-		content = strings.ReplaceAll(content, "{{MODULE_PATH}}", modulePath)
-		content = strings.ReplaceAll(content, "{{TEMPLATE_REF}}", "the template")
-		content = strings.ReplaceAll(content, "{{FEATURE_TABLE}}", buildFeatureTable(opts.Features))
-		content = strings.ReplaceAll(content, "{{FEATURE_SECTIONS}}", buildFeatureSections(opts.Features))
-		content = strings.ReplaceAll(content, "{{TECH_STACK}}", buildTechStack(opts.Features))
-		content = strings.ReplaceAll(content, "{{QUICK_START}}", buildQuickStart(binaryName, appTLSPort))
-		content = strings.ReplaceAll(content, "{{ENV_TABLE}}", buildEnvTable(opts.Features, opts.AppName, appTLSPort))
-		if err := os.WriteFile(filepath.Join(dir, "README.md"), []byte(content), 0644); err != nil {
-			return err
-		}
-	}
-
 	// Legacy --no-caddy flag: remove Caddyfile if requested.
 	// The new Features mechanism handles this too (see removeOptionalContent).
 	if opts.NoCaddy {
@@ -435,6 +415,29 @@ func Run(ctx context.Context, dir string, opts Options) error {
 	// titles, test assertions, doc references, CI workflows, etc.).
 	if err := replaceTemplateNames(dir, binaryName, opts.AppName); err != nil {
 		return fmt.Errorf("replacing template names: %w", err)
+	}
+
+	// Generate the derived app's README from the template.  This runs after
+	// replaceTemplateNames so that the intentional "generated from
+	// catgoose/dothog" reference is not rewritten to the derived app's name.
+	templateReadme := filepath.Join(dir, TemplateSetupDir, "README.template.md")
+	if data, err := os.ReadFile(templateReadme); err == nil {
+		content := string(data)
+		content = strings.ReplaceAll(content, "{{APP_TLS_PORT}}", appTLSPort)
+		content = strings.ReplaceAll(content, "{{TEMPL_HTTP_PORT}}", templHTTPPort)
+		content = strings.ReplaceAll(content, "{{CADDY_TLS_PORT}}", caddyTLSPort)
+		content = strings.ReplaceAll(content, "{{APP_NAME}}", opts.AppName)
+		content = strings.ReplaceAll(content, "{{BINARY_NAME}}", binaryName)
+		content = strings.ReplaceAll(content, "{{MODULE_PATH}}", modulePath)
+		content = strings.ReplaceAll(content, "{{TEMPLATE_REF}}", "["+TemplateModule+"](https://github.com/"+TemplateModule+")")
+		content = strings.ReplaceAll(content, "{{FEATURE_TABLE}}", buildFeatureTable(opts.Features))
+		content = strings.ReplaceAll(content, "{{FEATURE_SECTIONS}}", buildFeatureSections(opts.Features))
+		content = strings.ReplaceAll(content, "{{TECH_STACK}}", buildTechStack(opts.Features))
+		content = strings.ReplaceAll(content, "{{QUICK_START}}", buildQuickStart(binaryName, appTLSPort))
+		content = strings.ReplaceAll(content, "{{ENV_TABLE}}", buildEnvTable(opts.Features, opts.AppName, appTLSPort))
+		if err := os.WriteFile(filepath.Join(dir, "README.md"), []byte(content), 0644); err != nil {
+			return err
+		}
 	}
 
 	if err := removeOptionalContent(dir, opts); err != nil {

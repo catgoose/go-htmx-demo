@@ -66,8 +66,11 @@ func TestSetupReplacesAppNameAndModule(t *testing.T) {
 	readmeContent := string(readmeBytes)
 	require.Contains(t, readmeContent, "Test App")
 	require.Contains(t, readmeContent, "12345")
+	require.Contains(t, readmeContent, "catgoose/dothog",
+		"README should reference the source template (catgoose/dothog)")
 	require.NotContains(t, readmeContent, "{{APP_NAME}}")
 	require.NotContains(t, readmeContent, "{{APP_PORT}}")
+	require.NotContains(t, readmeContent, "{{TEMPLATE_REF}}")
 
 	envPath := filepath.Join(dest, ".env.development")
 	envBytes, err := os.ReadFile(envPath)
@@ -103,6 +106,10 @@ func TestSetupReplacesAppNameAndModule(t *testing.T) {
 		}
 		rel, _ := filepath.Rel(dest, path)
 		if strings.HasPrefix(rel, "_template_setup"+string(filepath.Separator)) {
+			return nil
+		}
+		// README.md intentionally references catgoose/dothog as the source template.
+		if rel == "README.md" {
 			return nil
 		}
 		data, err := os.ReadFile(path)
