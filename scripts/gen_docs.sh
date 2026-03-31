@@ -24,7 +24,6 @@ declare -A PACKAGES=(
   ["internal/routes/htmx"]="routes-htmx"
   ["internal/routes/hypermedia"]="routes-hypermedia"
   ["internal/routes/middleware"]="routes-middleware"
-  ["internal/routes/params"]="routes-params"
   ["internal/routes/response"]="routes-response"
   ["internal/database"]="database"
   ["internal/database/repository"]="database-repository"

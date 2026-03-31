@@ -7,7 +7,6 @@ import (
 
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
-	"catgoose/dothog/internal/routes/params"
 	"github.com/catgoose/tavern"
 	"catgoose/dothog/web/views"
 
@@ -32,7 +31,7 @@ func (a *approvalRoutes) handleApprovalsPage(c echo.Context) error {
 }
 
 func (a *approvalRoutes) handleApprovalAction(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid request ID", err)
 	}

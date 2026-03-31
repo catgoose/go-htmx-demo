@@ -6,7 +6,6 @@ import (
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
 	"github.com/catgoose/linkwell"
-	"catgoose/dothog/internal/routes/params"
 	"github.com/catgoose/tavern"
 	"catgoose/dothog/web/views"
 
@@ -52,7 +51,7 @@ func (v *vendorContactRoutes) handleVendorsList(c echo.Context) error {
 }
 
 func (v *vendorContactRoutes) handleVendorContacts(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid vendor ID", err)
 	}
@@ -68,7 +67,7 @@ func (v *vendorContactRoutes) handleVendorContacts(c echo.Context) error {
 }
 
 func (v *vendorContactRoutes) handleContactEdit(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid contact ID", err)
 	}
@@ -80,7 +79,7 @@ func (v *vendorContactRoutes) handleContactEdit(c echo.Context) error {
 }
 
 func (v *vendorContactRoutes) handleContactCard(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid contact ID", err)
 	}
@@ -92,7 +91,7 @@ func (v *vendorContactRoutes) handleContactCard(c echo.Context) error {
 }
 
 func (v *vendorContactRoutes) handleContactUpdate(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid contact ID", err)
 	}

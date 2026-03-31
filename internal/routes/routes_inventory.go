@@ -10,7 +10,6 @@ import (
 	"catgoose/dothog/internal/routes/handler"
 	"github.com/catgoose/cheddar"
 	"github.com/catgoose/linkwell"
-	"catgoose/dothog/internal/routes/params"
 	"catgoose/dothog/web/views"
 
 	"github.com/a-h/templ"
@@ -94,7 +93,7 @@ func (d *inventoryRoutes) handleCreateItem(c echo.Context) error {
 }
 
 func (d *inventoryRoutes) handleItemRow(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid item ID", err)
 	}
@@ -110,7 +109,7 @@ func (d *inventoryRoutes) handleItemRow(c echo.Context) error {
 }
 
 func (d *inventoryRoutes) handleEditItemForm(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid item ID", err)
 	}
@@ -128,7 +127,7 @@ func (d *inventoryRoutes) handleEditItemForm(c echo.Context) error {
 }
 
 func (d *inventoryRoutes) handleUpdateItem(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid item ID", err)
 	}
@@ -146,7 +145,7 @@ func (d *inventoryRoutes) handleUpdateItem(c echo.Context) error {
 }
 
 func (d *inventoryRoutes) handleDeleteItem(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid item ID", err)
 	}

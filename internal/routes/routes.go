@@ -25,6 +25,7 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
+	"strconv"
 	"net/http"
 	"os"
 	"time"
@@ -366,5 +367,19 @@ func InitEcho(ctx context.Context, staticFS fs.FS, cfg *config.AppConfig,
 	// setup:feature:offline:end
 
 	return e, nil
+}
+
+// parseParamID parses a named path parameter as a positive integer.
+// Returns an error if the parameter is missing, non-numeric, or less than 1.
+func parseParamID(c echo.Context, name string) (int, error) {
+	raw := c.Param(name)
+	if raw == "" {
+		return 0, fmt.Errorf("%s parameter not found", name)
+	}
+	id, err := strconv.Atoi(raw)
+	if err != nil || id < 1 {
+		return 0, fmt.Errorf("invalid %s: %q", name, raw)
+	}
+	return id, nil
 }
 

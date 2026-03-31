@@ -7,7 +7,6 @@ import (
 	"catgoose/dothog/internal/routes/handler"
 	"github.com/catgoose/cheddar"
 	"github.com/catgoose/linkwell"
-	"catgoose/dothog/internal/routes/params"
 	"catgoose/dothog/web/views"
 
 	"github.com/a-h/templ"
@@ -47,7 +46,7 @@ func (cat *catalogRoutes) handleCatalogItems(c echo.Context) error {
 }
 
 func (cat *catalogRoutes) handleCatalogDetailPage(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid item ID", err)
 	}
@@ -60,7 +59,7 @@ func (cat *catalogRoutes) handleCatalogDetailPage(c echo.Context) error {
 }
 
 func (cat *catalogRoutes) handleCatalogItemDetails(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid item ID", err)
 	}

@@ -47,7 +47,6 @@ nav:
       - routes/htmx: packages/routes-htmx.md
       - routes/hypermedia: packages/routes-hypermedia.md
       - routes/middleware: packages/routes-middleware.md
-      - routes/params: packages/routes-params.md
       - routes/response: packages/routes-response.md
       - database: packages/database.md
       - database/repository: packages/database-repository.md

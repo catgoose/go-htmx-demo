@@ -8,7 +8,6 @@ import (
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
 	"github.com/catgoose/linkwell"
-	"catgoose/dothog/internal/routes/params"
 	"catgoose/dothog/web/views"
 
 	"github.com/a-h/templ"
@@ -45,7 +44,7 @@ func (d *errorReportRoutes) handleErrorReportsTable(c echo.Context) error {
 }
 
 func (d *errorReportRoutes) handleResolveReport(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid report ID", err)
 	}
@@ -62,7 +61,7 @@ func (d *errorReportRoutes) handleResolveReport(c echo.Context) error {
 }
 
 func (d *errorReportRoutes) handleDismissReport(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid report ID", err)
 	}

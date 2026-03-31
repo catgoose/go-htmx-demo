@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"catgoose/dothog/internal/routes/handler"
-	"catgoose/dothog/internal/routes/params"
 	"catgoose/dothog/web/views"
 
 	"github.com/labstack/echo/v4"
@@ -156,7 +155,7 @@ func (s *components3State) handleFeedPage(c echo.Context) error {
 // ─── Optimistic UI handler ───────────────────────────────────────────────────────
 
 func (s *components3State) handleFavoriteToggle(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid ID", err)
 	}
@@ -186,7 +185,7 @@ func (s *components3State) handleFavoriteToggle(c echo.Context) error {
 // ─── Undo / soft delete handlers ─────────────────────────────────────────────────
 
 func (s *components3State) handleUndoDelete(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid ID", err)
 	}
@@ -211,7 +210,7 @@ func (s *components3State) handleUndoDelete(c echo.Context) error {
 }
 
 func (s *components3State) handleUndoRestore(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid ID", err)
 	}

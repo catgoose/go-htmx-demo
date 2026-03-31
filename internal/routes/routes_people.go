@@ -12,7 +12,6 @@ import (
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
 	"github.com/catgoose/linkwell"
-	"catgoose/dothog/internal/routes/params"
 	"catgoose/dothog/internal/shared"
 	"github.com/catgoose/tavern"
 	"catgoose/dothog/web/views"
@@ -58,7 +57,7 @@ func (p *peopleRoutes) handlePeopleList(c echo.Context) error {
 }
 
 func (p *peopleRoutes) handlePersonProfile(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid ID", err)
 	}
@@ -72,7 +71,7 @@ func (p *peopleRoutes) handlePersonProfile(c echo.Context) error {
 }
 
 func (p *peopleRoutes) handlePersonEdit(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid ID", err)
 	}
@@ -84,7 +83,7 @@ func (p *peopleRoutes) handlePersonEdit(c echo.Context) error {
 }
 
 func (p *peopleRoutes) handlePersonCard(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid ID", err)
 	}
@@ -96,7 +95,7 @@ func (p *peopleRoutes) handlePersonCard(c echo.Context) error {
 }
 
 func (p *peopleRoutes) handlePersonUpdate(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid ID", err)
 	}
@@ -148,7 +147,7 @@ func (p *peopleRoutes) broadcastPersonUpdate(person demo.Person) {
 }
 
 func (p *peopleRoutes) handlePersonSSE(c echo.Context) error {
-	id, err := params.ParseParamID(c, "id")
+	id, err := parseParamID(c, "id")
 	if err != nil {
 		return handler.HandleHypermediaError(c, 400, "Invalid person ID", err)
 	}
