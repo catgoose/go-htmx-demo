@@ -24,7 +24,7 @@ func TestSetupReplacesAppNameAndModule(t *testing.T) {
 	require.NoError(t, err)
 
 	dest := setupTempDir(t)
-	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", "bin", "build", "log", "tmp", "node_modules")
+	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", ".cursor", "bin", "build", "log", "node_modules", "test-results", "tmp")
 	require.NoError(t, err)
 
 	err = setup.Run(context.Background(), dest, setup.Options{
@@ -130,7 +130,7 @@ func TestSetupUsesRandomPortWhenPOmitted(t *testing.T) {
 	require.NoError(t, err)
 
 	dest := setupTempDir(t)
-	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", "bin", "build", "log", "tmp", "node_modules")
+	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", ".cursor", "bin", "build", "log", "node_modules", "test-results", "tmp")
 	require.NoError(t, err)
 
 	err = setup.Run(context.Background(), dest, setup.Options{
@@ -324,7 +324,7 @@ func TestSetup_NoBareBinaryInGitignore(t *testing.T) {
 	require.NoError(t, err)
 
 	dest := setupTempDir(t)
-	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", "bin", "build", "log", "tmp", "node_modules")
+	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", ".cursor", "bin", "build", "log", "node_modules", "test-results", "tmp")
 	require.NoError(t, err)
 
 	err = setup.Run(context.Background(), dest, setup.Options{
@@ -363,7 +363,7 @@ func TestSetup_MageSetupAndInternalSetupRemovable(t *testing.T) {
 	require.NoError(t, err)
 
 	dest := setupTempDir(t)
-	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", "bin", "build", "log", "tmp", "node_modules")
+	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", ".cursor", "bin", "build", "log", "node_modules", "test-results", "tmp")
 	require.NoError(t, err)
 
 	// Remove setup-only files before running setup (mimics the copy flow in mage_setup.go)
@@ -398,7 +398,7 @@ func TestSetup_FeaturesAll(t *testing.T) {
 	require.NoError(t, err)
 
 	dest := setupTempDir(t)
-	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", "bin", "build", "log", "tmp", "node_modules")
+	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", ".cursor", "bin", "build", "log", "node_modules", "test-results", "tmp")
 	require.NoError(t, err)
 
 	features := make([]string, len(setup.AllFeatures))
@@ -443,7 +443,7 @@ func TestSetup_FeaturesNone(t *testing.T) {
 	require.NoError(t, err)
 
 	dest := setupTempDir(t)
-	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", "bin", "build", "log", "tmp", "node_modules")
+	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", ".cursor", "bin", "build", "log", "node_modules", "test-results", "tmp")
 	require.NoError(t, err)
 
 	err = setup.Run(context.Background(), dest, setup.Options{
@@ -545,7 +545,7 @@ func TestSetup_FeaturesAuthOnly(t *testing.T) {
 	require.NoError(t, err)
 
 	dest := setupTempDir(t)
-	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", "bin", "build", "log", "tmp", "node_modules")
+	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", ".cursor", "bin", "build", "log", "node_modules", "test-results", "tmp")
 	require.NoError(t, err)
 
 	err = setup.Run(context.Background(), dest, setup.Options{
@@ -582,7 +582,7 @@ func TestSetup_FeaturesDatabaseOnly(t *testing.T) {
 	require.NoError(t, err)
 
 	dest := setupTempDir(t)
-	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", "bin", "build", "log", "tmp", "node_modules")
+	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", ".cursor", "bin", "build", "log", "node_modules", "test-results", "tmp")
 	require.NoError(t, err)
 
 	// database is implicit — no need to pass it explicitly; MSSQL not selected
@@ -611,7 +611,7 @@ func TestSetup_FeaturesMSSQL(t *testing.T) {
 	require.NoError(t, err)
 
 	dest := setupTempDir(t)
-	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", "bin", "build", "log", "tmp", "node_modules")
+	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", ".cursor", "bin", "build", "log", "node_modules", "test-results", "tmp")
 	require.NoError(t, err)
 
 	// database is implicit; explicitly selecting mssql adds MSSQL support
@@ -637,7 +637,7 @@ func TestSetup_FeaturesSSECaddy(t *testing.T) {
 	require.NoError(t, err)
 
 	dest := setupTempDir(t)
-	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", "bin", "build", "log", "tmp", "node_modules")
+	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", ".cursor", "bin", "build", "log", "node_modules", "test-results", "tmp")
 	require.NoError(t, err)
 
 	err = setup.Run(context.Background(), dest, setup.Options{
@@ -666,7 +666,7 @@ func TestSetup_FeaturesDemo(t *testing.T) {
 	require.NoError(t, err)
 
 	dest := setupTempDir(t)
-	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", "bin", "build", "log", "tmp", "node_modules")
+	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", ".cursor", "bin", "build", "log", "node_modules", "test-results", "tmp")
 	require.NoError(t, err)
 
 	err = setup.Run(context.Background(), dest, setup.Options{
@@ -695,7 +695,7 @@ func TestSetup_PWAWithoutCapacitor(t *testing.T) {
 	require.NoError(t, err)
 
 	dest := setupTempDir(t)
-	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", "bin", "build", "log", "tmp", "node_modules")
+	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", ".cursor", "bin", "build", "log", "node_modules", "test-results", "tmp")
 	require.NoError(t, err)
 
 	err = setup.Run(context.Background(), dest, setup.Options{
@@ -729,7 +729,7 @@ func TestSetup_NoDothogReferences(t *testing.T) {
 	require.NoError(t, err)
 
 	dest := setupTempDir(t)
-	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", "bin", "build", "log", "tmp", "node_modules")
+	err = copyDirExcluding(repoRoot, dest, ".git", ".claude", ".cursor", "bin", "build", "log", "node_modules", "test-results", "tmp")
 	require.NoError(t, err)
 
 	// Remove setup-only files (mimics the copy flow in mage_setup.go).
