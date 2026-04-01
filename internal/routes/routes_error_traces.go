@@ -10,7 +10,7 @@ import (
 
 	"catgoose/dothog/internal/logger"
 	"github.com/catgoose/promolog"
-	"catgoose/dothog/internal/routes/handler"
+"catgoose/dothog/internal/routes/handler"
 	"github.com/catgoose/linkwell"
 	"github.com/catgoose/flighty"
 	"catgoose/dothog/web/views"

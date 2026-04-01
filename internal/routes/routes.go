@@ -308,8 +308,7 @@ func InitEcho(ctx context.Context, staticFS fs.FS, cfg *config.AppConfig,
 		e.Use(echo.WrapMiddleware(scsMgr.LoadAndSave))
 		cfg.SessionMgr = sessionMgr
 		cfg.CroonerConfig.SessionMgr = sessionMgr
-		authMux := http.NewServeMux()
-		authCfg, err := crooner.NewAuthConfig(ctx, authMux, cfg.CroonerConfig)
+		authCfg, err := crooner.NewAuthConfig(ctx, cfg.CroonerConfig)
 		if err != nil {
 			return nil, fmt.Errorf("crooner auth config: %w", err)
 		}
