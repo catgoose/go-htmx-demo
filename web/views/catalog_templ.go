@@ -15,8 +15,8 @@ import (
 	"strconv"
 
 	"catgoose/dothog/internal/demo"
-	"github.com/catgoose/linkwell"
 	components "catgoose/dothog/web/components/core"
+	"github.com/catgoose/linkwell"
 )
 
 // CatalogPage is the full page content for /demo/catalog.

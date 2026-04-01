@@ -14,8 +14,8 @@ import (
 	"fmt"
 
 	"catgoose/dothog/internal/demo"
-	"github.com/catgoose/linkwell"
 	components "catgoose/dothog/web/components/core"
+	"github.com/catgoose/linkwell"
 )
 
 func VendorContactsPage(vendors []demo.Vendor, bar linkwell.FilterBar) templ.Component {
