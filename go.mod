@@ -11,7 +11,7 @@ require (
 	github.com/catgoose/fraggle v0.1.23
 	github.com/catgoose/linkwell v0.2.10
 	github.com/catgoose/porter v0.4.2
-	github.com/catgoose/promolog/sqlite v0.0.0-20260402003636-14251fe44136
+	github.com/catgoose/promolog/sqlite v0.0.0-20260402014809-730423262452
 	github.com/catgoose/tavern v0.4.12
 	github.com/charmbracelet/huh v1.0.0
 	github.com/fsnotify/fsnotify v1.9.0
