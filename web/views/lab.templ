@@ -2,7 +2,7 @@
 
 package views
 
-templ LabPage() {
+templ LabPage(grid string) {
 	<div class="p-4 space-y-6 max-w-5xl mx-auto">
 		<div class="space-y-1">
 			<h1 class="text-2xl font-bold">SSE Laboratory</h1>
@@ -14,16 +14,27 @@ templ LabPage() {
 				<div class="flex items-center justify-between">
 					<div>
 						<h2 class="card-title">Mandelbrot Set</h2>
-						<p class="text-sm text-base-content/60">Row-by-row fractal rendering streamed over a single SSE connection.</p>
+						<p class="text-sm text-base-content/60">
+							Auto-zooming fractal explorer — the server finds the most
+							interesting boundary and dives deeper every 2 seconds.
+						</p>
 					</div>
-					@MandelbrotControls(false)
+					<div id="mb-controls">
+						<button class="btn btn-sm btn-outline"
+							hx-post="/hypermedia/lab/mandelbrot/reset"
+							hx-target="#mb-controls"
+							hx-swap="innerHTML">Reset</button>
+					</div>
 				</div>
 
-				<div id="mb-status" class="text-sm text-base-content/50">Ready</div>
+				<div id="mb-status" class="text-sm text-base-content/50">
+					<span class="font-mono">×1</span> · depth 0/30
+				</div>
 
 				<div id="mandelbrot-canvas"
 					class="bg-black rounded-lg p-3 overflow-x-auto font-mono"
 					style="font-size:10px; min-height:200px">
+					@templ.Raw(grid)
 				</div>
 
 				<!-- SSE connection (always active) -->
@@ -37,36 +48,17 @@ templ LabPage() {
 	</div>
 }
 
-templ MandelbrotControls(running bool) {
-	<div id="mb-controls">
-		if running {
-			<button class="btn btn-sm btn-outline btn-error"
-				hx-post="/hypermedia/lab/mandelbrot/reset"
-				hx-target="#mb-controls"
-				hx-swap="outerHTML">Reset</button>
-		} else {
-			<button class="btn btn-sm btn-primary"
-				hx-post="/hypermedia/lab/mandelbrot/start"
-				hx-target="#mb-controls"
-				hx-swap="outerHTML">Start</button>
-		}
+templ MandelbrotResetResponse(grid string) {
+	<button class="btn btn-sm btn-outline"
+		hx-post="/hypermedia/lab/mandelbrot/reset"
+		hx-target="#mb-controls"
+		hx-swap="innerHTML">Reset</button>
+	<div id="mandelbrot-canvas" hx-swap-oob="innerHTML">
+		@templ.Raw(grid)
 	</div>
-}
-
-templ MandelbrotRunning() {
-	@MandelbrotControls(true)
-	<div id="mandelbrot-canvas" hx-swap-oob="innerHTML"
-		class="bg-black rounded-lg p-3 overflow-x-auto font-mono"
-		style="font-size:10px; min-height:200px"></div>
-	<div id="mb-status" hx-swap-oob="innerHTML">Starting...</div>
-}
-
-templ MandelbrotReady() {
-	@MandelbrotControls(false)
-	<div id="mandelbrot-canvas" hx-swap-oob="innerHTML"
-		class="bg-black rounded-lg p-3 overflow-x-auto font-mono"
-		style="font-size:10px; min-height:200px"></div>
-	<div id="mb-status" hx-swap-oob="innerHTML">Ready</div>
+	<div id="mb-status" hx-swap-oob="innerHTML">
+		<span class="font-mono">×1</span> · depth 0/30
+	</div>
 }
 
 templ labExplanation() {
@@ -75,16 +67,28 @@ templ labExplanation() {
 			<h3 class="font-semibold">How it works</h3>
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<div>
-					<div class="font-medium mb-1">Server</div>
-					<p class="text-base-content/70">A goroutine computes the Mandelbrot set row by row. Each row is rendered as colored Unicode blocks and published to a Tavern SSE topic.</p>
+					<div class="font-medium mb-1">Compute</div>
+					<p class="text-base-content/70">
+						A goroutine computes the Mandelbrot set, then analyzes iteration-count
+						variance to find the most detailed boundary region. It zooms 2× into
+						that region and repeats — an autonomous fractal explorer.
+					</p>
 				</div>
 				<div>
-					<div class="font-medium mb-1">Transport</div>
-					<p class="text-base-content/70">Each row is an SSE message containing OOB swap directives. The canvas and status line update simultaneously from a single event.</p>
+					<div class="font-medium mb-1">Stream</div>
+					<p class="text-base-content/70">
+						Each frame is published as a single SSE message containing OOB swap
+						directives. The canvas, status, and controls all update from one event.
+						Max iterations increase with depth for finer detail.
+					</p>
 				</div>
 				<div>
-					<div class="font-medium mb-1">Client</div>
-					<p class="text-base-content/70">HTMX's SSE extension receives events and processes hx-swap-oob attributes to append rows and update the status — zero JavaScript required.</p>
+					<div class="font-medium mb-1">Render</div>
+					<p class="text-base-content/70">
+						HTMX's SSE extension receives the event and processes hx-swap-oob
+						attributes to replace the canvas content — a full-frame update with
+						zero JavaScript. Each journey is unique thanks to randomized target selection.
+					</p>
 				</div>
 			</div>
 		</div>

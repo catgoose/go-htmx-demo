@@ -6,7 +6,9 @@ import (
 	"context"
 	"fmt"
 	"math"
+	"math/rand/v2"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -21,9 +23,10 @@ import (
 const labBase = hypermediaBase + "/lab"
 
 const (
-	mbWidth   = 120
-	mbHeight  = 60
-	mbMaxIter = 256
+	mbWidth    = 120
+	mbHeight   = 60
+	mbMaxIter  = 256
+	mbMaxDepth = 30
 )
 
 var mbPalette = [16][3]uint8{
@@ -33,22 +36,64 @@ var mbPalette = [16][3]uint8{
 	{232, 167, 53}, {200, 117, 17}, {159, 74, 4}, {106, 27, 4},
 }
 
+type mbViewport struct {
+	realMin, realMax, imagMin, imagMax float64
+}
+
+var mbDefaultVP = mbViewport{
+	realMin: -2.5, realMax: 1.0,
+	imagMin: -1.1, imagMax: 1.1,
+}
+
 var mandelbrotState struct {
 	cancel context.CancelFunc
 	mu     sync.Mutex
 }
 
 func (ar *appRoutes) initLabRoutes(broker *tavern.SSEBroker) {
-	ar.e.GET(labBase, handleLabPage)
-	ar.e.POST(labBase+"/mandelbrot/start", handleMandelbrotStart(ar.ctx, broker))
-	ar.e.POST(labBase+"/mandelbrot/reset", handleMandelbrotReset())
+	ar.e.GET(labBase, handleLabPage(ar.ctx, broker))
+	ar.e.POST(labBase+"/mandelbrot/reset", handleMandelbrotReset(ar.ctx, broker))
 	ar.e.GET("/sse/lab", handleSSELab(broker))
 }
 
-func handleLabPage(c echo.Context) error {
-	return handler.RenderBaseLayout(c, views.LabPage())
+// handleLabPage pre-renders the default view and starts the auto-zoom publisher.
+func handleLabPage(appCtx context.Context, broker *tavern.SSEBroker) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		grid, _ := renderMandelbrotGrid(mbDefaultVP, mbMaxIter)
+
+		mandelbrotState.mu.Lock()
+		if mandelbrotState.cancel != nil {
+			mandelbrotState.cancel()
+		}
+		ctx, cancel := context.WithCancel(appCtx)
+		mandelbrotState.cancel = cancel
+		mandelbrotState.mu.Unlock()
+
+		go publishAutoZoom(ctx, broker)
+
+		return handler.RenderBaseLayout(c, views.LabPage(grid))
+	}
 }
 
+// handleMandelbrotReset cancels the current auto-zoom and restarts from default.
+func handleMandelbrotReset(appCtx context.Context, broker *tavern.SSEBroker) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		mandelbrotState.mu.Lock()
+		if mandelbrotState.cancel != nil {
+			mandelbrotState.cancel()
+		}
+		ctx, cancel := context.WithCancel(appCtx)
+		mandelbrotState.cancel = cancel
+		mandelbrotState.mu.Unlock()
+
+		grid, _ := renderMandelbrotGrid(mbDefaultVP, mbMaxIter)
+		go publishAutoZoom(ctx, broker)
+
+		return handler.RenderComponent(c, views.MandelbrotResetResponse(grid))
+	}
+}
+
+// handleSSELab streams SSE messages for the lab page.
 func handleSSELab(broker *tavern.SSEBroker) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "text/event-stream")
@@ -80,38 +125,78 @@ func handleSSELab(broker *tavern.SSEBroker) echo.HandlerFunc {
 	}
 }
 
-func handleMandelbrotStart(appCtx context.Context, broker *tavern.SSEBroker) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		mandelbrotState.mu.Lock()
-		if mandelbrotState.cancel != nil {
-			mandelbrotState.cancel()
+// ── Auto-zoom publisher ─────────────────────────────────────────────────────
+
+func publishAutoZoom(ctx context.Context, broker *tavern.SSEBroker) {
+	// Wait for SSE subscriber
+	for !broker.HasSubscribers(TopicLabMandelbrot) {
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(50 * time.Millisecond):
 		}
-		ctx, cancel := context.WithCancel(appCtx)
-		mandelbrotState.cancel = cancel
-		mandelbrotState.mu.Unlock()
-
-		go publishMandelbrot(ctx, broker)
-
-		return handler.RenderComponent(c, views.MandelbrotRunning())
 	}
+
+	vp := mbDefaultVP
+	maxIter := mbMaxIter
+
+	// Compute iteration matrix for default view (already rendered on page, don't publish)
+	_, iters := renderMandelbrotGrid(vp, maxIter)
+
+	for depth := 1; depth <= mbMaxDepth; depth++ {
+		// Find interesting point and zoom
+		col, row := findInterestingPoint(iters, maxIter)
+		cr := vp.realMin + (float64(col)+0.5)/float64(mbWidth)*(vp.realMax-vp.realMin)
+		ci := vp.imagMin + (float64(row)+0.5)/float64(mbHeight)*(vp.imagMax-vp.imagMin)
+
+		// Zoom 2x centered on interesting point
+		rHalf := (vp.realMax - vp.realMin) / 4
+		iHalf := (vp.imagMax - vp.imagMin) / 4
+		vp = mbViewport{
+			realMin: cr - rHalf,
+			realMax: cr + rHalf,
+			imagMin: ci - iHalf,
+			imagMax: ci + iHalf,
+		}
+		maxIter = mbMaxIter + depth*64
+
+		// Pause before publishing zoomed frame
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(2 * time.Second):
+		}
+
+		// Compute zoomed view
+		grid, newIters := renderMandelbrotGrid(vp, maxIter)
+		iters = newIters
+
+		// Publish frame via SSE
+		var buf strings.Builder
+		buf.WriteString(`<div id="mandelbrot-canvas" hx-swap-oob="innerHTML">`)
+		buf.WriteString(grid)
+		buf.WriteString(`</div>`)
+		zoomMult := 1 << uint(depth)
+		fmt.Fprintf(&buf, `<div id="mb-status" hx-swap-oob="innerHTML"><span class="font-mono">×%d</span> · depth %d/%d</div>`, zoomMult, depth, mbMaxDepth)
+		// Update controls to show Reset
+		fmt.Fprintf(&buf, `<div id="mb-controls" hx-swap-oob="innerHTML"><button class="btn btn-sm btn-outline" hx-post="%s/mandelbrot/reset" hx-target="#mb-controls" hx-swap="innerHTML">Reset</button></div>`, labBase)
+
+		msg := tavern.NewSSEMessage("lab-mandelbrot", buf.String()).String()
+		broker.Publish(TopicLabMandelbrot, msg)
+	}
+
+	// Reached max depth — update status
+	var done strings.Builder
+	fmt.Fprintf(&done, `<div id="mb-status" hx-swap-oob="innerHTML"><span class="font-mono">×%d</span> · maximum depth reached</div>`, 1<<uint(mbMaxDepth))
+	msg := tavern.NewSSEMessage("lab-mandelbrot", done.String()).String()
+	broker.Publish(TopicLabMandelbrot, msg)
 }
 
-func handleMandelbrotReset() echo.HandlerFunc {
-	return func(c echo.Context) error {
-		mandelbrotState.mu.Lock()
-		if mandelbrotState.cancel != nil {
-			mandelbrotState.cancel()
-			mandelbrotState.cancel = nil
-		}
-		mandelbrotState.mu.Unlock()
+// ── Mandelbrot computation ──────────────────────────────────────────────────
 
-		return handler.RenderComponent(c, views.MandelbrotReady())
-	}
-}
-
-func mbIter(cr, ci float64) (int, float64, float64) {
+func mbIterN(cr, ci float64, maxIter int) (int, float64, float64) {
 	zr, zi := 0.0, 0.0
-	for i := 0; i < mbMaxIter; i++ {
+	for i := 0; i < maxIter; i++ {
 		zr2, zi2 := zr*zr, zi*zi
 		if zr2+zi2 > 4.0 {
 			return i, zr, zi
@@ -119,11 +204,11 @@ func mbIter(cr, ci float64) (int, float64, float64) {
 		zi = 2*zr*zi + ci
 		zr = zr2 - zi2 + cr
 	}
-	return mbMaxIter, zr, zi
+	return maxIter, zr, zi
 }
 
-func mbColor(iter int, zr, zi float64) string {
-	if iter == mbMaxIter {
+func mbColorN(iter, maxIter int, zr, zi float64) string {
+	if iter == maxIter {
 		return "#000"
 	}
 	mu := float64(iter) + 1.0 - math.Log2(math.Log(zr*zr+zi*zi)/2.0)
@@ -132,76 +217,97 @@ func mbColor(iter int, zr, zi float64) string {
 	return fmt.Sprintf("#%02x%02x%02x", c[0], c[1], c[2])
 }
 
-func publishMandelbrot(ctx context.Context, broker *tavern.SSEBroker) {
-	realMin, realMax := -2.5, 1.0
-	imagMin, imagMax := -1.1, 1.1
-
-	totalPixels := 0
+// renderMandelbrotGrid computes the full grid HTML and the iteration matrix.
+func renderMandelbrotGrid(vp mbViewport, maxIter int) (string, [][]int) {
+	iters := make([][]int, mbHeight)
+	var buf strings.Builder
+	// Pre-allocate roughly: 120 cols * 50 bytes per span * 60 rows ≈ 360KB
+	buf.Grow(mbWidth * mbHeight * 50)
 
 	for row := 0; row < mbHeight; row++ {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
-
-		// Wait for subscribers
-		for !broker.HasSubscribers(TopicLabMandelbrot) {
-			select {
-			case <-ctx.Done():
-				return
-			case <-time.After(100 * time.Millisecond):
-			}
-		}
-
-		ci := imagMin + (float64(row)+0.5)/float64(mbHeight)*(imagMax-imagMin)
-
-		var rowBuf strings.Builder
-		rowBuf.WriteString(`<div class="leading-none whitespace-nowrap">`)
-
-		maxIterInRow := 0
+		ci := vp.imagMin + (float64(row)+0.5)/float64(mbHeight)*(vp.imagMax-vp.imagMin)
+		iters[row] = make([]int, mbWidth)
+		buf.WriteString(`<div class="leading-none whitespace-nowrap">`)
 		for col := 0; col < mbWidth; col++ {
-			cr := realMin + (float64(col)+0.5)/float64(mbWidth)*(realMax-realMin)
-			iter, zr, zi := mbIter(cr, ci)
-			color := mbColor(iter, zr, zi)
-			if iter > maxIterInRow {
-				maxIterInRow = iter
+			cr := vp.realMin + (float64(col)+0.5)/float64(mbWidth)*(vp.realMax-vp.realMin)
+			iter, zr, zi := mbIterN(cr, ci, maxIter)
+			iters[row][col] = iter
+			color := mbColorN(iter, maxIter, zr, zi)
+			fmt.Fprintf(&buf, `<span style="color:%s">█</span>`, color)
+		}
+		buf.WriteString("</div>")
+	}
+
+	return buf.String(), iters
+}
+
+// findInterestingPoint finds the region with the highest boundary density.
+// It divides the grid into blocks, scores each by the variance of iteration
+// counts (high variance = boundary region), and picks randomly from the top 3.
+func findInterestingPoint(iters [][]int, maxIter int) (int, int) {
+	type candidate struct {
+		col, row int
+		score    float64
+	}
+
+	blockW, blockH := 20, 10
+	var candidates []candidate
+
+	for by := 0; by <= mbHeight-blockH; by += blockH / 2 {
+		for bx := 0; bx <= mbWidth-blockW; bx += blockW / 2 {
+			sum, count := 0.0, 0
+			for y := by; y < by+blockH && y < mbHeight; y++ {
+				for x := bx; x < bx+blockW && x < mbWidth; x++ {
+					iter := iters[y][x]
+					if iter > 0 && iter < maxIter {
+						sum += float64(iter)
+						count++
+					}
+				}
 			}
-			fmt.Fprintf(&rowBuf, `<span style="color:%s">█</span>`, color)
-		}
-		rowBuf.WriteString(`</div>`)
+			// Require at least 25% non-trivial pixels for a meaningful score
+			total := blockW * blockH
+			if count < total/4 {
+				continue
+			}
+			mean := sum / float64(count)
 
-		totalPixels += mbWidth
+			// Compute variance (high variance = boundary = interesting)
+			variance := 0.0
+			for y := by; y < by+blockH && y < mbHeight; y++ {
+				for x := bx; x < bx+blockW && x < mbWidth; x++ {
+					iter := iters[y][x]
+					if iter > 0 && iter < maxIter {
+						d := float64(iter) - mean
+						variance += d * d
+					}
+				}
+			}
+			variance /= float64(count)
 
-		var oob strings.Builder
-		// Canvas row append
-		fmt.Fprintf(&oob, `<div hx-swap-oob="beforeend:#mandelbrot-canvas">%s</div>`, rowBuf.String())
-		// Status update
-		fmt.Fprintf(&oob, `<div id="mb-status" hx-swap-oob="innerHTML">Row %d/%d · %s pixels</div>`, row+1, mbHeight, formatCommas(totalPixels))
-
-		msg := tavern.NewSSEMessage("lab-mandelbrot", oob.String()).String()
-		broker.Publish(TopicLabMandelbrot, msg)
-
-		// Variable delay: 50ms base + maxIterInRow/4 ms, capped at 150ms
-		delay := 50 + maxIterInRow/4
-		if delay > 150 {
-			delay = 150
-		}
-		select {
-		case <-ctx.Done():
-			return
-		case <-time.After(time.Duration(delay) * time.Millisecond):
+			candidates = append(candidates, candidate{
+				col:   bx + blockW/2,
+				row:   by + blockH/2,
+				score: variance,
+			})
 		}
 	}
 
-	// Completion message
-	totalPixels = mbWidth * mbHeight
-	var done strings.Builder
-	fmt.Fprintf(&done, `<div id="mb-status" hx-swap-oob="innerHTML">✓ Complete · %s pixels rendered</div>`, formatCommas(totalPixels))
-	done.WriteString(`<div id="mb-controls" hx-swap-oob="innerHTML"><button class="btn btn-sm btn-outline btn-error" hx-post="/hypermedia/lab/mandelbrot/reset" hx-target="#mb-controls" hx-swap="outerHTML">Reset</button></div>`)
+	if len(candidates) == 0 {
+		return mbWidth / 2, mbHeight / 2
+	}
 
-	msg := tavern.NewSSEMessage("lab-mandelbrot", done.String()).String()
-	broker.Publish(TopicLabMandelbrot, msg)
+	sort.Slice(candidates, func(i, j int) bool {
+		return candidates[i].score > candidates[j].score
+	})
+
+	// Pick randomly from top 3 for variety
+	top := 3
+	if top > len(candidates) {
+		top = len(candidates)
+	}
+	pick := candidates[rand.IntN(top)]
+	return pick.col, pick.row
 }
 
 func formatCommas(n int) string {
