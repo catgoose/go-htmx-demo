@@ -12,33 +12,25 @@ import (
 	"time"
 
 	"catgoose/dothog/internal/routes/handler"
-	"github.com/catgoose/linkwell"
 	"catgoose/dothog/internal/routes/middleware"
 	"catgoose/dothog/web/views"
+	"github.com/catgoose/linkwell"
 
 	"github.com/labstack/echo/v4"
 )
 
 // controlsGalleryState holds mutable demo state for the /hypermedia/controls/* endpoints.
 type controlsGalleryState struct {
-	mu sync.RWMutex
-
-	// Resource demo (section 3)
-	resourceName    string
-	resourceDesc    string
-	resourceDeleted bool
-
-	// Items demo (section 5)
-	galleryItems []views.GalleryItem
-	nextItemID   int
-
-	// Row items (sections 11-12)
-	rowItems []galleryRowItem
-
-	// Error recovery demos (section 13)
+	resourceName      string
+	resourceDesc      string
+	staleName         string
+	galleryItems      []views.GalleryItem
+	rowItems          []galleryRowItem
+	nextItemID        int
 	transientAttempts int
 	staleVersion      int
-	staleName         string
+	mu                sync.RWMutex
+	resourceDeleted   bool
 	cascadeDeleted    bool
 }
 

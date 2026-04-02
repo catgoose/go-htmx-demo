@@ -14,8 +14,8 @@ import (
 )
 
 type mockAction struct {
-	calledIDs []int
 	failOn    map[int]bool
+	calledIDs []int
 }
 
 func (m *mockAction) fn(_ context.Context, id int) error {

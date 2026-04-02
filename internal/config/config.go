@@ -24,34 +24,19 @@ import (
 // accessible via GetConfig()/MustGetConfig(). Extend by adding fields
 // and reading them in buildConfig().
 type AppConfig struct {
-	// Core
-	ServerPort string
-	AppName    string
-
-	// Sessions
-	SessionSecret string
-
-	// setup:feature:auth:start
-	SessionMgr    crooner.SessionManager
-	CroonerConfig *crooner.AuthConfigParams
-	CroonerDisabled bool
-	// setup:feature:auth:end
-
-	// setup:feature:database:start
-	DatabaseURL    string
-	EnableDatabase bool
-	InitRepo       bool
-	// setup:feature:database:end
-
-	// setup:feature:csrf:start
-	CSRFRotatePerRequest bool
-	CSRFPerRequestPaths  []string
-	CSRFExemptPaths      []string
-	// setup:feature:csrf:end
-
-	// setup:feature:graph:start
+	SessionMgr                crooner.SessionManager
+	CroonerConfig             *crooner.AuthConfigParams
+	DatabaseURL               string
+	SessionSecret             string
+	AppName                   string
+	ServerPort                string
+	CSRFPerRequestPaths       []string
+	CSRFExemptPaths           []string
 	GraphUserCacheRefreshHour int
-	// setup:feature:graph:end
+	CroonerDisabled           bool
+	EnableDatabase            bool
+	InitRepo                  bool
+	CSRFRotatePerRequest      bool
 }
 
 func buildConfig() (*AppConfig, error) {

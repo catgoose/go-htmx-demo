@@ -11,7 +11,6 @@ import (
 
 // Person represents a person in the directory.
 type Person struct {
-	ID         int
 	FirstName  string
 	LastName   string
 	Email      string
@@ -22,6 +21,7 @@ type Person struct {
 	JobTitle   string
 	Bio        string
 	CreatedAt  string
+	ID         int
 }
 
 // FullName returns "First Last".

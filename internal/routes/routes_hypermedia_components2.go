@@ -18,29 +18,29 @@ import (
 
 // carouselSlide holds data for a single carousel slide.
 type carouselSlide struct {
-	Index int
 	Title string
 	Desc  string
-	Color string // DaisyUI color class
+	Color string
+	Index int
 }
 
 // accordionPanel holds data for a lazy-loaded accordion panel.
 type accordionPanel struct {
-	ID      int
 	Title   string
 	Content string
+	ID      int
 }
 
 // components2State holds mutable demo state for /hypermedia/components2.
 type components2State struct {
-	mu             sync.RWMutex
-	carouselSlides []carouselSlide
-	searchItems    []string
-	categories     map[string][]string
-	rangeValue     int
+	categories      map[string][]string
+	selectedTheme   string
+	carouselSlides  []carouselSlide
+	searchItems     []string
 	accordionPanels []accordionPanel
-	notifCount     int
-	selectedTheme  string
+	rangeValue      int
+	notifCount      int
+	mu              sync.RWMutex
 }
 
 func newComponents2State() *components2State {
@@ -63,7 +63,7 @@ func newComponents2State() *components2State {
 			"Japan":  {"Tokyo", "Osaka", "Kyoto", "Yokohama", "Nagoya"},
 			"Brazil": {"São Paulo", "Rio de Janeiro", "Brasília", "Salvador", "Fortaleza"},
 		},
-		rangeValue:   50,
+		rangeValue: 50,
 		accordionPanels: []accordionPanel{
 			{ID: 0, Title: "What is HTMX?", Content: "HTMX gives you access to AJAX, CSS Transitions, WebSockets and Server Sent Events directly in HTML, using attributes. It allows you to build modern user interfaces with the simplicity and power of hypertext."},
 			{ID: 1, Title: "What is DaisyUI?", Content: "DaisyUI is a component library for Tailwind CSS. It provides semantic class names for common UI components like buttons, cards, modals, and more — reducing the need for long utility class chains."},
@@ -144,10 +144,10 @@ func (s *components2State) handleCarouselSlide(c echo.Context) error {
 	s.mu.RUnlock()
 
 	return handler.RenderComponent(c, views.CarouselSlideFragment(views.CarouselSlideData{
-		Index:      slide.Index,
-		Title:      slide.Title,
-		Desc:       slide.Desc,
-		Color:      slide.Color,
+		Index:       slide.Index,
+		Title:       slide.Title,
+		Desc:        slide.Desc,
+		Color:       slide.Color,
 		TotalSlides: total,
 	}))
 }

@@ -31,14 +31,14 @@ const (
 
 // SyncResult is the server's response for a single operation.
 type SyncResult struct {
-	Index      int              `json:"index"`
 	Status     SyncResultStatus `json:"status"`
 	Message    string           `json:"message,omitempty"`
+	Index      int              `json:"index"`
 	NewVersion int              `json:"new_version,omitempty"`
 }
 
 // SyncResponse is the batch response sent back to the client.
 type SyncResponse struct {
-	Results   []SyncResult `json:"results"`
 	Timestamp time.Time    `json:"server_time"`
+	Results   []SyncResult `json:"results"`
 }

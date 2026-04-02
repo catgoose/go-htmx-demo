@@ -426,8 +426,8 @@ func TestNewComponents2State_Defaults(t *testing.T) {
 
 func TestFormatFileSize(t *testing.T) {
 	tests := []struct {
-		bytes    int64
 		expected string
+		bytes    int64
 	}{
 		{0, "0 B"},
 		{512, "512 B"},

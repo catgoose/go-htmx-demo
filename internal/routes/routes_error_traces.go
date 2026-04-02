@@ -9,13 +9,13 @@ import (
 	"time"
 
 	"catgoose/dothog/internal/logger"
-	"github.com/catgoose/promolog"
-"catgoose/dothog/internal/routes/handler"
-	"github.com/catgoose/linkwell"
+	"catgoose/dothog/internal/routes/handler"
 	"catgoose/dothog/web/views"
+	"github.com/catgoose/linkwell"
+	"github.com/catgoose/promolog"
 
-	htmx "github.com/angelofallars/htmx-go"
 	corecomponents "catgoose/dothog/web/components/core"
+	htmx "github.com/angelofallars/htmx-go"
 
 	"github.com/a-h/templ"
 	"github.com/labstack/echo/v4"
@@ -213,10 +213,10 @@ func SeedErrorTraces(store promolog.Storer) {
 
 	type errorTemplate struct {
 		ErrorChain string
-		StatusCode int
 		Route      string
 		Method     string
 		Entries    []promolog.Entry
+		StatusCode int
 	}
 
 	templates := []errorTemplate{

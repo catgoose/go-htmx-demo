@@ -104,8 +104,14 @@ jobs:
           go-version: "stable"
           cache: true
 
+      - name: Install golangci-lint
+        run: go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
       - name: Generate templ files
         run: go tool templ generate
+
+      - name: Lint
+        run: golangci-lint run
 
       - name: Build
         run: go build ./...

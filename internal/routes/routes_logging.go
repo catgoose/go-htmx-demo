@@ -11,11 +11,11 @@ import (
 	"net/http"
 
 	"catgoose/dothog/internal/logger"
-	"github.com/catgoose/promolog"
 	"catgoose/dothog/internal/routes/handler"
 	"catgoose/dothog/internal/shared"
-	"github.com/catgoose/tavern"
 	"catgoose/dothog/web/views"
+	"github.com/catgoose/promolog"
+	"github.com/catgoose/tavern"
 
 	"github.com/labstack/echo/v4"
 )
@@ -26,11 +26,11 @@ func (ar *appRoutes) initLoggingRoutes() {
 	// Client beacon endpoint — fire-and-forget analytics via navigator.sendBeacon.
 	ar.e.POST("/log/beacon", func(c echo.Context) error {
 		var entry struct {
+			Data      map[string]any `json:"data"`
 			Event     string         `json:"event"`
 			Path      string         `json:"path"`
 			Referrer  string         `json:"referrer"`
 			Timestamp string         `json:"timestamp"`
-			Data      map[string]any `json:"data"`
 		}
 		if err := c.Bind(&entry); err != nil {
 			return c.NoContent(http.StatusBadRequest)

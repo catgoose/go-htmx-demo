@@ -18,33 +18,33 @@ import (
 
 // feedItem represents a single item in the infinite-scroll feed.
 type feedItem struct {
-	ID    int
 	Title string
 	Body  string
 	Tag   string
+	ID    int
 }
 
 // favoriteItem represents an item that can be favorited (optimistic UI demo).
 type favoriteItem struct {
-	ID       int
-	Title    string
+	Title     string
+	ID        int
 	Favorited bool
 }
 
 // undoItem represents a soft-deletable item.
 type undoItem struct {
-	ID      int
 	Name    string
+	ID      int
 	Deleted bool
 }
 
 // components3State holds mutable demo state for /hypermedia/components3.
 type components3State struct {
-	mu         sync.RWMutex
 	feedItems  []feedItem
 	favorites  []favoriteItem
 	undoItems  []undoItem
 	undoNextID int
+	mu         sync.RWMutex
 }
 
 func newComponents3State() *components3State {
@@ -118,11 +118,11 @@ func (s *components3State) handleComponents3Page(c echo.Context) error {
 	s.mu.Unlock()
 
 	return handler.RenderBaseLayout(c, views.Components3Page(views.Components3PageData{
-		FeedItems:  firstPage,
-		TotalFeed:  totalFeed,
-		PageSize:   10,
-		Favorites:  favs,
-		UndoItems:  undos,
+		FeedItems: firstPage,
+		TotalFeed: totalFeed,
+		PageSize:  10,
+		Favorites: favs,
+		UndoItems: undos,
 	}))
 }
 

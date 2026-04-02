@@ -22,16 +22,16 @@ const (
 
 // ErrorReport represents a user-submitted error report stored in the demo DB.
 type ErrorReport struct {
-	ID          int
+	CreatedAt   time.Time
+	ResolvedAt  sql.NullTime
 	RequestID   string
 	Description string
 	Route       string
-	StatusCode  int
 	UserAgent   string
-	LogEntries  string // JSON text of captured log entries
+	LogEntries  string
 	Status      ErrorReportStatus
-	CreatedAt   time.Time
-	ResolvedAt  sql.NullTime
+	ID          int
+	StatusCode  int
 }
 
 // CreatedAtFormatted returns the created_at timestamp in a human-readable format.

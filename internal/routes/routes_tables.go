@@ -43,11 +43,11 @@ func parseTableParams(c echo.Context, perPage int) tableParams {
 
 // tableContent holds the shared components built from tableParams.
 type tableContent struct {
-	Items []demo.Item
-	Total int
 	Bar   linkwell.FilterBar
+	Items []demo.Item
 	Cols  []linkwell.TableCol
 	Info  linkwell.PageInfo
+	Total int
 }
 
 // buildTableContent queries the DB and builds the filter bar, sortable columns, and pagination info.

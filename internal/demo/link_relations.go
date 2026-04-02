@@ -5,13 +5,13 @@ import "fmt"
 
 // StoredLinkRelation represents an admin-created link relation persisted in SQLite.
 type StoredLinkRelation struct {
-	ID        int
 	Source    string
 	Rel       string
 	Target    string
 	Title     string
 	GroupName string
 	CreatedAt string
+	ID        int
 }
 
 func (d *DB) initLinkRelations() error {
