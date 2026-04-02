@@ -58,17 +58,23 @@ type SessionSettingsStore interface {
 
 // setup:feature:session_settings:end
 
+// Repos groups repository and store dependencies for the application routes.
+// Generated apps add fields here as features are added.
+type Repos struct {
+	ReqLogStore   promolog.Storer
+	IssueReporter IssueReporter
+	// setup:feature:session_settings:start
+	Settings SessionSettingsStore
+	// setup:feature:session_settings:end
+}
+
 // appRoutes implements AppRoutes
 type appRoutes struct {
-	e             *echo.Echo
-	ctx           context.Context
-	reqLogStore   promolog.Storer
-	issueReporter IssueReporter
-	startTime     time.Time
-	healthCfg     health.Config
-	// setup:feature:session_settings:start
-	settingsRepo SessionSettingsStore
-	// setup:feature:session_settings:end
+	e         *echo.Echo
+	ctx       context.Context
+	repos     Repos
+	startTime time.Time
+	healthCfg health.Config
 	// setup:feature:sync:start
 	versionChecker VersionChecker
 	// setup:feature:sync:end
@@ -90,30 +96,22 @@ func (ar *appRoutes) Close() {
 }
 
 // NewAppRoutes initializes routes.
-// reqLogStore may be nil if request log capture is disabled.
-// reporter may be nil; a default no-op reporter is used.
-func NewAppRoutes(ctx context.Context, e *echo.Echo, reqLogStore promolog.Storer, reporter IssueReporter,
-	// setup:feature:session_settings:start
-	settingsRepo SessionSettingsStore,
-	// setup:feature:session_settings:end
-) AppRoutes {
-	if reporter == nil {
-		reporter = defaultReporter{}
+// repos.ReqLogStore may be nil if request log capture is disabled.
+// repos.IssueReporter may be nil; a default no-op reporter is used.
+func NewAppRoutes(ctx context.Context, e *echo.Echo, repos Repos) AppRoutes {
+	if repos.IssueReporter == nil {
+		repos.IssueReporter = defaultReporter{}
 	}
 	startTime := time.Now()
 	return &appRoutes{
-		e:             e,
-		ctx:           ctx,
-		reqLogStore:   reqLogStore,
-		issueReporter: reporter,
-		startTime:     startTime,
+		e:         e,
+		ctx:       ctx,
+		repos:     repos,
+		startTime: startTime,
 		healthCfg: health.Config{
 			Version:   version.Version,
 			StartTime: startTime,
 		},
-		// setup:feature:session_settings:start
-		settingsRepo: settingsRepo,
-		// setup:feature:session_settings:end
 	}
 }
 

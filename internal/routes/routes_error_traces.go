@@ -24,7 +24,7 @@ import (
 const errorTracesBase = "/admin/error-traces"
 
 func (ar *appRoutes) initErrorTracesRoutes() {
-	if ar.reqLogStore == nil {
+	if ar.repos.ReqLogStore == nil {
 		return
 	}
 	ar.e.GET(errorTracesBase, ar.handleErrorTracesPage)
@@ -63,7 +63,7 @@ func (ar *appRoutes) handleErrorTracesList(c echo.Context) error {
 
 func (ar *appRoutes) handleErrorTraceDetail(c echo.Context) error {
 	requestID := c.Param("requestID")
-	trace, err := ar.reqLogStore.Get(c.Request().Context(), requestID)
+	trace, err := ar.repos.ReqLogStore.Get(c.Request().Context(), requestID)
 	if err != nil {
 		logger.WithContext(c.Request().Context()).Error("Failed to retrieve error trace",
 			"request_id", requestID, "error", err)
@@ -76,7 +76,7 @@ func (ar *appRoutes) handleErrorTraceDetail(c echo.Context) error {
 
 func (ar *appRoutes) handleErrorTraceDelete(c echo.Context) error {
 	requestID := c.Param("requestID")
-	if err := ar.reqLogStore.DeleteTrace(c.Request().Context(), requestID); err != nil {
+	if err := ar.repos.ReqLogStore.DeleteTrace(c.Request().Context(), requestID); err != nil {
 		return handler.HandleHypermediaError(c, 500, "Failed to delete trace", err)
 	}
 	// Re-apply current filters from HX-Current-URL
@@ -113,12 +113,12 @@ func (ar *appRoutes) buildErrorTracesContent(c echo.Context) (linkwell.FilterGro
 		PerPage: perPage,
 	}
 
-	traces, total, err := ar.reqLogStore.ListTraces(c.Request().Context(), f)
+	traces, total, err := ar.repos.ReqLogStore.ListTraces(c.Request().Context(), f)
 	if err != nil {
 		return linkwell.FilterGroup{}, nil, err
 	}
 
-	avail, err := ar.reqLogStore.AvailableFilters(c.Request().Context(), f)
+	avail, err := ar.repos.ReqLogStore.AvailableFilters(c.Request().Context(), f)
 	if err != nil {
 		return linkwell.FilterGroup{}, nil, err
 	}

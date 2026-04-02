@@ -49,8 +49,8 @@ func (ar *appRoutes) initLoggingRoutes() {
 	broker := tavern.NewSSEBroker()
 
 	// Wire up SSE broadcasting on error trace promotion.
-	if ar.reqLogStore != nil {
-		ar.reqLogStore.SetOnPromote(func(summary promolog.TraceSummary) {
+	if ar.repos.ReqLogStore != nil {
+		ar.repos.ReqLogStore.SetOnPromote(func(summary promolog.TraceSummary) {
 			broadcastErrorTrace(broker, summary)
 		})
 	}
@@ -109,10 +109,10 @@ func (ar *appRoutes) initLoggingRoutes() {
 
 	// List recent traces
 	ar.e.GET(loggingBase+"/traces", func(c echo.Context) error {
-		if ar.reqLogStore == nil {
+		if ar.repos.ReqLogStore == nil {
 			return handler.RenderComponent(c, views.LoggingTracesList(nil))
 		}
-		traces, _, err := ar.reqLogStore.ListTraces(c.Request().Context(), promolog.TraceFilter{
+		traces, _, err := ar.repos.ReqLogStore.ListTraces(c.Request().Context(), promolog.TraceFilter{
 			Sort: "CreatedAt", Dir: "desc", Page: 1, PerPage: 20,
 		})
 		if err != nil {
@@ -124,10 +124,10 @@ func (ar *appRoutes) initLoggingRoutes() {
 	// Simulate support report — returns formatted JSON of what IssueReporter would receive.
 	ar.e.GET(loggingBase+"/report/:requestID", func(c echo.Context) error {
 		requestID := c.Param("requestID")
-		if ar.reqLogStore == nil {
+		if ar.repos.ReqLogStore == nil {
 			return handler.HandleHypermediaError(c, 404, "Store not configured", nil)
 		}
-		trace, err := ar.reqLogStore.Get(c.Request().Context(), requestID)
+		trace, err := ar.repos.ReqLogStore.Get(c.Request().Context(), requestID)
 		if err != nil {
 			logger.WithContext(c.Request().Context()).Error("Failed to retrieve error trace",
 				"request_id", requestID, "error", err)

@@ -38,11 +38,7 @@ func setupAppEcho(t *testing.T) *echo.Echo {
 	require.NoError(t, err)
 	require.NotNil(t, e)
 
-	ar := routes.NewAppRoutes(ctx, e, nil, nil,
-		// setup:feature:session_settings:start
-		nil,
-		// setup:feature:session_settings:end
-	)
+	ar := routes.NewAppRoutes(ctx, e, routes.Repos{})
 	require.NoError(t, ar.InitRoutes())
 	return e
 }
@@ -76,11 +72,7 @@ func TestApplicationStartup(t *testing.T) {
 	assert.NotNil(t, appCtx)
 
 	// Test routes setup
-	ar := routes.NewAppRoutes(appCtx, e, nil, nil,
-		// setup:feature:session_settings:start
-		nil,
-		// setup:feature:session_settings:end
-	)
+	ar := routes.NewAppRoutes(appCtx, e, routes.Repos{})
 	assert.NotNil(t, ar)
 
 	err = ar.InitRoutes()
