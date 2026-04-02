@@ -74,7 +74,7 @@ _You don't just accidentally create abstractions until you suddenly have a frame
 
 Dothog runs as a single binary with all assets embedded -- no external dependencies, no configuration files, no `package.json`, no spiritual intermediaries between you and the server. It is a demonstration that you can build modern, interactive web applications with Go and HTMX without selling your soul to the JavaScript industrial complex. The soul-selling is optional and handled by a separate module.
 
-See [PHILOSOPHY.md](PHILOSOPHY.md) for the sacred architectural texts, which are also not sacred, except in the sense that they are. See [MANIFESTO.md](MANIFESTO.md) for the PENTAVERB, the Novice's Creed, the Wisdom of the Uniform Interface, and the Recorded Sayings of Layman Grug, which are also not sacred, except in every sense.
+See [PHILOSOPHY.md](PHILOSOPHY.md) for the sacred architectural texts, which are also not sacred, except in the sense that they are. See [MANIFESTO.md](MANIFESTO.md) for the PENTAVERB, the Novice's Creed, the Wisdom of the Uniform Interface, and the Recorded Sayings of Layman Grug, which are also not sacred, except in every sense. See [docs/SECURITY.md](docs/SECURITY.md) for what the scaffold secures by default, what's opt-in, and what it deliberately leaves to you.
 
 ## Demo
 
