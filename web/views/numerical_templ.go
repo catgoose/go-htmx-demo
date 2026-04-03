@@ -111,7 +111,7 @@ func numTileWrapper(t NumTile) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = numIntervalSlider(t.ID, t.IntervalMs).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = numIntervalSlider(t.ID, t.IntervalMs, t.Scale).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -517,7 +517,7 @@ func oobNumTile(t NumTile) templ.Component {
 	})
 }
 
-func numIntervalSlider(tileID string, intervalMs int) templ.Component {
+func numIntervalSlider(tileID string, intervalMs int, scale string) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -542,7 +542,7 @@ func numIntervalSlider(tileID string, intervalMs int) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		if intervalMs < 2000 {
+		if scale == "ms" {
 			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, "<input type=\"range\" class=\"range range-xs flex-1\" min=\"100\" max=\"2000\" step=\"100\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -556,14 +556,14 @@ func numIntervalSlider(tileID string, intervalMs int) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "\" name=\"interval_ms\" x-on:input=\"updateOutput()\" hx-post=\"/hypermedia/numerical/interval\" hx-trigger=\"change\" hx-vals=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 46, "\" x-on:input=\"updateOutput()\" hx-post=\"/hypermedia/numerical/interval\" hx-trigger=\"change\" hx-vals=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var28 string
-			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf(`js:{tile:"%s"}`, tileID))
+			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf(`js:{tile:"%s",interval_ms:parseInt(this.value)}`, tileID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/numerical.templ`, Line: 104, Col: 51}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/numerical.templ`, Line: 103, Col: 84}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 			if templ_7745c5c3_Err != nil {
@@ -576,7 +576,7 @@ func numIntervalSlider(tileID string, intervalMs int) templ.Component {
 			var templ_7745c5c3_Var29 string
 			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", intervalMs))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/numerical.templ`, Line: 106, Col: 105}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/numerical.templ`, Line: 105, Col: 105}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 			if templ_7745c5c3_Err != nil {
@@ -586,41 +586,41 @@ func numIntervalSlider(tileID string, intervalMs int) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-		} else {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<input type=\"range\" class=\"range range-xs flex-1\" min=\"1000\" max=\"10000\" step=\"1000\" value=\"")
+		} else if scale == "s" {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 49, "<input type=\"range\" class=\"range range-xs flex-1\" min=\"1\" max=\"30\" step=\"1\" value=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var30 string
-			templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", intervalMs))
+			templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", intervalMs/1000))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/numerical.templ`, Line: 111, Col: 41}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/numerical.templ`, Line: 110, Col: 46}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "\" name=\"interval_ms\" x-on:input=\"updateOutput()\" hx-post=\"/hypermedia/numerical/interval\" hx-trigger=\"change\" hx-vals=\"")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 50, "\" x-on:input=\"updateOutput()\" hx-post=\"/hypermedia/numerical/interval\" hx-trigger=\"change\" hx-vals=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var31 string
-			templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf(`js:{tile:"%s"}`, tileID))
+			templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf(`js:{tile:"%s",interval_ms:parseInt(this.value)*1000}`, tileID))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/numerical.templ`, Line: 116, Col: 51}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/numerical.templ`, Line: 114, Col: 89}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "\" hx-swap=\"none\"> <output class=\"font-mono text-xs text-base-content/40 w-10 text-right\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 51, "\" hx-swap=\"none\"> <output class=\"font-mono text-xs text-base-content/40 w-6 text-right\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var32 string
 			templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", intervalMs/1000))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/numerical.templ`, Line: 118, Col: 110}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/numerical.templ`, Line: 116, Col: 109}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
 			if templ_7745c5c3_Err != nil {
@@ -630,8 +630,52 @@ func numIntervalSlider(tileID string, intervalMs int) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
+		} else {
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "<input type=\"range\" class=\"range range-xs flex-1\" min=\"1\" max=\"10\" step=\"1\" value=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var33 string
+			templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", intervalMs/60000))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/numerical.templ`, Line: 121, Col: 47}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 54, "\" x-on:input=\"updateOutput()\" hx-post=\"/hypermedia/numerical/interval\" hx-trigger=\"change\" hx-vals=\"")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var34 string
+			templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf(`js:{tile:"%s",interval_ms:parseInt(this.value)*60000}`, tileID))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/numerical.templ`, Line: 125, Col: 90}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 55, "\" hx-swap=\"none\"> <output class=\"font-mono text-xs text-base-content/40 w-6 text-right\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var35 string
+			templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", intervalMs/60000))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/numerical.templ`, Line: 127, Col: 110}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 56, "</output> <span class=\"text-xs text-base-content/30\">min</span>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 53, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 57, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -655,9 +699,9 @@ func NumericalOOB(tiles []NumTile) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var33 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var33 == nil {
-			templ_7745c5c3_Var33 = templ.NopComponent
+		templ_7745c5c3_Var36 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var36 == nil {
+			templ_7745c5c3_Var36 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		for _, t := range tiles {

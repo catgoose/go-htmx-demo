@@ -112,98 +112,69 @@ func (s *numSim) buildTiles() []views.NumTile {
 	hours := int(uptimeDur.Hours()) % 24
 	mins := int(uptimeDur.Minutes()) % 60
 
+	tile := func(id string, t views.NumTile) views.NumTile {
+		t.ID = id
+		t.IntervalMs = getTileInterval(id)
+		t.Scale = getTileScale(id)
+		return t
+	}
+
 	return []views.NumTile{
-		{
-			ID: "num-txn", Title: "Transactions/sec",
-			Value:    fmtCommas(int(s.txnSec)),
-			Delta:    fmtDelta(s.txnSec, s.prevTxn),
-			DeltaUp:  s.txnSec >= s.prevTxn,
-			Color:    "info",
-			IntervalMs: getTileInterval("num-txn"),
-		},
-		{
-			ID: "num-revenue", Title: "Revenue Today",
-			Value:    fmt.Sprintf("$%s", fmtMoney(s.revenue)),
-			Delta:    fmt.Sprintf("$%.0f/min", s.txnSec*0.035*60),
-			DeltaUp:  true,
-			Subtitle: "accumulating",
-			Color:    "success",
-			IntervalMs: getTileInterval("num-revenue"),
-		},
-		{
-			ID: "num-users", Title: "Active Users",
-			Value:    fmtCommas(int(s.users)),
-			Delta:    fmtDelta(s.users, s.prevUsers),
-			DeltaUp:  s.users >= s.prevUsers,
-			Color:    "info",
-			IntervalMs: getTileInterval("num-users"),
-		},
-		{
-			ID: "num-queue", Title: "Queue Depth",
-			Value:    fmt.Sprintf("%d", int(s.queue)),
-			Delta:    fmtDelta(s.queue, s.prevQueue),
-			DeltaUp:  s.queue <= s.prevQueue, // lower is better
-			Color:    queueColor(s.queue),
-			IntervalMs: getTileInterval("num-queue"),
-		},
-		{
-			ID: "num-cache", Title: "Cache Hit Rate",
-			Value:    fmt.Sprintf("%.1f%%", s.cacheHit),
-			Delta:    fmtDeltaPct(s.cacheHit, s.prevCache),
-			DeltaUp:  s.cacheHit >= s.prevCache,
-			Color:    cacheColor(s.cacheHit),
-			IntervalMs: getTileInterval("num-cache"),
-		},
-		{
-			ID: "num-errors", Title: "Errors (24h)",
-			Value:    fmtCommas(int(s.errors)),
-			Subtitle: fmt.Sprintf("%d incidents", s.incidents),
-			Color:    errorCountColor(s.errors),
-			IntervalMs: getTileInterval("num-errors"),
-		},
-		{
-			ID: "num-p99", Title: "P99 Latency",
-			Value:    fmt.Sprintf("%.0fms", s.p99),
-			Delta:    fmtDelta(s.p99, s.prevP99),
-			DeltaUp:  s.p99 <= s.prevP99, // lower is better
-			Color:    latencyColor(s.p99),
-			IntervalMs: getTileInterval("num-p99"),
-		},
-		{
-			ID: "num-cpu", Title: "CPU Load",
-			Value:    fmt.Sprintf("%.0f%%", s.cpu),
-			Delta:    fmtDeltaPct(s.cpu, s.prevCPU),
-			DeltaUp:  s.cpu <= s.prevCPU, // lower is better
-			Color:    cpuColor(s.cpu),
-			IntervalMs: getTileInterval("num-cpu"),
-		},
-		{
-			ID: "num-mem", Title: "Memory",
-			Value:    fmt.Sprintf("%.1f GB", s.mem),
-			Subtitle: fmt.Sprintf("of 16 GB (%.0f%%)", s.mem/16*100),
-			Color:    memColor(s.mem),
-			IntervalMs: getTileInterval("num-mem"),
-		},
-		{
-			ID: "num-uptime", Title: "Uptime",
-			Value:    fmt.Sprintf("%dd %dh %dm", days, hours, mins),
-			Neutral:  true,
-			Color:    "success",
-			IntervalMs: getTileInterval("num-uptime"),
-		},
-		{
-			ID: "num-deploys", Title: "Deploys Today",
-			Value:    fmt.Sprintf("%d", s.deploys),
-			Neutral:  true,
-			Color:    "info",
-			IntervalMs: getTileInterval("num-deploys"),
-		},
-		{
-			ID: "num-sla", Title: "SLA Compliance",
-			Value:    fmt.Sprintf("%.2f%%", s.sla),
-			Color:    slaColor(s.sla),
-			IntervalMs: getTileInterval("num-sla"),
-		},
+		tile("num-txn", views.NumTile{
+			Title: "Transactions/sec", Color: "info",
+			Value: fmtCommas(int(s.txnSec)), Delta: fmtDelta(s.txnSec, s.prevTxn),
+			DeltaUp: s.txnSec >= s.prevTxn,
+		}),
+		tile("num-revenue", views.NumTile{
+			Title: "Revenue Today", Color: "success", Subtitle: "accumulating",
+			Value: fmt.Sprintf("$%s", fmtMoney(s.revenue)), Delta: fmt.Sprintf("$%.0f/min", s.txnSec*0.035*60),
+			DeltaUp: true,
+		}),
+		tile("num-users", views.NumTile{
+			Title: "Active Users", Color: "info",
+			Value: fmtCommas(int(s.users)), Delta: fmtDelta(s.users, s.prevUsers),
+			DeltaUp: s.users >= s.prevUsers,
+		}),
+		tile("num-queue", views.NumTile{
+			Title: "Queue Depth", Color: queueColor(s.queue),
+			Value: fmt.Sprintf("%d", int(s.queue)), Delta: fmtDelta(s.queue, s.prevQueue),
+			DeltaUp: s.queue <= s.prevQueue,
+		}),
+		tile("num-cache", views.NumTile{
+			Title: "Cache Hit Rate", Color: cacheColor(s.cacheHit),
+			Value: fmt.Sprintf("%.1f%%", s.cacheHit), Delta: fmtDeltaPct(s.cacheHit, s.prevCache),
+			DeltaUp: s.cacheHit >= s.prevCache,
+		}),
+		tile("num-errors", views.NumTile{
+			Title: "Errors (24h)", Color: errorCountColor(s.errors),
+			Value: fmtCommas(int(s.errors)), Subtitle: fmt.Sprintf("%d incidents", s.incidents),
+		}),
+		tile("num-p99", views.NumTile{
+			Title: "P99 Latency", Color: latencyColor(s.p99),
+			Value: fmt.Sprintf("%.0fms", s.p99), Delta: fmtDelta(s.p99, s.prevP99),
+			DeltaUp: s.p99 <= s.prevP99,
+		}),
+		tile("num-cpu", views.NumTile{
+			Title: "CPU Load", Color: cpuColor(s.cpu),
+			Value: fmt.Sprintf("%.0f%%", s.cpu), Delta: fmtDeltaPct(s.cpu, s.prevCPU),
+			DeltaUp: s.cpu <= s.prevCPU,
+		}),
+		tile("num-mem", views.NumTile{
+			Title: "Memory", Color: memColor(s.mem),
+			Value: fmt.Sprintf("%.1f GB", s.mem), Subtitle: fmt.Sprintf("of 16 GB (%.0f%%)", s.mem/16*100),
+		}),
+		tile("num-uptime", views.NumTile{
+			Title: "Uptime", Color: "success", Neutral: true,
+			Value: fmt.Sprintf("%dd %dh %dm", days, hours, mins),
+		}),
+		tile("num-deploys", views.NumTile{
+			Title: "Deploys Today", Color: "info", Neutral: true,
+			Value: fmt.Sprintf("%d", s.deploys),
+		}),
+		tile("num-sla", views.NumTile{
+			Title: "SLA Compliance", Color: slaColor(s.sla),
+			Value: fmt.Sprintf("%.2f%%", s.sla),
+		}),
 	}
 }
 
@@ -343,18 +314,34 @@ func clampF(v, lo, hi float64) float64 {
 
 // Default intervals (milliseconds) — tuned per metric context.
 var numDefaultIntervals = map[string]int{
-	"num-txn":     1000,  // volatile, high-frequency
-	"num-revenue": 3000,  // accumulating, less urgent
-	"num-users":   2000,  // moderate churn
-	"num-queue":   1000,  // operational, needs quick visibility
-	"num-cache":   5000,  // relatively stable
-	"num-errors":  3000,  // accumulating counter
-	"num-p99":     1000,  // performance critical
-	"num-cpu":     2000,  // OS-level, moderate
-	"num-mem":     5000,  // changes slowly
-	"num-uptime":  10000, // minutes-level granularity
-	"num-deploys": 10000, // rare events
-	"num-sla":     5000,  // derived, slow-moving
+	"num-txn":     500,    // volatile, sub-second
+	"num-queue":   500,    // operational, sub-second
+	"num-p99":     500,    // performance critical, sub-second
+	"num-cpu":     3000,   // 3s — OS-level, moderate
+	"num-users":   5000,   // 5s — moderate churn
+	"num-errors":  5000,   // 5s — accumulating counter
+	"num-revenue": 10000,  // 10s — accumulating slowly
+	"num-cache":   10000,  // 10s — relatively stable
+	"num-mem":     15000,  // 15s — changes slowly
+	"num-sla":     15000,  // 15s — derived, slow-moving
+	"num-uptime":  60000,  // 1min — minutes-level granularity
+	"num-deploys": 300000, // 5min — rare events
+}
+
+// numTileScales determines slider unit for each tile.
+var numTileScales = map[string]string{
+	"num-txn":     "ms",
+	"num-queue":   "ms",
+	"num-p99":     "ms",
+	"num-cpu":     "s",
+	"num-users":   "s",
+	"num-errors":  "s",
+	"num-revenue": "s",
+	"num-cache":   "s",
+	"num-mem":     "s",
+	"num-sla":     "s",
+	"num-uptime":  "min",
+	"num-deploys": "min",
 }
 
 var numTileIntervals struct {
@@ -377,7 +364,14 @@ func getTileInterval(id string) int {
 	if iv, ok := numTileIntervals.intervals[id]; ok {
 		return iv
 	}
-	return 1
+	return 1000
+}
+
+func getTileScale(id string) string {
+	if s, ok := numTileScales[id]; ok {
+		return s
+	}
+	return "s"
 }
 
 // ── Routes ──────────────────────────────────────────────────────────────────
@@ -409,8 +403,8 @@ func handleNumericalInterval(c echo.Context) error {
 	ms, _ := strconv.Atoi(c.FormValue("interval_ms"))
 	if ms < 100 {
 		ms = 100
-	} else if ms > 10000 {
-		ms = 10000
+	} else if ms > 600000 {
+		ms = 600000
 	}
 
 	numTileIntervals.mu.Lock()

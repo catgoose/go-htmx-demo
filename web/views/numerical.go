@@ -10,7 +10,8 @@ type NumTile struct {
 	Delta      string // change indicator text
 	Subtitle   string // optional context line
 	Color      string // "success", "warning", "error", "info"
-	IntervalMs int    // update interval in milliseconds
+	Scale      string // "ms", "s", "min" — determines slider unit
+	IntervalMs int    // update interval in milliseconds (canonical)
 	DeltaUp    bool   // true = positive direction
 	Neutral    bool   // delta is informational, not good/bad
 }
