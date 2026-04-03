@@ -9,6 +9,7 @@ import (
 	"math"
 	"math/rand/v2"
 	"net/http"
+	"strconv"
 	"sync"
 	"time"
 
@@ -112,10 +113,11 @@ func (s *numSim) buildTiles() []views.NumTile {
 	return []views.NumTile{
 		{
 			ID: "num-txn", Title: "Transactions/sec",
-			Value:   fmtCommas(int(s.txnSec)),
-			Delta:   fmtDelta(s.txnSec, s.prevTxn),
-			DeltaUp: s.txnSec >= s.prevTxn,
-			Color:   "info",
+			Value:    fmtCommas(int(s.txnSec)),
+			Delta:    fmtDelta(s.txnSec, s.prevTxn),
+			DeltaUp:  s.txnSec >= s.prevTxn,
+			Color:    "info",
+			Interval: getTileInterval("num-txn"),
 		},
 		{
 			ID: "num-revenue", Title: "Revenue Today",
@@ -124,70 +126,81 @@ func (s *numSim) buildTiles() []views.NumTile {
 			DeltaUp:  true,
 			Subtitle: "accumulating",
 			Color:    "success",
+			Interval: getTileInterval("num-revenue"),
 		},
 		{
 			ID: "num-users", Title: "Active Users",
-			Value:   fmtCommas(int(s.users)),
-			Delta:   fmtDelta(s.users, s.prevUsers),
-			DeltaUp: s.users >= s.prevUsers,
-			Color:   "info",
+			Value:    fmtCommas(int(s.users)),
+			Delta:    fmtDelta(s.users, s.prevUsers),
+			DeltaUp:  s.users >= s.prevUsers,
+			Color:    "info",
+			Interval: getTileInterval("num-users"),
 		},
 		{
 			ID: "num-queue", Title: "Queue Depth",
-			Value:   fmt.Sprintf("%d", int(s.queue)),
-			Delta:   fmtDelta(s.queue, s.prevQueue),
-			DeltaUp: s.queue <= s.prevQueue, // lower is better
-			Color:   queueColor(s.queue),
+			Value:    fmt.Sprintf("%d", int(s.queue)),
+			Delta:    fmtDelta(s.queue, s.prevQueue),
+			DeltaUp:  s.queue <= s.prevQueue, // lower is better
+			Color:    queueColor(s.queue),
+			Interval: getTileInterval("num-queue"),
 		},
 		{
 			ID: "num-cache", Title: "Cache Hit Rate",
-			Value:   fmt.Sprintf("%.1f%%", s.cacheHit),
-			Delta:   fmtDeltaPct(s.cacheHit, s.prevCache),
-			DeltaUp: s.cacheHit >= s.prevCache,
-			Color:   cacheColor(s.cacheHit),
+			Value:    fmt.Sprintf("%.1f%%", s.cacheHit),
+			Delta:    fmtDeltaPct(s.cacheHit, s.prevCache),
+			DeltaUp:  s.cacheHit >= s.prevCache,
+			Color:    cacheColor(s.cacheHit),
+			Interval: getTileInterval("num-cache"),
 		},
 		{
 			ID: "num-errors", Title: "Errors (24h)",
 			Value:    fmtCommas(int(s.errors)),
 			Subtitle: fmt.Sprintf("%d incidents", s.incidents),
 			Color:    errorCountColor(s.errors),
+			Interval: getTileInterval("num-errors"),
 		},
 		{
 			ID: "num-p99", Title: "P99 Latency",
-			Value:   fmt.Sprintf("%.0fms", s.p99),
-			Delta:   fmtDelta(s.p99, s.prevP99),
-			DeltaUp: s.p99 <= s.prevP99, // lower is better
-			Color:   latencyColor(s.p99),
+			Value:    fmt.Sprintf("%.0fms", s.p99),
+			Delta:    fmtDelta(s.p99, s.prevP99),
+			DeltaUp:  s.p99 <= s.prevP99, // lower is better
+			Color:    latencyColor(s.p99),
+			Interval: getTileInterval("num-p99"),
 		},
 		{
 			ID: "num-cpu", Title: "CPU Load",
-			Value:   fmt.Sprintf("%.0f%%", s.cpu),
-			Delta:   fmtDeltaPct(s.cpu, s.prevCPU),
-			DeltaUp: s.cpu <= s.prevCPU, // lower is better
-			Color:   cpuColor(s.cpu),
+			Value:    fmt.Sprintf("%.0f%%", s.cpu),
+			Delta:    fmtDeltaPct(s.cpu, s.prevCPU),
+			DeltaUp:  s.cpu <= s.prevCPU, // lower is better
+			Color:    cpuColor(s.cpu),
+			Interval: getTileInterval("num-cpu"),
 		},
 		{
 			ID: "num-mem", Title: "Memory",
 			Value:    fmt.Sprintf("%.1f GB", s.mem),
 			Subtitle: fmt.Sprintf("of 16 GB (%.0f%%)", s.mem/16*100),
 			Color:    memColor(s.mem),
+			Interval: getTileInterval("num-mem"),
 		},
 		{
 			ID: "num-uptime", Title: "Uptime",
-			Value:   fmt.Sprintf("%dd %dh %dm", days, hours, mins),
-			Neutral: true,
-			Color:   "success",
+			Value:    fmt.Sprintf("%dd %dh %dm", days, hours, mins),
+			Neutral:  true,
+			Color:    "success",
+			Interval: getTileInterval("num-uptime"),
 		},
 		{
 			ID: "num-deploys", Title: "Deploys Today",
-			Value:   fmt.Sprintf("%d", s.deploys),
-			Neutral: true,
-			Color:   "info",
+			Value:    fmt.Sprintf("%d", s.deploys),
+			Neutral:  true,
+			Color:    "info",
+			Interval: getTileInterval("num-deploys"),
 		},
 		{
 			ID: "num-sla", Title: "SLA Compliance",
-			Value: fmt.Sprintf("%.2f%%", s.sla),
-			Color: slaColor(s.sla),
+			Value:    fmt.Sprintf("%.2f%%", s.sla),
+			Color:    slaColor(s.sla),
+			Interval: getTileInterval("num-sla"),
 		},
 	}
 }
@@ -324,13 +337,56 @@ func clampF(v, lo, hi float64) float64 {
 	return v
 }
 
+// ── Per-tile interval state ─────────────────────────────────────────────────
+
+// Default intervals (seconds) — tuned per metric context.
+var numDefaultIntervals = map[string]int{
+	"num-txn":     1,  // volatile, high-frequency
+	"num-revenue": 3,  // accumulating, less urgent
+	"num-users":   2,  // moderate churn
+	"num-queue":   1,  // operational, needs quick visibility
+	"num-cache":   5,  // relatively stable
+	"num-errors":  3,  // accumulating counter
+	"num-p99":     1,  // performance critical
+	"num-cpu":     2,  // OS-level, moderate
+	"num-mem":     5,  // changes slowly
+	"num-uptime":  10, // minutes-level granularity
+	"num-deploys": 10, // rare events
+	"num-sla":     5,  // derived, slow-moving
+}
+
+var numTileIntervals struct {
+	intervals map[string]int       // seconds per tile
+	lastSent  map[string]time.Time // last publish time per tile
+	mu        sync.RWMutex
+}
+
+func initTileIntervals() {
+	numTileIntervals.intervals = make(map[string]int, len(numDefaultIntervals))
+	numTileIntervals.lastSent = make(map[string]time.Time, len(numDefaultIntervals))
+	for id, iv := range numDefaultIntervals {
+		numTileIntervals.intervals[id] = iv
+	}
+}
+
+func getTileInterval(id string) int {
+	numTileIntervals.mu.RLock()
+	defer numTileIntervals.mu.RUnlock()
+	if iv, ok := numTileIntervals.intervals[id]; ok {
+		return iv
+	}
+	return 1
+}
+
 // ── Routes ──────────────────────────────────────────────────────────────────
 
 var numBufPool = sync.Pool{New: func() any { return new(bytes.Buffer) }}
 
 func (ar *appRoutes) initNumericalRoutes(broker *tavern.SSEBroker) {
+	initTileIntervals()
 	ar.e.GET(numericalBase, ar.handleNumericalPage)
 	ar.e.GET(numericalBase+"/sse-connect", handleNumericalSSEConnect)
+	ar.e.POST(numericalBase+"/interval", handleNumericalInterval)
 	ar.e.GET("/sse/numerical", handleSSENumerical(broker))
 
 	go ar.publishNumerical(broker)
@@ -344,6 +400,22 @@ func (ar *appRoutes) handleNumericalPage(c echo.Context) error {
 
 func handleNumericalSSEConnect(c echo.Context) error {
 	return handler.RenderComponent(c, views.NumericalSSEBlock())
+}
+
+func handleNumericalInterval(c echo.Context) error {
+	tileID := c.FormValue("tile")
+	iv, _ := strconv.Atoi(c.FormValue("interval"))
+	if iv < 1 {
+		iv = 1
+	} else if iv > 10 {
+		iv = 10
+	}
+
+	numTileIntervals.mu.Lock()
+	numTileIntervals.intervals[tileID] = iv
+	numTileIntervals.mu.Unlock()
+
+	return c.NoContent(http.StatusNoContent)
 }
 
 func handleSSENumerical(broker *tavern.SSEBroker) echo.HandlerFunc {
@@ -380,11 +452,14 @@ func handleSSENumerical(broker *tavern.SSEBroker) echo.HandlerFunc {
 // ── Publisher ────────────────────────────────────────────────────────────────
 
 func (ar *appRoutes) publishNumerical(broker *tavern.SSEBroker) {
-	ticker := time.NewTicker(1 * time.Second)
+	// Fast tick: check tile intervals at 100ms resolution.
+	// Simulation advances every second regardless.
+	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 
 	sim := newNumSim()
 	ctx := context.Background()
+	lastSimTick := time.Now()
 
 	for {
 		select {
@@ -395,12 +470,38 @@ func (ar *appRoutes) publishNumerical(broker *tavern.SSEBroker) {
 				continue
 			}
 
-			sim.tick()
-			tiles := sim.buildTiles()
+			// Advance simulation at 1 Hz
+			now := time.Now()
+			if now.Sub(lastSimTick) >= time.Second {
+				sim.tick()
+				lastSimTick = now
+			}
+
+			// Build all tiles, filter to those whose interval has elapsed
+			allTiles := sim.buildTiles()
+			var due []views.NumTile
+
+			numTileIntervals.mu.Lock()
+			for _, t := range allTiles {
+				iv := numTileIntervals.intervals[t.ID]
+				if iv < 1 {
+					iv = 1
+				}
+				last := numTileIntervals.lastSent[t.ID]
+				if now.Sub(last) >= time.Duration(iv)*time.Second {
+					due = append(due, t)
+					numTileIntervals.lastSent[t.ID] = now
+				}
+			}
+			numTileIntervals.mu.Unlock()
+
+			if len(due) == 0 {
+				continue
+			}
 
 			buf := numBufPool.Get().(*bytes.Buffer)
 			buf.Reset()
-			if err := views.NumericalOOB(tiles).Render(ctx, buf); err != nil {
+			if err := views.NumericalOOB(due).Render(ctx, buf); err != nil {
 				numBufPool.Put(buf)
 				continue
 			}
