@@ -11,7 +11,7 @@ require (
 	github.com/catgoose/linkwell v0.2.15
 	github.com/catgoose/porter v0.4.5
 	github.com/catgoose/promolog/sqlite v0.0.0-20260403193042-a59a25dd4dd6
-	github.com/catgoose/tavern v0.4.30
+	github.com/catgoose/tavern v0.4.32
 	github.com/charmbracelet/huh v1.0.0
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/jmoiron/sqlx v1.4.0
