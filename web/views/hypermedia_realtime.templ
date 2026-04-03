@@ -55,10 +55,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 		#event-feed { max-height: 260px; overflow-y: auto; scroll-behavior: smooth; }
 	</style>
 	<div id="dashboard-sse" class="p-4 space-y-4 max-w-7xl mx-auto">
-		<div class="flex items-center justify-between mb-2">
-			<h1 class="text-2xl font-bold">Live Operations Dashboard</h1>
-			<a href="/hypermedia/controls" class="btn btn-sm btn-ghost">← Controls</a>
-		</div>
+		<h1 class="text-2xl font-bold mb-2">Live Operations Dashboard</h1>
 		<div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs text-base-content/50">
 			<div class="flex items-center gap-2">
 				<span>Metrics</span>
