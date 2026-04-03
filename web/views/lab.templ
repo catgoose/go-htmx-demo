@@ -4,48 +4,38 @@ package views
 
 import "fmt"
 
-templ LabPage(grid string) {
+templ LabPage(sky string) {
 	<div class="p-4 space-y-6 max-w-5xl mx-auto">
 		<div class="space-y-1">
 			<h1 class="text-2xl font-bold">SSE Laboratory</h1>
-			<p class="text-sm text-base-content/60">Server-driven computation streams powered by Tavern.</p>
+			<p class="text-sm text-base-content/60">Server-driven particle system — every pixel controlled by a goroutine via Tavern SSE.</p>
 		</div>
 
 		<div class="card bg-base-100 shadow-sm">
 			<div class="card-body">
 				<div class="flex items-center justify-between">
 					<div>
-						<h2 class="card-title">Mandelbrot Set</h2>
+						<h2 class="card-title">Fireworks</h2>
 						<p class="text-sm text-base-content/60">
-							Auto-zooming fractal explorer — the server finds the most
-							interesting boundary and dives deeper.
+							Hundreds of particles with physics, glow, and gravity — each frame
+							is a full SVG streamed as a single SSE message.
 						</p>
 					</div>
 				</div>
 
-				@mbControls(2.0, 30, 30)
+				@labControls(30, 5)
 
-				<div id="mb-status" class="text-sm text-base-content/50">
-					<span class="font-mono">×1</span> · depth 0/30
+				<div id="lab-status" class="text-sm text-base-content/50">
+					<span class="font-mono">0</span> particles · peak <span class="font-mono">0</span>
 				</div>
 
-				<style>
-					#mandelbrot-canvas svg {
-						animation: mb-fade 0.05s ease-out;
-					}
-					@keyframes mb-fade {
-						from { opacity: 0.7; }
-						to { opacity: 1; }
-					}
-				</style>
-				<div id="mandelbrot-canvas"
-					class="bg-black rounded-lg overflow-hidden">
-					@templ.Raw(grid)
+				<div id="lab-canvas" class="rounded-lg overflow-hidden">
+					@templ.Raw(sky)
 				</div>
 
 				<!-- SSE connection (always active) -->
 				<div hx-ext="sse" sse-connect="/sse/lab" hx-swap="innerHTML settle:0 transition:false">
-					<div sse-swap="lab-mandelbrot" style="display:none"></div>
+					<div sse-swap="lab-stream" style="display:none"></div>
 				</div>
 			</div>
 		</div>
@@ -54,75 +44,48 @@ templ LabPage(grid string) {
 	</div>
 }
 
-templ mbControls(delay float64, maxDepth int, steps int) {
-	<div id="mb-controls" class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
+templ labControls(fps int, intensity int) {
+	<div id="lab-controls" class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
 		<div class="flex items-center gap-2" x-data="rangeOutput">
-			<span class="text-xs text-base-content/60">Delay</span>
+			<span class="text-xs text-base-content/60">FPS</span>
 			<input type="range" class="range range-xs w-20"
-				name="delay" min="0.5" max="5" step="0.5"
-				value={ fmt.Sprintf("%.1f", delay) }
+				name="fps" min="10" max="60" step="5"
+				value={ fmt.Sprintf("%d", fps) }
 				x-on:input="updateOutput()"
-				hx-post="/hypermedia/lab/mandelbrot/settings"
+				hx-post="/hypermedia/lab/settings"
 				hx-trigger="change"
-				hx-include="#mb-controls input[type=range]"
-				hx-target="#mb-oob-sink"
+				hx-include="#lab-controls input[type=range]"
+				hx-target="#lab-oob-sink"
 				hx-swap="innerHTML"/>
-			<output class="font-mono text-xs w-6 text-center">{ fmt.Sprintf("%.1f", delay) }</output>
-			<span class="text-xs text-base-content/40">s</span>
+			<output class="font-mono text-xs w-6 text-center">{ fmt.Sprintf("%d", fps) }</output>
 		</div>
 		<div class="flex items-center gap-2" x-data="rangeOutput">
-			<span class="text-xs text-base-content/60">Depth</span>
+			<span class="text-xs text-base-content/60">Intensity</span>
 			<input type="range" class="range range-xs w-20"
-				name="max_depth" min="5" max="50" step="5"
-				value={ fmt.Sprintf("%d", maxDepth) }
+				name="intensity" min="1" max="10" step="1"
+				value={ fmt.Sprintf("%d", intensity) }
 				x-on:input="updateOutput()"
-				hx-post="/hypermedia/lab/mandelbrot/settings"
+				hx-post="/hypermedia/lab/settings"
 				hx-trigger="change"
-				hx-include="#mb-controls input[type=range]"
-				hx-target="#mb-oob-sink"
+				hx-include="#lab-controls input[type=range]"
+				hx-target="#lab-oob-sink"
 				hx-swap="innerHTML"/>
-			<output class="font-mono text-xs w-6 text-center">{ fmt.Sprintf("%d", maxDepth) }</output>
-		</div>
-		<div class="flex items-center gap-2" x-data="rangeOutput">
-			<span class="text-xs text-base-content/60">Frames</span>
-			<input type="range" class="range range-xs w-20"
-				name="steps" min="1" max="60" step="1"
-				value={ fmt.Sprintf("%d", steps) }
-				x-on:input="updateOutput()"
-				hx-post="/hypermedia/lab/mandelbrot/settings"
-				hx-trigger="change"
-				hx-include="#mb-controls input[type=range]"
-				hx-target="#mb-oob-sink"
-				hx-swap="innerHTML"/>
-			<output class="font-mono text-xs w-6 text-center">{ fmt.Sprintf("%d", steps) }</output>
+			<output class="font-mono text-xs w-6 text-center">{ fmt.Sprintf("%d", intensity) }</output>
 		</div>
 		<button class="btn btn-xs btn-outline"
-			hx-post="/hypermedia/lab/mandelbrot/reset"
-			hx-target="#mb-controls"
+			hx-post="/hypermedia/lab/reset"
+			hx-target="#lab-controls"
 			hx-swap="outerHTML">Reset</button>
 	</div>
-	<div id="mb-oob-sink" style="display:none"></div>
+	<div id="lab-oob-sink" style="display:none"></div>
 }
 
-templ MandelbrotSettingsApplied(grid string, maxDepth int) {
-	<!-- main target is the hidden sink, real updates are OOB -->
+templ LabSettingsApplied() {
 	<span></span>
-	<div id="mandelbrot-canvas" hx-swap-oob="innerHTML">
-		@templ.Raw(grid)
-	</div>
-	<div id="mb-status" hx-swap-oob="innerHTML">
-		<span class="font-mono">×1</span> · depth 0/{ fmt.Sprintf("%d", maxDepth) }
-	</div>
 }
 
-templ MandelbrotResetResponse(grid string) {
-	@mbControls(2.0, 30, 30)
-	<div id="mandelbrot-canvas" hx-swap-oob="innerHTML">
-		@templ.Raw(grid)
-	</div>
-	<div id="mb-status" hx-swap-oob="innerHTML">
-		<span class="font-mono">×1</span> · depth 0/30
-	</div>
+templ LabResetResponse(fps int, intensity int) {
+	@labControls(fps, intensity)
 }
 
 templ labExplanation() {
@@ -131,27 +94,27 @@ templ labExplanation() {
 			<h3 class="font-semibold">How it works</h3>
 			<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 				<div>
-					<div class="font-medium mb-1">Compute</div>
+					<div class="font-medium mb-1">Simulate</div>
 					<p class="text-base-content/70">
-						A goroutine computes the Mandelbrot set, then analyzes iteration-count
-						variance to find the most detailed boundary region. It zooms 2× into
-						that region and repeats — an autonomous fractal explorer.
-					</p>
-				</div>
-				<div>
-					<div class="font-medium mb-1">Stream</div>
-					<p class="text-base-content/70">
-						Each frame is published as a single SSE message containing OOB swap
-						directives. The canvas and status update from one event.
-						Max iterations increase with depth for finer detail.
+						A goroutine runs a particle simulation with launch, explosion, gravity,
+						and fade physics. Each firework spawns 60-150 particles with color
+						variation, glow, and sparkle effects.
 					</p>
 				</div>
 				<div>
 					<div class="font-medium mb-1">Render</div>
 					<p class="text-base-content/70">
-						HTMX's SSE extension receives the event and processes hx-swap-oob
-						attributes. CSS keyframe animation gives each new SVG frame a
-						zoom-settle effect — zero JavaScript.
+						Every frame, the full particle state is rendered as an SVG with
+						individual circles for each particle (glow + core). The entire SVG
+						is published as a single SSE message via Tavern.
+					</p>
+				</div>
+				<div>
+					<div class="font-medium mb-1">Stream</div>
+					<p class="text-base-content/70">
+						HTMX's SSE extension receives each frame and replaces the canvas
+						via hx-swap-oob. At 30 FPS with 500+ particles, the server pushes
+						~30 full SVG frames per second — zero client-side rendering logic.
 					</p>
 				</div>
 			</div>

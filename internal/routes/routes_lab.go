@@ -8,7 +8,6 @@ import (
 	"math"
 	"math/rand/v2"
 	"net/http"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -23,131 +22,306 @@ import (
 
 const labBase = hypermediaBase + "/lab"
 
+// ── Firework constants ──────────────────────────────────────────────────────
+
 const (
-	mbWidth        = 120
-	mbHeight       = 60
-	mbMaxIter      = 256
-	mbDefaultDelay = 2 * time.Second
-	mbDefaultDepth = 30
-	mbDefaultSteps = 30
-	mbFrameInterval = 30 * time.Millisecond
+	fwWidth      = 400
+	fwHeight     = 300
+	fwGravity    = 0.035
+	fwDefaultFPS = 30
+	fwDefaultInt = 5 // intensity 1-10
 )
 
-var mbPalette = [16][3]uint8{
-	{66, 30, 15}, {25, 7, 26}, {9, 1, 47}, {4, 4, 73},
-	{0, 7, 100}, {12, 44, 138}, {24, 82, 177}, {57, 125, 209},
-	{134, 181, 229}, {211, 236, 248}, {241, 233, 191}, {248, 212, 120},
-	{232, 167, 53}, {200, 117, 17}, {159, 74, 4}, {106, 27, 4},
+var fwPalettes = [][3]uint8{
+	{255, 220, 80},  // gold
+	{255, 80, 80},   // red
+	{80, 140, 255},  // blue
+	{80, 255, 130},  // green
+	{230, 80, 255},  // purple
+	{255, 255, 230}, // white
+	{80, 255, 255},  // cyan
+	{255, 150, 60},  // orange
+	{255, 110, 200}, // pink
 }
 
-type mbViewport struct {
-	realMin, realMax, imagMin, imagMax float64
+// ── Particle types ──────────────────────────────────────────────────────────
+
+type fwParticle struct {
+	x, y, vx, vy float64
+	life, size    float64
+	r, g, b       uint8
+	launching     bool
 }
 
-var mbDefaultVP = mbViewport{
-	realMin: -2.5, realMax: 1.0,
-	imagMin: -1.1, imagMax: 1.1,
+type fwSim struct {
+	particles []fwParticle
+	stars     string
+	frame     int
+	spawnRate int // frames between launches
+	peak      int
 }
 
-var mandelbrotState struct {
-	cancel   context.CancelFunc
-	delay    time.Duration
-	maxDepth int
-	steps    int
-	mu       sync.Mutex
+func newFWSim(intensity int) *fwSim {
+	// Generate static stars
+	var stars strings.Builder
+	for range 60 {
+		x := rand.Float64() * fwWidth
+		y := rand.Float64() * fwHeight * 0.7
+		r := 0.3 + rand.Float64()*0.8
+		o := 0.2 + rand.Float64()*0.5
+		fmt.Fprintf(&stars, `<circle cx="%.1f" cy="%.1f" r="%.1f" fill="#fff" opacity="%.2f"/>`, x, y, r, o)
+	}
+	return &fwSim{
+		stars:     stars.String(),
+		spawnRate: intensityToRate(intensity),
+	}
 }
+
+func intensityToRate(intensity int) int {
+	// intensity 1 = every 50 frames, 10 = every 5 frames
+	rate := 55 - intensity*5
+	if rate < 5 {
+		rate = 5
+	}
+	return rate
+}
+
+func (sim *fwSim) tick() {
+	sim.frame++
+
+	// Spawn new firework
+	if sim.frame%sim.spawnRate == 0 {
+		sim.spawn()
+	}
+
+	// Update particles
+	alive := sim.particles[:0]
+	var explodes []fwParticle
+	for i := range sim.particles {
+		p := &sim.particles[i]
+		p.x += p.vx
+		p.y += p.vy
+		p.vy += fwGravity
+
+		if p.launching {
+			p.life -= 0.025
+			if p.vy >= -1.5 || p.life <= 0 {
+				explodes = append(explodes, *p)
+				continue
+			}
+		} else {
+			p.life -= 0.014
+			p.size *= 0.997
+		}
+
+		if p.life > 0 && p.y < fwHeight+20 {
+			alive = append(alive, *p)
+		}
+	}
+	sim.particles = alive
+
+	// Process explosions
+	for _, p := range explodes {
+		sim.explode(p)
+	}
+
+	if len(sim.particles) > sim.peak {
+		sim.peak = len(sim.particles)
+	}
+}
+
+func (sim *fwSim) spawn() {
+	x := fwWidth * (0.15 + rand.Float64()*0.7)
+	vy := -(6.0 + rand.Float64()*3.5)
+	vx := (rand.Float64() - 0.5) * 1.5
+	c := fwPalettes[rand.IntN(len(fwPalettes))]
+	sim.particles = append(sim.particles, fwParticle{
+		x: x, y: fwHeight,
+		vx: vx, vy: vy,
+		r: c[0], g: c[1], b: c[2],
+		life: 1.0, size: 2.5,
+		launching: true,
+	})
+}
+
+func (sim *fwSim) explode(p fwParticle) {
+	count := 60 + rand.IntN(80)
+	willow := rand.Float64() < 0.3 // 30% chance of willow type
+
+	for range count {
+		angle := rand.Float64() * 2 * math.Pi
+		speed := 1.0 + rand.Float64()*3.5
+		if willow {
+			speed *= 0.6
+		}
+
+		// Slight color variation
+		r := clampByte(int(p.r) + rand.IntN(50) - 25)
+		g := clampByte(int(p.g) + rand.IntN(50) - 25)
+		b := clampByte(int(p.b) + rand.IntN(50) - 25)
+
+		life := 0.7 + rand.Float64()*0.3
+		if willow {
+			life = 0.9 + rand.Float64()*0.1
+		}
+
+		sim.particles = append(sim.particles, fwParticle{
+			x: p.x, y: p.y,
+			vx: math.Cos(angle)*speed + p.vx*0.3,
+			vy: math.Sin(angle)*speed + p.vy*0.3,
+			r: r, g: g, b: b,
+			life: life,
+			size: 1.0 + rand.Float64()*1.5,
+		})
+	}
+
+	// Add sparkle particles
+	sparkles := 10 + rand.IntN(20)
+	for range sparkles {
+		angle := rand.Float64() * 2 * math.Pi
+		speed := 0.5 + rand.Float64()*2
+		sim.particles = append(sim.particles, fwParticle{
+			x: p.x, y: p.y,
+			vx: math.Cos(angle) * speed,
+			vy: math.Sin(angle) * speed,
+			r: 255, g: 255, b: 240,
+			life: 0.4 + rand.Float64()*0.3,
+			size: 0.5 + rand.Float64()*0.5,
+		})
+	}
+}
+
+func (sim *fwSim) render() string {
+	var buf strings.Builder
+	buf.Grow(len(sim.particles)*90 + len(sim.stars) + 300)
+
+	fmt.Fprintf(&buf, `<svg viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%%">`, fwWidth, fwHeight)
+
+	// Night sky gradient
+	buf.WriteString(`<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">`)
+	buf.WriteString(`<stop offset="0" stop-color="#0a0a2e"/>`)
+	buf.WriteString(`<stop offset="1" stop-color="#1a1a3e"/>`)
+	buf.WriteString(`</linearGradient></defs>`)
+	fmt.Fprintf(&buf, `<rect width="%d" height="%d" fill="url(#sky)"/>`, fwWidth, fwHeight)
+
+	buf.WriteString(sim.stars)
+
+	// Render particles (glow + core for each)
+	for i := range sim.particles {
+		p := &sim.particles[i]
+		o := p.life
+		if o > 1 {
+			o = 1
+		}
+		// Glow
+		fmt.Fprintf(&buf, `<circle cx="%.1f" cy="%.1f" r="%.1f" fill="rgb(%d,%d,%d)" opacity="%.2f"/>`,
+			p.x, p.y, p.size*2.5, p.r, p.g, p.b, o*0.25)
+		// Core
+		fmt.Fprintf(&buf, `<circle cx="%.1f" cy="%.1f" r="%.1f" fill="rgb(%d,%d,%d)" opacity="%.2f"/>`,
+			p.x, p.y, p.size*p.life, p.r, p.g, p.b, o)
+	}
+
+	buf.WriteString("</svg>")
+	return buf.String()
+}
+
+func clampByte(v int) uint8 {
+	if v < 0 {
+		return 0
+	}
+	if v > 255 {
+		return 255
+	}
+	return uint8(v)
+}
+
+// ── State ───────────────────────────────────────────────────────────────────
+
+var labState struct {
+	cancel    context.CancelFunc
+	fps       int
+	intensity int
+	mu        sync.Mutex
+}
+
+// ── Routes ──────────────────────────────────────────────────────────────────
 
 func (ar *appRoutes) initLabRoutes(broker *tavern.SSEBroker) {
-	mandelbrotState.delay = mbDefaultDelay
-	mandelbrotState.maxDepth = mbDefaultDepth
-	mandelbrotState.steps = mbDefaultSteps
+	labState.fps = fwDefaultFPS
+	labState.intensity = fwDefaultInt
 	ar.e.GET(labBase, handleLabPage(ar.ctx, broker))
-	ar.e.POST(labBase+"/mandelbrot/settings", handleMandelbrotSettings(ar.ctx, broker))
-	ar.e.POST(labBase+"/mandelbrot/reset", handleMandelbrotReset(ar.ctx, broker))
+	ar.e.POST(labBase+"/settings", handleLabSettings(ar.ctx, broker))
+	ar.e.POST(labBase+"/reset", handleLabReset(ar.ctx, broker))
 	ar.e.GET("/sse/lab", handleSSELab(broker))
 }
 
-// handleLabPage pre-renders the default view and starts the auto-zoom publisher.
 func handleLabPage(appCtx context.Context, broker *tavern.SSEBroker) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		grid, _ := renderMandelbrotGrid(mbDefaultVP, mbMaxIter)
+		sky := renderEmptySky()
 
-		mandelbrotState.mu.Lock()
-		if mandelbrotState.cancel != nil {
-			mandelbrotState.cancel()
+		labState.mu.Lock()
+		if labState.cancel != nil {
+			labState.cancel()
 		}
 		ctx, cancel := context.WithCancel(appCtx)
-		mandelbrotState.cancel = cancel
-		mandelbrotState.mu.Unlock()
+		labState.cancel = cancel
+		labState.mu.Unlock()
 
-		go publishAutoZoom(ctx, broker)
+		go publishFireworks(ctx, broker)
 
-		return handler.RenderBaseLayout(c, views.LabPage(grid))
+		return handler.RenderBaseLayout(c, views.LabPage(sky))
 	}
 }
 
-// handleMandelbrotSettings applies new delay/depth and restarts the zoom.
-func handleMandelbrotSettings(appCtx context.Context, broker *tavern.SSEBroker) echo.HandlerFunc {
+func handleLabSettings(appCtx context.Context, broker *tavern.SSEBroker) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		delay, _ := strconv.ParseFloat(c.FormValue("delay"), 64)
-		if delay < 0.5 {
-			delay = 0.5
-		} else if delay > 5.0 {
-			delay = 5.0
+		fps, _ := strconv.Atoi(c.FormValue("fps"))
+		if fps < 10 {
+			fps = 10
+		} else if fps > 60 {
+			fps = 60
 		}
-		maxDepth, _ := strconv.Atoi(c.FormValue("max_depth"))
-		if maxDepth < 5 {
-			maxDepth = 5
-		} else if maxDepth > 50 {
-			maxDepth = 50
-		}
-		steps, _ := strconv.Atoi(c.FormValue("steps"))
-		if steps < 1 {
-			steps = 1
-		} else if steps > 60 {
-			steps = 60
+		intensity, _ := strconv.Atoi(c.FormValue("intensity"))
+		if intensity < 1 {
+			intensity = 1
+		} else if intensity > 10 {
+			intensity = 10
 		}
 
-		mandelbrotState.mu.Lock()
-		mandelbrotState.delay = time.Duration(delay * float64(time.Second))
-		mandelbrotState.maxDepth = maxDepth
-		mandelbrotState.steps = steps
-		if mandelbrotState.cancel != nil {
-			mandelbrotState.cancel()
+		labState.mu.Lock()
+		labState.fps = fps
+		labState.intensity = intensity
+		if labState.cancel != nil {
+			labState.cancel()
 		}
 		ctx, cancel := context.WithCancel(appCtx)
-		mandelbrotState.cancel = cancel
-		mandelbrotState.mu.Unlock()
+		labState.cancel = cancel
+		labState.mu.Unlock()
 
-		grid, _ := renderMandelbrotGrid(mbDefaultVP, mbMaxIter)
-		go publishAutoZoom(ctx, broker)
+		go publishFireworks(ctx, broker)
 
-		return handler.RenderComponent(c, views.MandelbrotSettingsApplied(grid, maxDepth))
+		return handler.RenderComponent(c, views.LabSettingsApplied())
 	}
 }
 
-// handleMandelbrotReset restores defaults and restarts from the beginning.
-func handleMandelbrotReset(appCtx context.Context, broker *tavern.SSEBroker) echo.HandlerFunc {
+func handleLabReset(appCtx context.Context, broker *tavern.SSEBroker) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		mandelbrotState.mu.Lock()
-		mandelbrotState.delay = mbDefaultDelay
-		mandelbrotState.maxDepth = mbDefaultDepth
-		mandelbrotState.steps = mbDefaultSteps
-		if mandelbrotState.cancel != nil {
-			mandelbrotState.cancel()
+		labState.mu.Lock()
+		labState.fps = fwDefaultFPS
+		labState.intensity = fwDefaultInt
+		if labState.cancel != nil {
+			labState.cancel()
 		}
 		ctx, cancel := context.WithCancel(appCtx)
-		mandelbrotState.cancel = cancel
-		mandelbrotState.mu.Unlock()
+		labState.cancel = cancel
+		labState.mu.Unlock()
 
-		grid, _ := renderMandelbrotGrid(mbDefaultVP, mbMaxIter)
-		go publishAutoZoom(ctx, broker)
+		go publishFireworks(ctx, broker)
 
-		return handler.RenderComponent(c, views.MandelbrotResetResponse(grid))
+		return handler.RenderComponent(c, views.LabResetResponse(fwDefaultFPS, fwDefaultInt))
 	}
 }
 
-// handleSSELab streams SSE messages for the lab page.
 func handleSSELab(broker *tavern.SSEBroker) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		c.Response().Header().Set("Content-Type", "text/event-stream")
@@ -160,7 +334,7 @@ func handleSSELab(broker *tavern.SSEBroker) echo.HandlerFunc {
 		}
 		flusher.Flush()
 
-		ch, unsub := broker.Subscribe(TopicLabMandelbrot)
+		ch, unsub := broker.Subscribe(TopicLab)
 		defer unsub()
 
 		ctx := c.Request().Context()
@@ -179,11 +353,10 @@ func handleSSELab(broker *tavern.SSEBroker) echo.HandlerFunc {
 	}
 }
 
-// ── Auto-zoom publisher ─────────────────────────────────────────────────────
+// ── Publisher ────────────────────────────────────────────────────────────────
 
-func publishAutoZoom(ctx context.Context, broker *tavern.SSEBroker) {
-	// Wait for SSE subscriber
-	for !broker.HasSubscribers(TopicLabMandelbrot) {
+func publishFireworks(ctx context.Context, broker *tavern.SSEBroker) {
+	for !broker.HasSubscribers(TopicLab) {
 		select {
 		case <-ctx.Done():
 			return
@@ -191,225 +364,58 @@ func publishAutoZoom(ctx context.Context, broker *tavern.SSEBroker) {
 		}
 	}
 
-	mandelbrotState.mu.Lock()
-	maxDepth := mandelbrotState.maxDepth
-	mandelbrotState.mu.Unlock()
+	labState.mu.Lock()
+	intensity := labState.intensity
+	labState.mu.Unlock()
 
-	vp := mbDefaultVP
-	maxIter := mbMaxIter
+	sim := newFWSim(intensity)
 
-	// Compute iteration matrix for default view (already rendered on page, don't publish)
-	_, iters := renderMandelbrotGrid(vp, maxIter)
-
-	for depth := 1; depth <= maxDepth; depth++ {
-		// Find interesting point
-		col, row := findInterestingPoint(iters, maxIter)
-		cr := vp.realMin + (float64(col)+0.5)/float64(mbWidth)*(vp.realMax-vp.realMin)
-		ci := vp.imagMin + (float64(row)+0.5)/float64(mbHeight)*(vp.imagMax-vp.imagMin)
-
-		// Target viewport: 2x zoom centered on interesting point
-		targetVP := mbViewport{
-			realMin: cr - (vp.realMax-vp.realMin)/4,
-			realMax: cr + (vp.realMax-vp.realMin)/4,
-			imagMin: ci - (vp.imagMax-vp.imagMin)/4,
-			imagMax: ci + (vp.imagMax-vp.imagMin)/4,
-		}
-		targetMaxIter := mbMaxIter + depth*64
-
-		// Read steps from state
-		mandelbrotState.mu.Lock()
-		steps := mandelbrotState.steps
-		mandelbrotState.mu.Unlock()
-
-		// Animate: interpolate viewport across N frames
-		srcCr := (vp.realMin + vp.realMax) / 2
-		srcCi := (vp.imagMin + vp.imagMax) / 2
-		srcW := vp.realMax - vp.realMin
-		srcH := vp.imagMax - vp.imagMin
-
-		for step := 1; step <= steps; step++ {
-			select {
-			case <-ctx.Done():
-				return
-			default:
-			}
-
-			t := float64(step) / float64(steps)
-
-			// Exponential zoom: scale grows as 2^t (constant visual speed)
-			scale := math.Pow(2.0, t)
-			w := srcW / scale
-			h := srcH / scale
-
-			// Pan center from source toward target
-			interpCr := srcCr + (cr-srcCr)*t
-			interpCi := srcCi + (ci-srcCi)*t
-
-			interpVP := mbViewport{
-				realMin: interpCr - w/2,
-				realMax: interpCr + w/2,
-				imagMin: interpCi - h/2,
-				imagMax: interpCi + h/2,
-			}
-			interpMaxIter := maxIter + int(float64(targetMaxIter-maxIter)*t)
-
-			grid, newIters := renderMandelbrotGrid(interpVP, interpMaxIter)
-			if step == steps {
-				iters = newIters
-			}
-
-			// Publish intermediate frame
-			var buf strings.Builder
-			buf.WriteString(`<div id="mandelbrot-canvas" hx-swap-oob="innerHTML">`)
-			buf.WriteString(grid)
-			buf.WriteString(`</div>`)
-			zoomMult := math.Pow(2.0, float64(depth-1)+t)
-			fmt.Fprintf(&buf, `<div id="mb-status" hx-swap-oob="innerHTML"><span class="font-mono">×%.0f</span> · depth %d/%d · frame %d/%d</div>`,
-				zoomMult, depth, maxDepth, step, steps)
-
-			msg := tavern.NewSSEMessage("lab-mandelbrot", buf.String()).String()
-			broker.Publish(TopicLabMandelbrot, msg)
-
-			time.Sleep(mbFrameInterval)
-		}
-
-		vp = targetVP
-		maxIter = targetMaxIter
-
-		// Pause at completed zoom level before finding next target
-		mandelbrotState.mu.Lock()
-		delay := mandelbrotState.delay
-		mandelbrotState.mu.Unlock()
-
+	for {
 		select {
 		case <-ctx.Done():
 			return
-		case <-time.After(delay):
+		default:
 		}
-	}
 
-	// Reached max depth
-	var done strings.Builder
-	fmt.Fprintf(&done, `<div id="mb-status" hx-swap-oob="innerHTML"><span class="font-mono">×%d</span> · maximum depth reached</div>`, 1<<uint(maxDepth))
-	msg := tavern.NewSSEMessage("lab-mandelbrot", done.String()).String()
-	broker.Publish(TopicLabMandelbrot, msg)
-}
+		sim.tick()
+		frame := sim.render()
 
-// ── Mandelbrot computation ──────────────────────────────────────────────────
+		var buf strings.Builder
+		buf.WriteString(`<div id="lab-canvas" hx-swap-oob="innerHTML">`)
+		buf.WriteString(frame)
+		buf.WriteString(`</div>`)
+		fmt.Fprintf(&buf, `<div id="lab-status" hx-swap-oob="innerHTML"><span class="font-mono">%s</span> particles · peak <span class="font-mono">%s</span></div>`,
+			formatCommas(len(sim.particles)), formatCommas(sim.peak))
 
-func mbIterN(cr, ci float64, maxIter int) (int, float64, float64) {
-	zr, zi := 0.0, 0.0
-	for i := 0; i < maxIter; i++ {
-		zr2, zi2 := zr*zr, zi*zi
-		if zr2+zi2 > 4.0 {
-			return i, zr, zi
+		msg := tavern.NewSSEMessage("lab-stream", buf.String()).String()
+		broker.Publish(TopicLab, msg)
+
+		labState.mu.Lock()
+		fps := labState.fps
+		newIntensity := labState.intensity
+		labState.mu.Unlock()
+
+		if newIntensity != intensity {
+			intensity = newIntensity
+			sim.spawnRate = intensityToRate(intensity)
 		}
-		zi = 2*zr*zi + ci
-		zr = zr2 - zi2 + cr
+
+		time.Sleep(time.Second / time.Duration(fps))
 	}
-	return maxIter, zr, zi
 }
 
-func mbColorN(iter, maxIter int, zr, zi float64) string {
-	if iter == maxIter {
-		return "#000"
-	}
-	mu := float64(iter) + 1.0 - math.Log2(math.Log(zr*zr+zi*zi)/2.0)
-	idx := int(math.Abs(mu*0.7)) % len(mbPalette)
-	c := mbPalette[idx]
-	return fmt.Sprintf("#%02x%02x%02x", c[0], c[1], c[2])
-}
+// ── Helpers ─────────────────────────────────────────────────────────────────
 
-// renderMandelbrotGrid computes the full grid HTML and the iteration matrix.
-func renderMandelbrotGrid(vp mbViewport, maxIter int) (string, [][]int) {
-	iters := make([][]int, mbHeight)
+func renderEmptySky() string {
 	var buf strings.Builder
-	buf.Grow(mbWidth * mbHeight * 60)
-	fmt.Fprintf(&buf, `<svg viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%%">`, mbWidth, mbHeight)
-
-	for row := 0; row < mbHeight; row++ {
-		ci := vp.imagMin + (float64(row)+0.5)/float64(mbHeight)*(vp.imagMax-vp.imagMin)
-		iters[row] = make([]int, mbWidth)
-		for col := 0; col < mbWidth; col++ {
-			cr := vp.realMin + (float64(col)+0.5)/float64(mbWidth)*(vp.realMax-vp.realMin)
-			iter, zr, zi := mbIterN(cr, ci, maxIter)
-			iters[row][col] = iter
-			color := mbColorN(iter, maxIter, zr, zi)
-			fmt.Fprintf(&buf, `<rect x="%d" y="%d" width="1" height="1" fill="%s"/>`, col, row, color)
-		}
-	}
-
+	fmt.Fprintf(&buf, `<svg viewBox="0 0 %d %d" xmlns="http://www.w3.org/2000/svg" style="display:block;width:100%%">`, fwWidth, fwHeight)
+	buf.WriteString(`<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">`)
+	buf.WriteString(`<stop offset="0" stop-color="#0a0a2e"/>`)
+	buf.WriteString(`<stop offset="1" stop-color="#1a1a3e"/>`)
+	buf.WriteString(`</linearGradient></defs>`)
+	fmt.Fprintf(&buf, `<rect width="%d" height="%d" fill="url(#sky)"/>`, fwWidth, fwHeight)
 	buf.WriteString("</svg>")
-	return buf.String(), iters
-}
-
-// findInterestingPoint finds the region with the highest boundary density.
-// It divides the grid into blocks, scores each by the variance of iteration
-// counts (high variance = boundary region), and picks randomly from the top 3.
-func findInterestingPoint(iters [][]int, maxIter int) (int, int) {
-	type candidate struct {
-		col, row int
-		score    float64
-	}
-
-	blockW, blockH := 20, 10
-	var candidates []candidate
-
-	for by := 0; by <= mbHeight-blockH; by += blockH / 2 {
-		for bx := 0; bx <= mbWidth-blockW; bx += blockW / 2 {
-			sum, count := 0.0, 0
-			for y := by; y < by+blockH && y < mbHeight; y++ {
-				for x := bx; x < bx+blockW && x < mbWidth; x++ {
-					iter := iters[y][x]
-					if iter > 0 && iter < maxIter {
-						sum += float64(iter)
-						count++
-					}
-				}
-			}
-			// Require at least 25% non-trivial pixels for a meaningful score
-			total := blockW * blockH
-			if count < total/4 {
-				continue
-			}
-			mean := sum / float64(count)
-
-			// Compute variance (high variance = boundary = interesting)
-			variance := 0.0
-			for y := by; y < by+blockH && y < mbHeight; y++ {
-				for x := bx; x < bx+blockW && x < mbWidth; x++ {
-					iter := iters[y][x]
-					if iter > 0 && iter < maxIter {
-						d := float64(iter) - mean
-						variance += d * d
-					}
-				}
-			}
-			variance /= float64(count)
-
-			candidates = append(candidates, candidate{
-				col:   bx + blockW/2,
-				row:   by + blockH/2,
-				score: variance,
-			})
-		}
-	}
-
-	if len(candidates) == 0 {
-		return mbWidth / 2, mbHeight / 2
-	}
-
-	sort.Slice(candidates, func(i, j int) bool {
-		return candidates[i].score > candidates[j].score
-	})
-
-	// Pick randomly from top 3 for variety
-	top := 3
-	if top > len(candidates) {
-		top = len(candidates)
-	}
-	pick := candidates[rand.IntN(top)]
-	return pick.col, pick.row
+	return buf.String()
 }
 
 func formatCommas(n int) string {

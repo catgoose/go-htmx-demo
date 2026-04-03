@@ -12,5 +12,5 @@ const (
 	TopicErrorTraces  = "error-traces"
 	TopicThemeChange  = "theme-change"
 	TopicCanvasUpdate    = "canvas-update"
-	TopicLabMandelbrot   = "lab-mandelbrot"
+	TopicLab = "lab"
 )
