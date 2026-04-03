@@ -33,7 +33,8 @@ templ IntervalSlider(cfg IntervalSliderCfg) {
 			{ scaleDisplay(cfg.IntervalMs, cfg.Scale) }
 		</span>
 		<button type="button"
-			class="btn btn-ghost btn-xs font-mono text-base-content/50 px-1 min-h-0 h-5"
+			class="badge badge-outline badge-sm font-mono cursor-pointer hover:badge-primary transition-colors"
+			title="Click to cycle unit (right-click for reverse)"
 			_="on click call window._ivUp(the closest .iv-wrap to me)
 			   on contextmenu halt the event then call window._ivDown(the closest .iv-wrap to me)">
 			{ cfg.Scale }

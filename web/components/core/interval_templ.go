@@ -162,14 +162,14 @@ func IntervalSlider(cfg IntervalSliderCfg) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span> <button type=\"button\" class=\"btn btn-ghost btn-xs font-mono text-base-content/50 px-1 min-h-0 h-5\" _=\"on click call window._ivUp(the closest .iv-wrap to me)\n\t\t\t   on contextmenu halt the event then call window._ivDown(the closest .iv-wrap to me)\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span> <button type=\"button\" class=\"badge badge-outline badge-sm font-mono cursor-pointer hover:badge-primary transition-colors\" title=\"Click to cycle unit (right-click for reverse)\" _=\"on click call window._ivUp(the closest .iv-wrap to me)\n\t\t\t   on contextmenu halt the event then call window._ivDown(the closest .iv-wrap to me)\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(cfg.Scale)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/interval.templ`, Line: 39, Col: 14}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/components/core/interval.templ`, Line: 40, Col: 14}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
