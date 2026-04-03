@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"time"
 
+	appenv "catgoose/dothog/internal/env"
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
 	"github.com/catgoose/tavern"
@@ -185,6 +186,7 @@ func getOrCreateClientID(c echo.Context) string {
 		Path:     "/",
 		MaxAge:   86400 * 30,
 		HttpOnly: true,
+		Secure:   !appenv.Dev(),
 		SameSite: http.SameSiteLaxMode,
 	})
 	return id

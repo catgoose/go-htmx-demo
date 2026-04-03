@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+
+	appenv "catgoose/dothog/internal/env"
 	"time"
 )
 
@@ -184,6 +186,7 @@ func getOrCreateSessionCookie(w http.ResponseWriter, r *http.Request, cookieName
 		Path:     "/",
 		MaxAge:   365 * 24 * 60 * 60,
 		HttpOnly: true,
+		Secure:   !appenv.Dev(),
 		SameSite: http.SameSiteLaxMode,
 	})
 	return id, nil
