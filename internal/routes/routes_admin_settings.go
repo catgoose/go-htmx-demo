@@ -42,6 +42,7 @@ func initAdminIntervals() {
 		adminIntervals.intervals[id] = iv
 	}
 }
+
 // ── Routes ──────────────────────────────────────────────────────────────────
 
 var adminBufPool = sync.Pool{New: func() any { return new(bytes.Buffer) }}

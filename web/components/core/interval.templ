@@ -16,6 +16,12 @@ type IntervalSliderCfg struct {
 }
 
 // AutoScale picks the best slider unit for a given interval in milliseconds.
+// Ranges are non-overlapping to avoid ambiguity at boundaries:
+//
+//	ms:  100 – 900
+//	s:   1 000 – 59 000
+//	min: 60 000 – 3 540 000
+//	h:   3 600 000+
 func AutoScale(ms int) string {
 	switch {
 	case ms >= 3600000:
@@ -90,9 +96,9 @@ func scaleDisplay(ms int, scale string) string {
 func scaleAttr(scale, attr string) string {
 	type cfg struct{ min, max, step string }
 	scales := map[string]cfg{
-		"ms":  {"100", "2000", "100"},
-		"s":   {"1", "60", "1"},
-		"min": {"1", "60", "1"},
+		"ms":  {"100", "900", "100"},
+		"s":   {"1", "59", "1"},
+		"min": {"1", "59", "1"},
 		"h":   {"1", "24", "1"},
 	}
 	c, ok := scales[scale]

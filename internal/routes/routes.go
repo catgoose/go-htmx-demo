@@ -370,7 +370,11 @@ func InitEcho(ctx context.Context, staticFS fs.FS, cfg *config.AppConfig,
 
 	static := e.Group("/public", func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			c.Response().Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			if behindProxy {
+				c.Response().Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+			} else {
+				c.Response().Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+			}
 			return next(c)
 		}
 	})

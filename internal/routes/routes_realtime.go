@@ -42,6 +42,7 @@ var rtCardDefaults = map[string]int{
 
 var rtIntervals struct {
 	intervals map[string]int
+	units     map[string]string // client-chosen unit per section
 	lastSent  map[string]time.Time
 	saved     map[string]int // snapshot before master override
 	mu        sync.RWMutex
@@ -57,9 +58,11 @@ var rtBroker *tavern.SSEBroker
 
 func initRTIntervals() {
 	rtIntervals.intervals = make(map[string]int, len(rtCardDefaults))
+	rtIntervals.units = make(map[string]string, len(rtCardDefaults))
 	rtIntervals.lastSent = make(map[string]time.Time, len(rtCardDefaults))
 	for id, iv := range rtCardDefaults {
 		rtIntervals.intervals[id] = iv
+		rtIntervals.units[id] = components.AutoScale(iv)
 	}
 }
 
@@ -179,12 +182,17 @@ func handleRTInterval(c echo.Context) error {
 	} else if ms > 86400000 {
 		ms = 86400000
 	}
+	unit := c.FormValue("unit")
+	if unit == "" {
+		unit = components.AutoScale(ms)
+	}
 	rtIntervals.mu.Lock()
 	rtIntervals.intervals[section] = ms
+	rtIntervals.units[section] = unit
 	rtIntervals.mu.Unlock()
 
 	// Broadcast OOB slider update to all dashboard clients
-	broadcastCardSlider(section, ms)
+	broadcastCardSlider(section, ms, unit)
 
 	return c.NoContent(http.StatusNoContent)
 }
@@ -274,7 +282,7 @@ func handleSSEDashboard(broker *tavern.SSEBroker) echo.HandlerFunc {
 
 // broadcastCardSlider renders a card's IntervalSlider with OOB=true and publishes
 // it so all connected dashboard clients see the updated slider state.
-func broadcastCardSlider(section string, ms int) {
+func broadcastCardSlider(section string, ms int, unit string) {
 	if rtBroker == nil || !rtBroker.HasSubscribers(TopicDashMetrics) {
 		return
 	}
@@ -283,7 +291,7 @@ func broadcastCardSlider(section string, ms int) {
 		TargetKey:   "section",
 		TargetValue: section,
 		IntervalMs:  ms,
-		Scale:       components.AutoScale(ms),
+		Scale:       unit,
 		PostURL:     "/hypermedia/realtime/interval",
 		OOB:         true,
 	}
@@ -661,47 +669,47 @@ func (ar *appRoutes) publishRealtimeDashboard(broker *tavern.SSEBroker) {
 			rtIntervals.mu.Lock()
 
 			if isDue("network", now) {
-				views.OOBNetworkChart(snap).Render(ctx, buf) //nolint:errcheck
+				views.OOBNetworkChart(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
 				needsPublish = true
 			}
 			if isDue("latency", now) {
-				views.OOBLatencyHistChart(snap).Render(ctx, buf) //nolint:errcheck
+				views.OOBLatencyHistChart(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
 				needsPublish = true
 			}
 			if isDue("error-spark", now) {
-				views.OOBErrorSparkline(snap).Render(ctx, buf) //nolint:errcheck
+				views.OOBErrorSparkline(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
 				needsPublish = true
 			}
 			if isDue("req-dist", now) {
-				views.OOBRequestDistChart(snap).Render(ctx, buf) //nolint:errcheck
+				views.OOBRequestDistChart(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
 				needsPublish = true
 			}
 			if isDue("throughput", now) {
-				views.OOBThroughputSplitChart(snap).Render(ctx, buf) //nolint:errcheck
+				views.OOBThroughputSplitChart(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
 				needsPublish = true
 			}
 			if isDue("gauges", now) {
-				views.OOBCpuMemGauges(snap).Render(ctx, buf) //nolint:errcheck
+				views.OOBCpuMemGauges(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
 				needsPublish = true
 			}
 			if isDue("disk-io", now) {
-				views.OOBDiskIOChart(snap).Render(ctx, buf) //nolint:errcheck
+				views.OOBDiskIOChart(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
 				needsPublish = true
 			}
 			if isDue("conn-pool", now) {
-				views.OOBConnPool(snap).Render(ctx, buf) //nolint:errcheck
+				views.OOBConnPool(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
 				needsPublish = true
 			}
 			if isDue("sys-stats", now) {
-				views.OOBDashboardStats(stats).Render(ctx, buf) //nolint:errcheck
+				views.OOBDashboardStats(stats).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
 				needsPublish = true
 			}
 			if isDue("services", now) {
-				views.OOBServicesChart(services).Render(ctx, buf) //nolint:errcheck
+				views.OOBServicesChart(services).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
 				needsPublish = true
 			}
 			if isDue("svc-latency", now) {
-				views.OOBServiceLatencyChart(svcLatencies, maxMs*1.1).Render(ctx, buf) //nolint:errcheck
+				views.OOBServiceLatencyChart(svcLatencies, maxMs*1.1).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
 				needsPublish = true
 			}
 			if isDue("events", now) {
@@ -711,7 +719,7 @@ func (ar *appRoutes) publishRealtimeDashboard(broker *tavern.SSEBroker) {
 					Kind:    tmpl.Kind,
 					Message: tmpl.Messages[rand.IntN(len(tmpl.Messages))],
 				}
-				views.OOBEventItem(evt).Render(ctx, buf) //nolint:errcheck
+				views.OOBEventItem(evt).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
 				needsPublish = true
 			}
 
