@@ -328,6 +328,7 @@ var numDefaultIntervals = map[string]int{
 
 var numTileIntervals struct {
 	intervals map[string]int       // ms per tile
+	units     map[string]string    // client-chosen unit per tile
 	lastSent  map[string]time.Time // last publish time per tile
 	saved     map[string]int       // snapshot before master override
 	mu        sync.RWMutex
@@ -335,9 +336,11 @@ var numTileIntervals struct {
 
 func initTileIntervals() {
 	numTileIntervals.intervals = make(map[string]int, len(numDefaultIntervals))
+	numTileIntervals.units = make(map[string]string, len(numDefaultIntervals))
 	numTileIntervals.lastSent = make(map[string]time.Time, len(numDefaultIntervals))
 	for id, iv := range numDefaultIntervals {
 		numTileIntervals.intervals[id] = iv
+		numTileIntervals.units[id] = components.AutoScale(iv)
 	}
 }
 
@@ -351,6 +354,11 @@ func getTileInterval(id string) int {
 }
 
 func getTileScale(id string) string {
+	numTileIntervals.mu.RLock()
+	defer numTileIntervals.mu.RUnlock()
+	if u, ok := numTileIntervals.units[id]; ok {
+		return u
+	}
 	return components.AutoScale(getTileInterval(id))
 }
 
@@ -369,20 +377,25 @@ func handleNumericalInterval(c echo.Context) error {
 	} else if ms > 86400000 {
 		ms = 86400000
 	}
+	unit := c.FormValue("unit")
+	if unit == "" {
+		unit = components.AutoScale(ms)
+	}
 
 	numTileIntervals.mu.Lock()
 	numTileIntervals.intervals[tileID] = ms
+	numTileIntervals.units[tileID] = unit
 	numTileIntervals.mu.Unlock()
 
 	// Broadcast OOB slider update to all clients
-	broadcastTileSlider(tileID, ms)
+	broadcastTileSlider(tileID, ms, unit)
 
 	return c.NoContent(http.StatusNoContent)
 }
 
 // broadcastTileSlider renders a tile's IntervalSlider with OOB=true and publishes
 // it so all connected clients see the updated slider state.
-func broadcastTileSlider(tileID string, ms int) {
+func broadcastTileSlider(tileID string, ms int, unit string) {
 	if numBroker == nil || !numBroker.HasSubscribers(TopicNumericalDash) {
 		return
 	}
@@ -391,7 +404,7 @@ func broadcastTileSlider(tileID string, ms int) {
 		TargetKey:   "tile",
 		TargetValue: tileID,
 		IntervalMs:  ms,
-		Scale:       components.AutoScale(ms),
+		Scale:       unit,
 		PostURL:     "/hypermedia/realtime/tile-interval",
 		OOB:         true,
 	}
