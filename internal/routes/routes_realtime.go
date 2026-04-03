@@ -85,10 +85,10 @@ func (ar *appRoutes) initRealtimeRoutes(broker *tavern.SSEBroker) {
 func handleRTInterval(c echo.Context) error {
 	section := c.FormValue("section")
 	ms, _ := strconv.Atoi(c.FormValue("interval_ms"))
-	if ms < 500 {
-		ms = 500
-	} else if ms > 30000 {
-		ms = 30000
+	if ms < 100 {
+		ms = 100
+	} else if ms > 86400000 {
+		ms = 86400000
 	}
 	rtIntervals.mu.Lock()
 	rtIntervals.intervals[section] = ms
