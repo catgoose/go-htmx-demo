@@ -21,8 +21,11 @@
     }
   }
 
+  window._ivUp = function (el) { _ivCycle(el, 1); };
+  window._ivDown = function (el) { _ivCycle(el, -1); };
+
   /** Cycle unit. dir=1 forward (ms→s→min→h), dir=-1 backward. */
-  window._ivCycle = function (el, dir) {
+  function _ivCycle(el, dir) {
     if (!el) return;
     ensureInit(el);
     var input = el.querySelector('input[type=range]');

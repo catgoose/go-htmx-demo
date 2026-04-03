@@ -162,7 +162,7 @@ func IntervalSlider(cfg IntervalSliderCfg) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span> <button type=\"button\" class=\"btn btn-ghost btn-xs font-mono text-base-content/50 px-1 min-h-0 h-5\" _=\"on click call window._ivCycle(the closest .iv-wrap to me, 1)\n\t\t\t   on contextmenu halt the event then call window._ivCycle(the closest .iv-wrap to me, -1)\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span> <button type=\"button\" class=\"btn btn-ghost btn-xs font-mono text-base-content/50 px-1 min-h-0 h-5\" _=\"on click call window._ivUp(the closest .iv-wrap to me)\n\t\t\t   on contextmenu halt the event then call window._ivDown(the closest .iv-wrap to me)\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
