@@ -21,8 +21,8 @@
     }
   }
 
-  /** Cycle unit: ms → s → min → h → ms. Reconfigure slider and POST. */
-  window._ivCycle = function (el) {
+  /** Cycle unit. dir=1 forward (ms→s→min→h), dir=-1 backward. */
+  window._ivCycle = function (el, dir) {
     if (!el) return;
     ensureInit(el);
     var input = el.querySelector('input[type=range]');
@@ -33,7 +33,7 @@
     var oldCfg = configs[units[el._ivUnit]];
     var ms = parseInt(input.value) * oldCfg.mult;
 
-    el._ivUnit = (el._ivUnit + 1) % units.length;
+    el._ivUnit = (el._ivUnit + (dir || 1) + units.length) % units.length;
     var unit = units[el._ivUnit];
     var cfg = configs[unit];
 
