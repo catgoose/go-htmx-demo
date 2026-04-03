@@ -23,7 +23,7 @@ templ LabPage(grid string) {
 					</div>
 				</div>
 
-				@mbControls(2.0, 30)
+				@mbControls(2.0, 30, 30)
 
 				<div id="mb-status" class="text-sm text-base-content/50">
 					<span class="font-mono">×1</span> · depth 0/30
@@ -31,11 +31,11 @@ templ LabPage(grid string) {
 
 				<style>
 					#mandelbrot-canvas svg {
-						animation: mb-zoom 0.6s ease-out;
+						animation: mb-fade 0.05s ease-out;
 					}
-					@keyframes mb-zoom {
-						from { transform: scale(0.5); opacity: 0; }
-						to { transform: scale(1); opacity: 1; }
+					@keyframes mb-fade {
+						from { opacity: 0.7; }
+						to { opacity: 1; }
 					}
 				</style>
 				<div id="mandelbrot-canvas"
@@ -54,17 +54,17 @@ templ LabPage(grid string) {
 	</div>
 }
 
-templ mbControls(delay float64, maxDepth int) {
+templ mbControls(delay float64, maxDepth int, steps int) {
 	<div id="mb-controls" class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm">
 		<div class="flex items-center gap-2" x-data="rangeOutput">
 			<span class="text-xs text-base-content/60">Delay</span>
-			<input type="range" class="range range-xs w-24"
+			<input type="range" class="range range-xs w-20"
 				name="delay" min="0.5" max="5" step="0.5"
 				value={ fmt.Sprintf("%.1f", delay) }
 				x-on:input="updateOutput()"
 				hx-post="/hypermedia/lab/mandelbrot/settings"
 				hx-trigger="change"
-				hx-include="#mb-controls [name=max_depth]"
+				hx-include="#mb-controls input[type=range]"
 				hx-target="#mb-oob-sink"
 				hx-swap="innerHTML"/>
 			<output class="font-mono text-xs w-6 text-center">{ fmt.Sprintf("%.1f", delay) }</output>
@@ -72,16 +72,29 @@ templ mbControls(delay float64, maxDepth int) {
 		</div>
 		<div class="flex items-center gap-2" x-data="rangeOutput">
 			<span class="text-xs text-base-content/60">Depth</span>
-			<input type="range" class="range range-xs w-24"
+			<input type="range" class="range range-xs w-20"
 				name="max_depth" min="5" max="50" step="5"
 				value={ fmt.Sprintf("%d", maxDepth) }
 				x-on:input="updateOutput()"
 				hx-post="/hypermedia/lab/mandelbrot/settings"
 				hx-trigger="change"
-				hx-include="#mb-controls [name=delay]"
+				hx-include="#mb-controls input[type=range]"
 				hx-target="#mb-oob-sink"
 				hx-swap="innerHTML"/>
 			<output class="font-mono text-xs w-6 text-center">{ fmt.Sprintf("%d", maxDepth) }</output>
+		</div>
+		<div class="flex items-center gap-2" x-data="rangeOutput">
+			<span class="text-xs text-base-content/60">Frames</span>
+			<input type="range" class="range range-xs w-20"
+				name="steps" min="1" max="60" step="1"
+				value={ fmt.Sprintf("%d", steps) }
+				x-on:input="updateOutput()"
+				hx-post="/hypermedia/lab/mandelbrot/settings"
+				hx-trigger="change"
+				hx-include="#mb-controls input[type=range]"
+				hx-target="#mb-oob-sink"
+				hx-swap="innerHTML"/>
+			<output class="font-mono text-xs w-6 text-center">{ fmt.Sprintf("%d", steps) }</output>
 		</div>
 		<button class="btn btn-xs btn-outline"
 			hx-post="/hypermedia/lab/mandelbrot/reset"
@@ -103,7 +116,7 @@ templ MandelbrotSettingsApplied(grid string, maxDepth int) {
 }
 
 templ MandelbrotResetResponse(grid string) {
-	@mbControls(2.0, 30)
+	@mbControls(2.0, 30, 30)
 	<div id="mandelbrot-canvas" hx-swap-oob="innerHTML">
 		@templ.Raw(grid)
 	</div>

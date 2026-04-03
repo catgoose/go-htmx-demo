@@ -29,6 +29,8 @@ const (
 	mbMaxIter      = 256
 	mbDefaultDelay = 2 * time.Second
 	mbDefaultDepth = 30
+	mbDefaultSteps = 30
+	mbFrameInterval = 30 * time.Millisecond
 )
 
 var mbPalette = [16][3]uint8{
@@ -51,12 +53,14 @@ var mandelbrotState struct {
 	cancel   context.CancelFunc
 	delay    time.Duration
 	maxDepth int
+	steps    int
 	mu       sync.Mutex
 }
 
 func (ar *appRoutes) initLabRoutes(broker *tavern.SSEBroker) {
 	mandelbrotState.delay = mbDefaultDelay
 	mandelbrotState.maxDepth = mbDefaultDepth
+	mandelbrotState.steps = mbDefaultSteps
 	ar.e.GET(labBase, handleLabPage(ar.ctx, broker))
 	ar.e.POST(labBase+"/mandelbrot/settings", handleMandelbrotSettings(ar.ctx, broker))
 	ar.e.POST(labBase+"/mandelbrot/reset", handleMandelbrotReset(ar.ctx, broker))
@@ -97,10 +101,17 @@ func handleMandelbrotSettings(appCtx context.Context, broker *tavern.SSEBroker) 
 		} else if maxDepth > 50 {
 			maxDepth = 50
 		}
+		steps, _ := strconv.Atoi(c.FormValue("steps"))
+		if steps < 1 {
+			steps = 1
+		} else if steps > 60 {
+			steps = 60
+		}
 
 		mandelbrotState.mu.Lock()
 		mandelbrotState.delay = time.Duration(delay * float64(time.Second))
 		mandelbrotState.maxDepth = maxDepth
+		mandelbrotState.steps = steps
 		if mandelbrotState.cancel != nil {
 			mandelbrotState.cancel()
 		}
@@ -121,6 +132,7 @@ func handleMandelbrotReset(appCtx context.Context, broker *tavern.SSEBroker) ech
 		mandelbrotState.mu.Lock()
 		mandelbrotState.delay = mbDefaultDelay
 		mandelbrotState.maxDepth = mbDefaultDepth
+		mandelbrotState.steps = mbDefaultSteps
 		if mandelbrotState.cancel != nil {
 			mandelbrotState.cancel()
 		}
@@ -190,23 +202,81 @@ func publishAutoZoom(ctx context.Context, broker *tavern.SSEBroker) {
 	_, iters := renderMandelbrotGrid(vp, maxIter)
 
 	for depth := 1; depth <= maxDepth; depth++ {
-		// Find interesting point and zoom
+		// Find interesting point
 		col, row := findInterestingPoint(iters, maxIter)
 		cr := vp.realMin + (float64(col)+0.5)/float64(mbWidth)*(vp.realMax-vp.realMin)
 		ci := vp.imagMin + (float64(row)+0.5)/float64(mbHeight)*(vp.imagMax-vp.imagMin)
 
-		// Zoom 2x centered on interesting point
-		rHalf := (vp.realMax - vp.realMin) / 4
-		iHalf := (vp.imagMax - vp.imagMin) / 4
-		vp = mbViewport{
-			realMin: cr - rHalf,
-			realMax: cr + rHalf,
-			imagMin: ci - iHalf,
-			imagMax: ci + iHalf,
+		// Target viewport: 2x zoom centered on interesting point
+		targetVP := mbViewport{
+			realMin: cr - (vp.realMax-vp.realMin)/4,
+			realMax: cr + (vp.realMax-vp.realMin)/4,
+			imagMin: ci - (vp.imagMax-vp.imagMin)/4,
+			imagMax: ci + (vp.imagMax-vp.imagMin)/4,
 		}
-		maxIter = mbMaxIter + depth*64
+		targetMaxIter := mbMaxIter + depth*64
 
-		// Read current delay from state (allows live adjustment)
+		// Read steps from state
+		mandelbrotState.mu.Lock()
+		steps := mandelbrotState.steps
+		mandelbrotState.mu.Unlock()
+
+		// Animate: interpolate viewport across N frames
+		srcCr := (vp.realMin + vp.realMax) / 2
+		srcCi := (vp.imagMin + vp.imagMax) / 2
+		srcW := vp.realMax - vp.realMin
+		srcH := vp.imagMax - vp.imagMin
+
+		for step := 1; step <= steps; step++ {
+			select {
+			case <-ctx.Done():
+				return
+			default:
+			}
+
+			t := float64(step) / float64(steps)
+
+			// Exponential zoom: scale grows as 2^t (constant visual speed)
+			scale := math.Pow(2.0, t)
+			w := srcW / scale
+			h := srcH / scale
+
+			// Pan center from source toward target
+			interpCr := srcCr + (cr-srcCr)*t
+			interpCi := srcCi + (ci-srcCi)*t
+
+			interpVP := mbViewport{
+				realMin: interpCr - w/2,
+				realMax: interpCr + w/2,
+				imagMin: interpCi - h/2,
+				imagMax: interpCi + h/2,
+			}
+			interpMaxIter := maxIter + int(float64(targetMaxIter-maxIter)*t)
+
+			grid, newIters := renderMandelbrotGrid(interpVP, interpMaxIter)
+			if step == steps {
+				iters = newIters
+			}
+
+			// Publish intermediate frame
+			var buf strings.Builder
+			buf.WriteString(`<div id="mandelbrot-canvas" hx-swap-oob="innerHTML">`)
+			buf.WriteString(grid)
+			buf.WriteString(`</div>`)
+			zoomMult := math.Pow(2.0, float64(depth-1)+t)
+			fmt.Fprintf(&buf, `<div id="mb-status" hx-swap-oob="innerHTML"><span class="font-mono">×%.0f</span> · depth %d/%d · frame %d/%d</div>`,
+				zoomMult, depth, maxDepth, step, steps)
+
+			msg := tavern.NewSSEMessage("lab-mandelbrot", buf.String()).String()
+			broker.Publish(TopicLabMandelbrot, msg)
+
+			time.Sleep(mbFrameInterval)
+		}
+
+		vp = targetVP
+		maxIter = targetMaxIter
+
+		// Pause at completed zoom level before finding next target
 		mandelbrotState.mu.Lock()
 		delay := mandelbrotState.delay
 		mandelbrotState.mu.Unlock()
@@ -216,21 +286,6 @@ func publishAutoZoom(ctx context.Context, broker *tavern.SSEBroker) {
 			return
 		case <-time.After(delay):
 		}
-
-		// Compute zoomed view
-		grid, newIters := renderMandelbrotGrid(vp, maxIter)
-		iters = newIters
-
-		// Publish frame via SSE (canvas + status only, controls stay as-is)
-		var buf strings.Builder
-		buf.WriteString(`<div id="mandelbrot-canvas" hx-swap-oob="innerHTML">`)
-		buf.WriteString(grid)
-		buf.WriteString(`</div>`)
-		zoomMult := 1 << uint(depth)
-		fmt.Fprintf(&buf, `<div id="mb-status" hx-swap-oob="innerHTML"><span class="font-mono">×%d</span> · depth %d/%d</div>`, zoomMult, depth, maxDepth)
-
-		msg := tavern.NewSSEMessage("lab-mandelbrot", buf.String()).String()
-		broker.Publish(TopicLabMandelbrot, msg)
 	}
 
 	// Reached max depth
