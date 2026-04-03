@@ -41,7 +41,7 @@ func LabPage(grid string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div id=\"mb-status\" class=\"text-sm text-base-content/50\"><span class=\"font-mono\">×1</span> · depth 0/30</div><style>\n\t\t\t\t\t#mandelbrot-canvas svg {\n\t\t\t\t\t\tanimation: mb-zoom 0.6s ease-out;\n\t\t\t\t\t}\n\t\t\t\t\t@keyframes mb-zoom {\n\t\t\t\t\t\tfrom { transform: scale(2); opacity: 0; }\n\t\t\t\t\t\tto { transform: scale(1); opacity: 1; }\n\t\t\t\t\t}\n\t\t\t\t</style><div id=\"mandelbrot-canvas\" class=\"bg-black rounded-lg overflow-hidden\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "<div id=\"mb-status\" class=\"text-sm text-base-content/50\"><span class=\"font-mono\">×1</span> · depth 0/30</div><style>\n\t\t\t\t\t#mandelbrot-canvas svg {\n\t\t\t\t\t\tanimation: mb-zoom 0.6s ease-out;\n\t\t\t\t\t}\n\t\t\t\t\t@keyframes mb-zoom {\n\t\t\t\t\t\tfrom { transform: scale(0.5); opacity: 0; }\n\t\t\t\t\t\tto { transform: scale(1); opacity: 1; }\n\t\t\t\t\t}\n\t\t\t\t</style><div id=\"mandelbrot-canvas\" class=\"bg-black rounded-lg overflow-hidden\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
