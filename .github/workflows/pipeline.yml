@@ -64,6 +64,9 @@ jobs:
       - name: Update vendored assets
         run: mage updateAssets
 
+      - name: Compile Tailwind CSS
+        run: mage tailwind
+
       - name: Check for changes
         id: check-changes
         run: |
