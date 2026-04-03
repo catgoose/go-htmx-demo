@@ -308,10 +308,18 @@ document.addEventListener('alpine:init', function () {
         var key = this.$el.dataset.targetKey;
         var value = this.$el.dataset.targetValue;
         if (!url) return;
-        var body = {};
-        body[key] = value;
-        body['interval_ms'] = (val * mult).toString();
-        htmx.ajax('POST', url, { values: body, swap: 'none' });
+        var params = new URLSearchParams();
+        params.set(key, value);
+        params.set('interval_ms', (val * mult).toString());
+        var t = document.querySelector('meta[name="csrf-token"]');
+        fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRF-Token': t ? t.content : ''
+          },
+          body: params.toString()
+        });
       }
     };
   });
