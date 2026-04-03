@@ -54,9 +54,10 @@
     _ivPost(el);
   };
 
-  /** POST the current interval in ms. */
+  /** POST the current interval in ms. Skips if inside a disabled master. */
   window._ivPost = function (el) {
     if (!el) return;
+    if (el.classList.contains('opacity-50')) return;
     ensureInit(el);
     var input = el.querySelector('input[type=range]');
     if (!input) return;
