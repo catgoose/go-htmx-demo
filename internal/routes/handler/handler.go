@@ -71,8 +71,9 @@ func getLayoutCtx(c echo.Context) layoutCtx {
 		csrfToken = t
 	}
 	// setup:feature:csrf:end
+	var theme string
 	// setup:feature:session_settings:start
-	theme := session.GetSettings(c.Request()).Theme
+	theme = session.GetSettings(c.Request()).Theme
 	// setup:feature:session_settings:end
 
 	var crumbs []linkwell.Breadcrumb
