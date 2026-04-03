@@ -339,6 +339,13 @@ func initTileIntervals() {
 	for id, iv := range numDefaultIntervals {
 		numTileIntervals.intervals[id] = iv
 	}
+	if saved := loadIntervalState(); saved != nil {
+		for id, iv := range saved.Tiles {
+			if _, ok := numTileIntervals.intervals[id]; ok {
+				numTileIntervals.intervals[id] = iv
+			}
+		}
+	}
 }
 
 func getTileInterval(id string) int {
@@ -377,6 +384,7 @@ func handleNumericalInterval(c echo.Context) error {
 	// Broadcast OOB slider update to all clients
 	broadcastTileSlider(tileID, ms)
 
+	go saveIntervalState()
 	return c.NoContent(http.StatusNoContent)
 }
 

@@ -41,6 +41,13 @@ func initAdminIntervals() {
 	for id, iv := range adminDefaultIntervals {
 		adminIntervals.intervals[id] = iv
 	}
+	if saved := loadIntervalState(); saved != nil {
+		for id, iv := range saved.Admin {
+			if _, ok := adminIntervals.intervals[id]; ok {
+				adminIntervals.intervals[id] = iv
+			}
+		}
+	}
 }
 
 func getAdminInterval(id string) int {
@@ -83,6 +90,7 @@ func handleAdminInterval(c echo.Context) error {
 	adminIntervals.mu.Lock()
 	adminIntervals.intervals[section] = ms
 	adminIntervals.mu.Unlock()
+	go saveIntervalState()
 	return c.NoContent(http.StatusNoContent)
 }
 

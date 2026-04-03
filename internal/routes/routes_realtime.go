@@ -61,6 +61,15 @@ func initRTIntervals() {
 	for id, iv := range rtCardDefaults {
 		rtIntervals.intervals[id] = iv
 	}
+	if saved := loadIntervalState(); saved != nil {
+		for id, iv := range saved.Charts {
+			if _, ok := rtIntervals.intervals[id]; ok {
+				rtIntervals.intervals[id] = iv
+			}
+		}
+		rtMaster.enabled = saved.Master.Enabled
+		rtMaster.intervalMs = saved.Master.IntervalMs
+	}
 }
 
 func isDue(cardID string, now time.Time) bool {
@@ -138,6 +147,7 @@ func handleRTIntervalAll(c echo.Context) error {
 	// Broadcast master toggle + slider OOB to all dashboard clients
 	broadcastMasterState(true, ms)
 
+	go saveIntervalState()
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -168,6 +178,7 @@ func handleRTIntervalRestore(c echo.Context) error {
 	// Broadcast master toggle OOB (unchecked) to all dashboard clients
 	broadcastMasterState(false, 0)
 
+	go saveIntervalState()
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -186,6 +197,7 @@ func handleRTInterval(c echo.Context) error {
 	// Broadcast OOB slider update to all dashboard clients
 	broadcastCardSlider(section, ms)
 
+	go saveIntervalState()
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -298,32 +310,20 @@ func broadcastCardSlider(section string, ms int) {
 	rtBroker.Publish(TopicDashMetrics, msg)
 }
 
-// broadcastMasterState renders the master toggle OOB and (when enabled) the
-// master slider OOB, then publishes to all dashboard clients.
+// broadcastMasterState renders the master card OOB with a 5-second lock and
+// publishes to all dashboard clients.
 func broadcastMasterState(enabled bool, ms int) {
 	if rtBroker == nil || !rtBroker.HasSubscribers(TopicDashMetrics) {
 		return
 	}
+	if ms == 0 {
+		ms = 2000
+	}
 	buf := statsBufPool.Get().(*bytes.Buffer)
 	buf.Reset()
-	if err := views.OOBMasterToggle(enabled).Render(context.Background(), buf); err != nil {
+	if err := views.OOBMasterCard(enabled, ms, true).Render(context.Background(), buf); err != nil {
 		statsBufPool.Put(buf)
 		return
-	}
-	if enabled && ms > 0 {
-		cfg := components.IntervalSliderCfg{
-			ID:          "iv-master",
-			TargetKey:   "scope",
-			TargetValue: "all",
-			IntervalMs:  ms,
-			Scale:       components.AutoScale(ms),
-			PostURL:     "/hypermedia/realtime/interval-all",
-			OOB:         true,
-		}
-		if err := components.IntervalSlider(cfg).Render(context.Background(), buf); err != nil {
-			statsBufPool.Put(buf)
-			return
-		}
 	}
 	msg := tavern.NewSSEMessage("dashboard-metrics", buf.String()).String()
 	statsBufPool.Put(buf)
