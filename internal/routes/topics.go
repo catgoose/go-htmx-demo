@@ -13,4 +13,5 @@ const (
 	TopicThemeChange  = "theme-change"
 	TopicCanvasUpdate    = "canvas-update"
 	TopicLabMandelbrot   = "lab-mandelbrot"
+	TopicNumericalDash   = "numerical-dash"
 )
