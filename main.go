@@ -78,7 +78,7 @@ func main() {
 	defer cancel()
 
 	// Error trace store — persists error request logs to SQLite for debugging.
-	traceDB, _, err := dialect.OpenSQLite(appCtx, "db/error_traces.db")
+	traceDB, _, err := dialect.OpenSQLite(appCtx, ":memory:")
 	if err != nil {
 		logger.Fatal("Failed to open error traces database", "error", err)
 	}
