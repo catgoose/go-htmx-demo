@@ -90,12 +90,13 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 			<div class="lg:col-span-2 card bg-base-100 shadow border border-base-300">
 				<div class="card-body p-4">
 					<div class="flex items-center justify-between mb-2">
-						<div class="flex items-center gap-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Network Traffic</h2>@components.PinButton("network", "/hypermedia/realtime/pin", false, false)</div>
+						<h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Network Traffic</h2>
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-network",
 							TargetKey: "section", TargetValue: "network",
 							IntervalMs: 1000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
+						@components.PinButton("network", "/realtime/dashboard/pin", false, false)
 					</div>
 					@networkChart(snap)
 				</div>
@@ -103,12 +104,13 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 			<div class="card bg-base-100 shadow border border-base-300">
 				<div class="card-body p-4">
 					<div class="flex items-center justify-between mb-2">
-						<div class="flex items-center gap-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Service Health</h2>@components.PinButton("services", "/hypermedia/realtime/pin", false, false)</div>
+						<h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Service Health</h2>
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-services",
 							TargetKey: "section", TargetValue: "services",
 							IntervalMs: 3000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
+						@components.PinButton("services", "/realtime/dashboard/pin", false, false)
 					</div>
 					@servicesChart(services)
 				</div>
@@ -119,12 +121,13 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 			<div class="card bg-base-100 shadow border border-base-300">
 				<div class="card-body p-4">
 					<div class="flex items-center justify-between mb-2">
-						<div class="flex items-center gap-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Latency Histogram</h2>@components.PinButton("latency", "/hypermedia/realtime/pin", false, false)</div>
+						<h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Latency Histogram</h2>
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-latency",
 							TargetKey: "section", TargetValue: "latency",
 							IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
+						@components.PinButton("latency", "/realtime/dashboard/pin", false, false)
 					</div>
 					@latencyHistChart(snap)
 				</div>
@@ -132,12 +135,13 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 			<div class="card bg-base-100 shadow border border-base-300">
 				<div class="card-body p-4">
 					<div class="flex items-center justify-between mb-2">
-						<div class="flex items-center gap-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Error Rate Trend</h2>@components.PinButton("error-spark", "/hypermedia/realtime/pin", false, false)</div>
+						<h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Error Rate Trend</h2>
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-error-spark",
 							TargetKey: "section", TargetValue: "error-spark",
 							IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
+						@components.PinButton("error-spark", "/realtime/dashboard/pin", false, false)
 					</div>
 					@errorSparkline(snap)
 				</div>
@@ -145,12 +149,13 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 			<div class="card bg-base-100 shadow border border-base-300">
 				<div class="card-body p-4">
 					<div class="flex items-center justify-between mb-2">
-						<div class="flex items-center gap-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Request Distribution</h2>@components.PinButton("req-dist", "/hypermedia/realtime/pin", false, false)</div>
+						<h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Request Distribution</h2>
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-req-dist",
 							TargetKey: "section", TargetValue: "req-dist",
 							IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
+						@components.PinButton("req-dist", "/realtime/dashboard/pin", false, false)
 					</div>
 					@requestDistChart(snap)
 				</div>
@@ -161,12 +166,13 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 			<div class="lg:col-span-2 card bg-base-100 shadow border border-base-300">
 				<div class="card-body p-4">
 					<div class="flex items-center justify-between mb-2">
-						<div class="flex items-center gap-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Throughput Split</h2>@components.PinButton("throughput", "/hypermedia/realtime/pin", false, false)</div>
+						<h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Throughput Split</h2>
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-throughput",
 							TargetKey: "section", TargetValue: "throughput",
 							IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
+						@components.PinButton("throughput", "/realtime/dashboard/pin", false, false)
 					</div>
 					@throughputSplitChart(snap)
 				</div>
@@ -174,12 +180,13 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 			<div class="card bg-base-100 shadow border border-base-300">
 				<div class="card-body p-4">
 					<div class="flex items-center justify-between mb-2">
-						<div class="flex items-center gap-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Per-Service Latency</h2>@components.PinButton("svc-latency", "/hypermedia/realtime/pin", false, false)</div>
+						<h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Per-Service Latency</h2>
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-svc-latency",
 							TargetKey: "section", TargetValue: "svc-latency",
 							IntervalMs: 3000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
+						@components.PinButton("svc-latency", "/realtime/dashboard/pin", false, false)
 					</div>
 					@serviceLatencyChart(svcLatencies, 150)
 				</div>
@@ -190,12 +197,13 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 			<div class="card bg-base-100 shadow border border-base-300">
 				<div class="card-body p-4">
 					<div class="flex items-center justify-between mb-2">
-						<div class="flex items-center gap-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">CPU & Memory</h2>@components.PinButton("gauges", "/hypermedia/realtime/pin", false, false)</div>
+						<h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">CPU & Memory</h2>
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-gauges",
 							TargetKey: "section", TargetValue: "gauges",
 							IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
+						@components.PinButton("gauges", "/realtime/dashboard/pin", false, false)
 					</div>
 					@cpuMemGauges(snap)
 				</div>
@@ -203,12 +211,13 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 			<div class="card bg-base-100 shadow border border-base-300">
 				<div class="card-body p-4">
 					<div class="flex items-center justify-between mb-2">
-						<div class="flex items-center gap-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Disk I/O</h2>@components.PinButton("disk-io", "/hypermedia/realtime/pin", false, false)</div>
+						<h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Disk I/O</h2>
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-disk-io",
 							TargetKey: "section", TargetValue: "disk-io",
 							IntervalMs: 3000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
+						@components.PinButton("disk-io", "/realtime/dashboard/pin", false, false)
 					</div>
 					@diskIOChart(snap)
 				</div>
@@ -216,12 +225,13 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 			<div class="lg:col-span-2 card bg-base-100 shadow border border-base-300">
 				<div class="card-body p-4">
 					<div class="flex items-center justify-between mb-2">
-						<div class="flex items-center gap-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Connection Pool</h2>@components.PinButton("conn-pool", "/hypermedia/realtime/pin", false, false)</div>
+						<h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Connection Pool</h2>
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-conn-pool",
 							TargetKey: "section", TargetValue: "conn-pool",
 							IntervalMs: 3000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
+						@components.PinButton("conn-pool", "/realtime/dashboard/pin", false, false)
 					</div>
 					@connPool(snap)
 				</div>
@@ -232,12 +242,13 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 			<div class="card bg-base-100 shadow border border-base-300">
 				<div class="card-body p-4">
 					<div class="flex items-center justify-between mb-2">
-						<div class="flex items-center gap-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">System Metrics</h2>@components.PinButton("sys-stats", "/hypermedia/realtime/pin", false, false)</div>
+						<h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">System Metrics</h2>
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-sys-stats",
 							TargetKey: "section", TargetValue: "sys-stats",
 							IntervalMs: 5000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
+						@components.PinButton("sys-stats", "/realtime/dashboard/pin", false, false)
 					</div>
 					@dashboardSystemStats(initial)
 				</div>
@@ -245,12 +256,13 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 			<div class="card bg-base-100 shadow border border-base-300">
 				<div class="card-body p-4">
 					<div class="flex items-center justify-between mb-2">
-						<div class="flex items-center gap-2"><h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Live Event Feed</h2>@components.PinButton("events", "/hypermedia/realtime/pin", false, false)</div>
+						<h2 class="text-xs font-semibold uppercase tracking-wider text-base-content/40">Live Event Feed</h2>
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-events",
 							TargetKey: "section", TargetValue: "events",
 							IntervalMs: 1500, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
+						@components.PinButton("events", "/realtime/dashboard/pin", false, false)
 					</div>
 					<div
 						id="event-feed"

@@ -152,7 +152,7 @@ func TestWorkflowGETRoot(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, rec.Code)
 	// setup:feature:demo:start
-	assert.Contains(t, rec.Body.String(), "Demo")
+	assert.Contains(t, rec.Body.String(), "REST")
 	// setup:feature:demo:end
 }
 

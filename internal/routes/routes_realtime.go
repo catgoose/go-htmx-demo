@@ -248,7 +248,7 @@ func broadcastPinButton(section string, pinned bool) {
 	}
 	buf := statsBufPool.Get().(*bytes.Buffer)
 	buf.Reset()
-	if err := components.PinButton(section, "/hypermedia/realtime/pin", pinned, true).Render(context.Background(), buf); err != nil {
+	if err := components.PinButton(section, "/realtime/dashboard/pin", pinned, true).Render(context.Background(), buf); err != nil {
 		statsBufPool.Put(buf)
 		return
 	}
