@@ -331,6 +331,7 @@ var numTileIntervals struct {
 	units     map[string]string    // client-chosen unit per tile
 	lastSent  map[string]time.Time // last publish time per tile
 	saved     map[string]int       // snapshot before master override
+	pinned    map[string]bool      // pinned tiles are excluded from master override
 	mu        sync.RWMutex
 }
 
@@ -338,6 +339,7 @@ func initTileIntervals() {
 	numTileIntervals.intervals = make(map[string]int, len(numDefaultIntervals))
 	numTileIntervals.units = make(map[string]string, len(numDefaultIntervals))
 	numTileIntervals.lastSent = make(map[string]time.Time, len(numDefaultIntervals))
+	numTileIntervals.pinned = make(map[string]bool, len(numDefaultIntervals))
 	for id, iv := range numDefaultIntervals {
 		numTileIntervals.intervals[id] = iv
 		numTileIntervals.units[id] = components.AutoScale(iv)

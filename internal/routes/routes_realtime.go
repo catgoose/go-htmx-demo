@@ -44,7 +44,8 @@ var rtIntervals struct {
 	intervals map[string]int
 	units     map[string]string // client-chosen unit per section
 	lastSent  map[string]time.Time
-	saved     map[string]int // snapshot before master override
+	saved     map[string]int  // snapshot before master override
+	pinned    map[string]bool // pinned sections are excluded from master override
 	mu        sync.RWMutex
 }
 
@@ -60,6 +61,7 @@ func initRTIntervals() {
 	rtIntervals.intervals = make(map[string]int, len(rtCardDefaults))
 	rtIntervals.units = make(map[string]string, len(rtCardDefaults))
 	rtIntervals.lastSent = make(map[string]time.Time, len(rtCardDefaults))
+	rtIntervals.pinned = make(map[string]bool, len(rtCardDefaults))
 	for id, iv := range rtCardDefaults {
 		rtIntervals.intervals[id] = iv
 		rtIntervals.units[id] = components.AutoScale(iv)
@@ -86,6 +88,7 @@ func (ar *appRoutes) initRealtimeRoutes(broker *tavern.SSEBroker) {
 	ar.e.POST("/hypermedia/realtime/interval", handleRTInterval)
 	ar.e.POST("/hypermedia/realtime/interval-all", handleRTIntervalAll)
 	ar.e.POST("/hypermedia/realtime/interval-restore", handleRTIntervalRestore)
+	ar.e.POST("/hypermedia/realtime/pin", handleRTPin)
 	ar.e.GET("/sse/system", handleSSESystem(broker))
 	ar.e.GET("/sse/dashboard", handleSSEDashboard(broker))
 
@@ -107,7 +110,7 @@ func handleRTIntervalAll(c echo.Context) error {
 		ms = 86400000
 	}
 
-	// Save individual intervals before overriding
+	// Save individual intervals before overriding (skip pinned)
 	rtIntervals.mu.Lock()
 	if rtIntervals.saved == nil {
 		rtIntervals.saved = make(map[string]int, len(rtIntervals.intervals))
@@ -116,7 +119,9 @@ func handleRTIntervalAll(c echo.Context) error {
 		}
 	}
 	for id := range rtIntervals.intervals {
-		rtIntervals.intervals[id] = ms
+		if !rtIntervals.pinned[id] {
+			rtIntervals.intervals[id] = ms
+		}
 	}
 	rtIntervals.mu.Unlock()
 
@@ -128,7 +133,9 @@ func handleRTIntervalAll(c echo.Context) error {
 		}
 	}
 	for id := range numTileIntervals.intervals {
-		numTileIntervals.intervals[id] = ms
+		if !numTileIntervals.pinned[id] {
+			numTileIntervals.intervals[id] = ms
+		}
 	}
 	numTileIntervals.mu.Unlock()
 
@@ -148,7 +155,9 @@ func handleRTIntervalRestore(c echo.Context) error {
 	rtIntervals.mu.Lock()
 	if rtIntervals.saved != nil {
 		for id, iv := range rtIntervals.saved {
-			rtIntervals.intervals[id] = iv
+			if !rtIntervals.pinned[id] {
+				rtIntervals.intervals[id] = iv
+			}
 		}
 		rtIntervals.saved = nil
 	}
@@ -157,7 +166,9 @@ func handleRTIntervalRestore(c echo.Context) error {
 	numTileIntervals.mu.Lock()
 	if numTileIntervals.saved != nil {
 		for id, iv := range numTileIntervals.saved {
-			numTileIntervals.intervals[id] = iv
+			if !numTileIntervals.pinned[id] {
+				numTileIntervals.intervals[id] = iv
+			}
 		}
 		numTileIntervals.saved = nil
 	}
@@ -195,6 +206,55 @@ func handleRTInterval(c echo.Context) error {
 	broadcastCardSlider(section, ms, unit)
 
 	return c.NoContent(http.StatusNoContent)
+}
+
+func handleRTPin(c echo.Context) error {
+	section := c.FormValue("section")
+	if section == "" {
+		section = c.FormValue("tile")
+	}
+	if section == "" {
+		return c.NoContent(http.StatusBadRequest)
+	}
+
+	// Toggle for chart sections
+	rtIntervals.mu.Lock()
+	if _, ok := rtIntervals.intervals[section]; ok {
+		rtIntervals.pinned[section] = !rtIntervals.pinned[section]
+		pinned := rtIntervals.pinned[section]
+		rtIntervals.mu.Unlock()
+		broadcastPinButton(section, pinned)
+		return c.NoContent(http.StatusNoContent)
+	}
+	rtIntervals.mu.Unlock()
+
+	// Toggle for numerical tiles
+	numTileIntervals.mu.Lock()
+	if _, ok := numTileIntervals.intervals[section]; ok {
+		numTileIntervals.pinned[section] = !numTileIntervals.pinned[section]
+		pinned := numTileIntervals.pinned[section]
+		numTileIntervals.mu.Unlock()
+		broadcastPinButton(section, pinned)
+		return c.NoContent(http.StatusNoContent)
+	}
+	numTileIntervals.mu.Unlock()
+
+	return c.NoContent(http.StatusBadRequest)
+}
+
+func broadcastPinButton(section string, pinned bool) {
+	if rtBroker == nil || !rtBroker.HasSubscribers(TopicDashMetrics) {
+		return
+	}
+	buf := statsBufPool.Get().(*bytes.Buffer)
+	buf.Reset()
+	if err := components.PinButton(section, "/hypermedia/realtime/pin", pinned, true).Render(context.Background(), buf); err != nil {
+		statsBufPool.Put(buf)
+		return
+	}
+	msg := tavern.NewSSEMessage("dashboard-metrics", buf.String()).String()
+	statsBufPool.Put(buf)
+	rtBroker.Publish(TopicDashMetrics, msg)
 }
 
 func (ar *appRoutes) handleRealtimePage() echo.HandlerFunc {
@@ -668,48 +728,62 @@ func (ar *appRoutes) publishRealtimeDashboard(broker *tavern.SSEBroker) {
 
 			rtIntervals.mu.Lock()
 
+			// Each isDue block renders the section data AND resets the progress bar.
+			// The OOB progress bar replacement restarts the CSS fill animation,
+			// keeping it in sync with actual server timing.
 			if isDue("network", now) {
 				views.OOBNetworkChart(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
+				components.IntervalProgress(components.ProgressID("network"), rtIntervals.intervals["network"]).Render(ctx, buf) //nolint:errcheck
 				needsPublish = true
 			}
 			if isDue("latency", now) {
 				views.OOBLatencyHistChart(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
+				components.IntervalProgress(components.ProgressID("latency"), rtIntervals.intervals["latency"]).Render(ctx, buf) //nolint:errcheck
 				needsPublish = true
 			}
 			if isDue("error-spark", now) {
 				views.OOBErrorSparkline(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
+				components.IntervalProgress(components.ProgressID("error-spark"), rtIntervals.intervals["error-spark"]).Render(ctx, buf) //nolint:errcheck
 				needsPublish = true
 			}
 			if isDue("req-dist", now) {
 				views.OOBRequestDistChart(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
+				components.IntervalProgress(components.ProgressID("req-dist"), rtIntervals.intervals["req-dist"]).Render(ctx, buf) //nolint:errcheck
 				needsPublish = true
 			}
 			if isDue("throughput", now) {
 				views.OOBThroughputSplitChart(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
+				components.IntervalProgress(components.ProgressID("throughput"), rtIntervals.intervals["throughput"]).Render(ctx, buf) //nolint:errcheck
 				needsPublish = true
 			}
 			if isDue("gauges", now) {
 				views.OOBCpuMemGauges(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
+				components.IntervalProgress(components.ProgressID("gauges"), rtIntervals.intervals["gauges"]).Render(ctx, buf) //nolint:errcheck
 				needsPublish = true
 			}
 			if isDue("disk-io", now) {
 				views.OOBDiskIOChart(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
+				components.IntervalProgress(components.ProgressID("disk-io"), rtIntervals.intervals["disk-io"]).Render(ctx, buf) //nolint:errcheck
 				needsPublish = true
 			}
 			if isDue("conn-pool", now) {
 				views.OOBConnPool(snap).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
+				components.IntervalProgress(components.ProgressID("conn-pool"), rtIntervals.intervals["conn-pool"]).Render(ctx, buf) //nolint:errcheck
 				needsPublish = true
 			}
 			if isDue("sys-stats", now) {
 				views.OOBDashboardStats(stats).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
+				components.IntervalProgress(components.ProgressID("sys-stats"), rtIntervals.intervals["sys-stats"]).Render(ctx, buf) //nolint:errcheck
 				needsPublish = true
 			}
 			if isDue("services", now) {
 				views.OOBServicesChart(services).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
+				components.IntervalProgress(components.ProgressID("services"), rtIntervals.intervals["services"]).Render(ctx, buf) //nolint:errcheck
 				needsPublish = true
 			}
 			if isDue("svc-latency", now) {
 				views.OOBServiceLatencyChart(svcLatencies, maxMs*1.1).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
+				components.IntervalProgress(components.ProgressID("svc-latency"), rtIntervals.intervals["svc-latency"]).Render(ctx, buf) //nolint:errcheck
 				needsPublish = true
 			}
 			if isDue("events", now) {
@@ -720,6 +794,7 @@ func (ar *appRoutes) publishRealtimeDashboard(broker *tavern.SSEBroker) {
 					Message: tmpl.Messages[rand.IntN(len(tmpl.Messages))],
 				}
 				views.OOBEventItem(evt).Render(ctx, buf) //nolint:errcheck // best-effort OOB render
+				components.IntervalProgress(components.ProgressID("events"), rtIntervals.intervals["events"]).Render(ctx, buf) //nolint:errcheck
 				needsPublish = true
 			}
 
