@@ -4,6 +4,7 @@ go 1.26.1
 
 require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
+	github.com/CAFxX/httpcompression v0.0.9
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/a-h/templ v0.3.1001
 	github.com/angelofallars/htmx-go v0.5.0
@@ -25,6 +26,7 @@ require (
 )
 
 require (
+	github.com/klauspost/compress v1.16.7 // indirect
 	github.com/lib/pq v1.12.3 // indirect
 	github.com/mattn/go-sqlite3 v1.14.40 // indirect
 	github.com/ncruces/go-sqlite3 v0.33.2 // indirect

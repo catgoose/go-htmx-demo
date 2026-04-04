@@ -26,12 +26,14 @@ import (
 	"context"
 	"fmt"
 	"io/fs"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
 	// setup:feature:auth:start
 	"github.com/catgoose/crooner"
 	// setup:feature:auth:end
+	"github.com/CAFxX/httpcompression"
 	"github.com/labstack/echo/v4"
 	echoMiddleware "github.com/labstack/echo/v4/middleware"
 )
@@ -290,11 +292,16 @@ func InitEcho(ctx context.Context, staticFS fs.FS, cfg *config.AppConfig,
 		PermissionsPolicy:       "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
 		CrossOriginOpenerPolicy: "same-origin",
 	})))
-	// Skip gzip when running behind the templ proxy (mage watch).
-	// Echo's chunked gzip responses cause h2 framing errors through
+	// Skip compression when running behind the templ proxy (mage watch).
+	// Chunked compressed responses cause h2 framing errors through
 	// the templ-proxy → Caddy chain. Caddy handles compression instead.
 	if os.Getenv("TEMPL_PROXY") == "" {
-		e.Use(echoMiddleware.Gzip())
+		compress, err := httpcompression.DefaultAdapter()
+		if err != nil {
+			slog.Error("failed to create compression adapter", "error", err)
+		} else {
+			e.Use(echo.WrapMiddleware(compress))
+		}
 	}
 
 	// setup:feature:auth:start
