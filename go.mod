@@ -9,7 +9,7 @@ require (
 	github.com/a-h/templ v0.3.1001
 	github.com/angelofallars/htmx-go v0.5.0
 	github.com/catgoose/crooner v1.4.15
-	github.com/catgoose/linkwell v0.2.19
+	github.com/catgoose/linkwell v0.2.20
 	github.com/catgoose/porter v0.4.8
 	github.com/catgoose/promolog/sqlite v0.0.0-20260404022206-acbd381ca1c5
 	github.com/catgoose/tavern v0.4.36
@@ -26,7 +26,7 @@ require (
 )
 
 require (
-	github.com/klauspost/compress v1.16.7 // indirect
+	github.com/klauspost/compress v1.18.5 // indirect
 	github.com/lib/pq v1.12.3 // indirect
 	github.com/mattn/go-sqlite3 v1.14.40 // indirect
 	github.com/ncruces/go-sqlite3 v0.33.2 // indirect
@@ -42,7 +42,7 @@ require (
 	github.com/a-h/parse v0.0.0-20250122154542-74294addb73e // indirect
 	github.com/air-verse/air v1.62.0 // indirect
 	github.com/alexedwards/scs/v2 v2.9.0 // indirect
-	github.com/andybalholm/brotli v1.1.0 // indirect
+	github.com/andybalholm/brotli v1.2.1 // indirect
 	github.com/atotto/clipboard v0.1.4 // indirect
 	github.com/aymanbagabas/go-osc52/v2 v2.0.1 // indirect
 	github.com/bep/godartsass/v2 v2.5.0 // indirect
