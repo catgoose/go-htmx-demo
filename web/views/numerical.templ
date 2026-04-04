@@ -16,7 +16,7 @@ templ numTileWrapper(t NumTile) {
 			ID: fmt.Sprintf("iv-%s", t.ID),
 			TargetKey: "tile", TargetValue: t.ID,
 			IntervalMs: t.IntervalMs, Scale: t.Scale,
-			PostURL: "/hypermedia/realtime/tile-interval",
+			PostURL: "/realtime/dashboard/tile-interval",
 		})
 	</div>
 }

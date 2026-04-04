@@ -19,7 +19,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// controlsGalleryState holds mutable demo state for the /hypermedia/controls/* endpoints.
+// controlsGalleryState holds mutable demo state for the /patterns/controls/* endpoints.
 type controlsGalleryState struct {
 	resourceName      string
 	resourceDesc      string
@@ -69,7 +69,7 @@ func (gs *controlsGalleryState) resetLocked() {
 // initControlsGalleryRoutes registers the controls page and all its interactive endpoints.
 func (ar *appRoutes) initControlsGalleryRoutes() {
 	gs := newControlsGalleryState()
-	base := hypermediaBase + "/controls"
+	base := patternsBase + "/controls"
 
 	// Page (resets state on each load)
 	ar.e.GET(base, gs.handleControlsPage)
@@ -393,7 +393,7 @@ func (gs *controlsGalleryState) handleErrTransient(c echo.Context) error {
 			Closable:   true,
 			Controls: []linkwell.Control{
 				linkwell.RetryButton("Retry Save", linkwell.HxMethodPost,
-					"/hypermedia/controls/errors/transient", "#"+resultIDTransient).
+					"/patterns/controls/errors/transient", "#"+resultIDTransient).
 					WithErrorTarget("#" + resultIDTransient),
 				linkwell.DismissButton(linkwell.LabelDismiss),
 				linkwell.ReportIssueButton(linkwell.LabelReportIssue, requestID),
@@ -421,7 +421,7 @@ func (gs *controlsGalleryState) handleErrValidate(c echo.Context) error {
 
 	if len(errs) > 0 {
 		requestID := middleware.GetRequestID(c)
-		fixURL := fmt.Sprintf("/hypermedia/controls/errors/validate/fix?name=%s&price=%s",
+		fixURL := fmt.Sprintf("/patterns/controls/errors/validate/fix?name=%s&price=%s",
 			url.QueryEscape(name), url.QueryEscape(price))
 		ec := linkwell.ErrorContext{
 			StatusCode: 422,
@@ -474,7 +474,7 @@ func (gs *controlsGalleryState) handleErrConflict(c echo.Context) error {
 				ErrorTarget: "#" + resultIDConflict,
 				HxRequest: linkwell.HxRequestConfig{
 					Method: linkwell.HxMethodPut,
-					URL:    "/hypermedia/controls/errors/conflict/update",
+					URL:    "/patterns/controls/errors/conflict/update",
 					Target: "#" + resultIDConflict,
 				},
 			},
@@ -483,7 +483,7 @@ func (gs *controlsGalleryState) handleErrConflict(c echo.Context) error {
 				Label:       "Create as Copy",
 				Variant:     linkwell.VariantSecondary,
 				ErrorTarget: "#" + resultIDConflict,
-				HxRequest:   linkwell.HxPost("/hypermedia/controls/errors/conflict/copy", "#"+resultIDConflict),
+				HxRequest:   linkwell.HxPost("/patterns/controls/errors/conflict/copy", "#"+resultIDConflict),
 			},
 			linkwell.DismissButton(linkwell.LabelDismiss),
 			linkwell.ReportIssueButton(linkwell.LabelReportIssue, requestID),
@@ -520,7 +520,7 @@ func (gs *controlsGalleryState) handleErrStale(c echo.Context) error {
 
 	if sv < currentVersion {
 		requestID := middleware.GetRequestID(c)
-		forceURL := fmt.Sprintf("/hypermedia/controls/errors/stale/force?name=%s",
+		forceURL := fmt.Sprintf("/patterns/controls/errors/stale/force?name=%s",
 			url.QueryEscape(name))
 		ec := linkwell.ErrorContext{
 			StatusCode: 412,
@@ -535,7 +535,7 @@ func (gs *controlsGalleryState) handleErrStale(c echo.Context) error {
 					Label:       "Load Fresh Data",
 					Variant:     linkwell.VariantPrimary,
 					ErrorTarget: "#" + resultIDStale,
-					HxRequest:   linkwell.HxGet("/hypermedia/controls/errors/stale/refresh", "#"+resultIDStale),
+					HxRequest:   linkwell.HxGet("/patterns/controls/errors/stale/refresh", "#"+resultIDStale),
 				},
 				{
 					Kind:        linkwell.ControlKindHTMX,
@@ -615,10 +615,10 @@ func (gs *controlsGalleryState) handleErrCascade(c echo.Context) error {
 				Label:       "Reassign Items",
 				Variant:     linkwell.VariantPrimary,
 				ErrorTarget: "#" + resultIDCascade,
-				HxRequest:   linkwell.HxGet("/hypermedia/controls/errors/cascade/reassign", "#"+resultIDCascade),
+				HxRequest:   linkwell.HxGet("/patterns/controls/errors/cascade/reassign", "#"+resultIDCascade),
 			},
 			linkwell.ConfirmAction("Force Delete All", linkwell.HxMethodDelete,
-				"/hypermedia/controls/errors/cascade/force", "#"+resultIDCascade,
+				"/patterns/controls/errors/cascade/force", "#"+resultIDCascade,
 				fmt.Sprintf("Delete 'Electronics' AND all %d items?", len(cascadeDependents))).
 				WithErrorTarget("#" + resultIDCascade),
 			linkwell.DismissButton(linkwell.LabelDismiss),

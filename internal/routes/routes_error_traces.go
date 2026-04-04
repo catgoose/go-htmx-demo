@@ -296,9 +296,9 @@ func SeedErrorTraces(store promolog.Storer) {
 		},
 		{
 			ErrorChain: "create item: UNIQUE constraint failed: items.name",
-			StatusCode: 409, Route: "/demo/inventory/items", Method: "POST",
+			StatusCode: 409, Route: "/apps/inventory/items", Method: "POST",
 			Entries: []seedEntry{
-				{Level: "INFO", Message: "Request started", Attrs: "method=POST path=/demo/inventory/items"},
+				{Level: "INFO", Message: "Request started", Attrs: "method=POST path=/apps/inventory/items"},
 				{Level: "INFO", Message: "Parsing item form", Attrs: "name=Widget-{id} category=Electronics price=29.99"},
 				{Level: "INFO", Message: "Creating item", Attrs: "table=items name=Widget-{id} category=Electronics"},
 				{Level: "ERROR", Message: "Insert failed", Attrs: "error=UNIQUE constraint failed: items.name table=items name=Widget-{id} constraint=idx_items_name"},

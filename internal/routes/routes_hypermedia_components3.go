@@ -38,7 +38,7 @@ type undoItem struct {
 	Deleted bool
 }
 
-// components3State holds mutable demo state for /hypermedia/components3.
+// components3State holds mutable demo state for /components/advanced.
 type components3State struct {
 	feedItems  []feedItem
 	favorites  []favoriteItem
@@ -79,7 +79,7 @@ func newComponents3State() *components3State {
 	}
 }
 
-const components3Base = hypermediaBase + "/components3"
+const components3Base = "/components/advanced"
 
 func (ar *appRoutes) initComponents3Routes() {
 	s := newComponents3State()

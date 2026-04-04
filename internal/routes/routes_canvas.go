@@ -33,10 +33,10 @@ type canvasRoutes struct {
 
 func (ar *appRoutes) initCanvasRoutes(canvas *demo.PixelCanvas, broker *tavern.SSEBroker) {
 	cr := &canvasRoutes{canvas: canvas, broker: broker, ctx: ar.ctx}
-	ar.e.GET("/demo/canvas", cr.handleCanvasPage)
-	ar.e.GET("/demo/canvas/state", cr.handleCanvasState)
-	ar.e.POST("/demo/canvas/place", cr.handlePlace)
-	ar.e.POST("/demo/canvas/reset", cr.handleReset)
+	ar.e.GET("/realtime/canvas", cr.handleCanvasPage)
+	ar.e.GET("/realtime/canvas/state", cr.handleCanvasState)
+	ar.e.POST("/realtime/canvas/place", cr.handlePlace)
+	ar.e.POST("/realtime/canvas/reset", cr.handleReset)
 	ar.e.GET("/sse/canvas", cr.handleCanvasSSE)
 
 	go cr.runTicker()

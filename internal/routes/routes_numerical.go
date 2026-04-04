@@ -407,7 +407,7 @@ func broadcastTileSlider(tileID string, ms int, unit string) {
 		TargetValue: tileID,
 		IntervalMs:  ms,
 		Scale:       unit,
-		PostURL:     "/hypermedia/realtime/tile-interval",
+		PostURL:     "/realtime/dashboard/tile-interval",
 		OOB:         true,
 	}
 	buf := numBufPool.Get().(*bytes.Buffer)

@@ -47,7 +47,7 @@ func (r HALResource) MarshalJSON() ([]byte, error) {
 
 // ─── demo data ───────────────────────────────────────────────────────────────
 
-const halBase = hypermediaBase + "/hal"
+const halBase = "/api/hal"
 
 func buildHALCatalog() HALResource {
 	return HALResource{

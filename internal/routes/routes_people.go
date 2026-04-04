@@ -20,7 +20,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-const peopleBase = "/demo/people"
+const peopleBase = "/apps/people"
 
 type peopleRoutes struct {
 	db     *demo.DB
