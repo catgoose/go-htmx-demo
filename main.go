@@ -89,7 +89,13 @@ func main() {
 	}()
 	reqLogStore := promologsqlite.NewStore(traceDB)
 	if err := reqLogStore.InitSchema(); err != nil {
-		logger.Fatal("Failed to init error traces schema", "error", err)
+		logger.Error("Failed to init error traces schema, recreating", "error", err)
+		traceDB.Exec("DROP TABLE IF EXISTS error_traces")
+		traceDB.Exec("DROP TABLE IF EXISTS retention_rules")
+		traceDB.Exec("DROP TABLE IF EXISTS filter_rules")
+		if err := reqLogStore.InitSchema(); err != nil {
+			logger.Fatal("Failed to init error traces schema after recreate", "error", err)
+		}
 	}
 	reqLogStore.StartCleanup(appCtx, 90*24*time.Hour, 1*time.Hour)
 	// setup:feature:demo:start
