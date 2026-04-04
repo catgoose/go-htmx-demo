@@ -79,10 +79,10 @@ github.com/catgoose/linkwell v0.2.20 h1:/b6WlYpJ6zZ3JbvPk/tHZxBR50t8RyDlZXLb8KzJ
 github.com/catgoose/linkwell v0.2.20/go.mod h1:bhkgK3y/d2LgAjoP3d2uVpvjuB8ufKPaqxQOv5krGbo=
 github.com/catgoose/porter v0.4.9 h1:VxYUN+hogzhxN//VSPnCOPs8vEqdY3lqyXGnU+6tQUw=
 github.com/catgoose/porter v0.4.9/go.mod h1:RRi+OhWUYcJPGOKI3JAtWh7F4nQWKoDteejYtjFeLBQ=
-github.com/catgoose/promolog v0.2.21 h1:33RyiPBAngPKMoBh1iti5SP09u8Wh1VcyFOcIgZIA0o=
-github.com/catgoose/promolog v0.2.21/go.mod h1:jEsBpxvJjXW8FTaCBi+vXaIwN5ISr3ylR6Z5AId+Yb4=
-github.com/catgoose/promolog/sqlite v0.0.0-20260404022206-acbd381ca1c5 h1:jDSLjYajdMvAA8U9w4ypqcBtgsaMLam+N86fv2C0Kg4=
-github.com/catgoose/promolog/sqlite v0.0.0-20260404022206-acbd381ca1c5/go.mod h1:cHwtaAr0J0V/hR9mm3Vu1/9UBdUROQLldjnZkqh3ALs=
+github.com/catgoose/promolog v0.2.24 h1:bTogwMkK5p3zAkVZY+B97w9DL8guDvqFRrhJhJxnnk4=
+github.com/catgoose/promolog v0.2.24/go.mod h1:jEsBpxvJjXW8FTaCBi+vXaIwN5ISr3ylR6Z5AId+Yb4=
+github.com/catgoose/promolog/sqlite v0.0.0-20260404160355-64d49720300a h1:uEw2/bcmYMTAOAAMBRJWPvMLZYzMSJaq+IrnCs3oOSc=
+github.com/catgoose/promolog/sqlite v0.0.0-20260404160355-64d49720300a/go.mod h1:cHwtaAr0J0V/hR9mm3Vu1/9UBdUROQLldjnZkqh3ALs=
 github.com/catgoose/tavern v0.4.36 h1:HKXn6GmeecD8kqTOFcjiQj9lyTuPLPe87FUIeWCMh0w=
 github.com/catgoose/tavern v0.4.36/go.mod h1:DhiRI7tzfzB+pNwV8JeFjNI5Qx+PFZE1Wfy2dmavs1M=
 github.com/catppuccin/go v0.3.0 h1:d+0/YicIq+hSTo5oPuRi5kOpqkVA5tAsU6dNhvRu+aY=
