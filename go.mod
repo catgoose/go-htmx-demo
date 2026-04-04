@@ -7,7 +7,7 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.5.2
 	github.com/a-h/templ v0.3.1001
 	github.com/angelofallars/htmx-go v0.5.0
-	github.com/catgoose/crooner v1.4.14
+	github.com/catgoose/crooner v1.4.15
 	github.com/catgoose/linkwell v0.2.19
 	github.com/catgoose/porter v0.4.8
 	github.com/catgoose/promolog/sqlite v0.0.0-20260404022206-acbd381ca1c5
