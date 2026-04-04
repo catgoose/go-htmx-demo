@@ -144,8 +144,12 @@ func (ar *appRoutes) InitRoutes() error {
 	// setup:feature:demo:start
 	ar.initLinkRelations()
 	ar.e.GET("/welcome", handler.HandleComponent(views.WelcomePage()))
-	ar.e.GET("/hypermedia", handler.HandleComponent(views.PatternsIndexPage()))
-	ar.e.GET("/demo", handler.HandleComponent(views.DemoIndexPage()))
+	ar.e.GET("/patterns", handler.HandleComponent(views.PatternsIndexPage()))
+	ar.e.GET("/components", handler.HandleComponent(views.ComponentsIndexPage()))
+	ar.e.GET("/realtime", handler.HandleComponent(views.RealtimeIndexPage()))
+	ar.e.GET("/api", handler.HandleComponent(views.APIIndexPage()))
+	ar.e.GET("/apps", handler.HandleComponent(views.ApplicationsIndexPage()))
+	ar.e.GET("/platform", handler.HandleComponent(views.PlatformIndexPage()))
 	// setup:feature:demo:end
 
 	// Health check endpoint — returns structured ops metadata.
@@ -195,7 +199,7 @@ func (ar *appRoutes) InitRoutes() error {
 
 	db, err := demo.Open("db/demo.db")
 	if err != nil {
-		logger.WithContext(ar.ctx).Warn("Demo DB unavailable; /demo/* routes disabled", "error", err)
+		logger.WithContext(ar.ctx).Warn("Demo DB unavailable; app routes disabled", "error", err)
 		return nil
 	}
 	// setup:feature:sync:start

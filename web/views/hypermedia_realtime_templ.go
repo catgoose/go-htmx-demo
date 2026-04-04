@@ -17,7 +17,7 @@ import (
 	"fmt"
 )
 
-// RealtimePage is the full-page layout for /hypermedia/realtime.
+// RealtimePage is the full-page layout for /realtime/dashboard.
 func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []ServiceStatus, svcLatencies []ServiceLatency, tiles []NumTile, masterEnabled bool, masterMs int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -62,7 +62,7 @@ func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []S
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " _=\"on change if my.checked then call window._ivPost(the first .iv-wrap in the next .master-slider) else fetch /hypermedia/realtime/interval-restore with method:'POST'\"> <span class=\"text-sm font-semibold\">Master Control</span></label><div class=\"master-slider flex-1 flex items-center gap-2\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 4, " _=\"on change if my.checked then call window._ivPost(the first .iv-wrap in the next .master-slider) else fetch /realtime/dashboard/interval-restore with method:'POST'\"> <span class=\"text-sm font-semibold\">Master Control</span></label><div class=\"master-slider flex-1 flex items-center gap-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -70,7 +70,7 @@ func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []S
 			ID:        "iv-master",
 			TargetKey: "scope", TargetValue: "all",
 			IntervalMs: masterMs, Scale: components.AutoScale(masterMs),
-			PostURL: "/hypermedia/realtime/interval-all",
+			PostURL: "/realtime/dashboard/interval-all",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -100,7 +100,7 @@ func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []S
 		templ_7745c5c3_Err = components.IntervalSlider(components.IntervalSliderCfg{
 			ID:        "iv-network",
 			TargetKey: "section", TargetValue: "network",
-			IntervalMs: 1000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+			IntervalMs: 1000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -128,7 +128,7 @@ func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []S
 		templ_7745c5c3_Err = components.IntervalSlider(components.IntervalSliderCfg{
 			ID:        "iv-services",
 			TargetKey: "section", TargetValue: "services",
-			IntervalMs: 3000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+			IntervalMs: 3000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -156,7 +156,7 @@ func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []S
 		templ_7745c5c3_Err = components.IntervalSlider(components.IntervalSliderCfg{
 			ID:        "iv-latency",
 			TargetKey: "section", TargetValue: "latency",
-			IntervalMs: 2000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+			IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -184,7 +184,7 @@ func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []S
 		templ_7745c5c3_Err = components.IntervalSlider(components.IntervalSliderCfg{
 			ID:        "iv-error-spark",
 			TargetKey: "section", TargetValue: "error-spark",
-			IntervalMs: 2000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+			IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -212,7 +212,7 @@ func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []S
 		templ_7745c5c3_Err = components.IntervalSlider(components.IntervalSliderCfg{
 			ID:        "iv-req-dist",
 			TargetKey: "section", TargetValue: "req-dist",
-			IntervalMs: 2000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+			IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -240,7 +240,7 @@ func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []S
 		templ_7745c5c3_Err = components.IntervalSlider(components.IntervalSliderCfg{
 			ID:        "iv-throughput",
 			TargetKey: "section", TargetValue: "throughput",
-			IntervalMs: 2000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+			IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -268,7 +268,7 @@ func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []S
 		templ_7745c5c3_Err = components.IntervalSlider(components.IntervalSliderCfg{
 			ID:        "iv-svc-latency",
 			TargetKey: "section", TargetValue: "svc-latency",
-			IntervalMs: 3000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+			IntervalMs: 3000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -296,7 +296,7 @@ func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []S
 		templ_7745c5c3_Err = components.IntervalSlider(components.IntervalSliderCfg{
 			ID:        "iv-gauges",
 			TargetKey: "section", TargetValue: "gauges",
-			IntervalMs: 2000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+			IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -324,7 +324,7 @@ func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []S
 		templ_7745c5c3_Err = components.IntervalSlider(components.IntervalSliderCfg{
 			ID:        "iv-disk-io",
 			TargetKey: "section", TargetValue: "disk-io",
-			IntervalMs: 3000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+			IntervalMs: 3000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -352,7 +352,7 @@ func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []S
 		templ_7745c5c3_Err = components.IntervalSlider(components.IntervalSliderCfg{
 			ID:        "iv-conn-pool",
 			TargetKey: "section", TargetValue: "conn-pool",
-			IntervalMs: 3000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+			IntervalMs: 3000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -380,7 +380,7 @@ func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []S
 		templ_7745c5c3_Err = components.IntervalSlider(components.IntervalSliderCfg{
 			ID:        "iv-sys-stats",
 			TargetKey: "section", TargetValue: "sys-stats",
-			IntervalMs: 5000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+			IntervalMs: 5000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -408,7 +408,7 @@ func RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []S
 		templ_7745c5c3_Err = components.IntervalSlider(components.IntervalSliderCfg{
 			ID:        "iv-events",
 			TargetKey: "section", TargetValue: "events",
-			IntervalMs: 1500, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+			IntervalMs: 1500, Scale: "s", PostURL: "/realtime/dashboard/interval",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -465,7 +465,7 @@ func OOBMasterToggle(enabled bool) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 45, " _=\"on change if my.checked then call window._ivPost(the first .iv-wrap in the next .master-slider) else fetch /hypermedia/realtime/interval-restore with method:'POST'\"> <span class=\"text-sm font-semibold\">Master Control</span></label>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, " _=\"on change if my.checked then call window._ivPost(the first .iv-wrap in the next .master-slider) else fetch /realtime/dashboard/interval-restore with method:'POST'\"> <span class=\"text-sm font-semibold\">Master Control</span></label>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

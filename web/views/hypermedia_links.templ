@@ -83,14 +83,14 @@ templ HypermediaLinksPage(data LinksPageData) {
 
 templ linksEditorForm(routes []string) {
 	<form
-		hx-post="/hypermedia/links"
+		hx-post="/api/links"
 		hx-target="#links-table"
 		hx-swap="outerHTML"
 		class="flex flex-wrap items-end gap-2"
 	>
 		<div class="form-control">
 			<label class="label py-0"><span class="label-text text-xs">Source</span></label>
-			<input name="source" list="link-routes" placeholder="/demo/inventory" required class="input input-bordered input-sm w-44"/>
+			<input name="source" list="link-routes" placeholder="/apps/inventory" required class="input input-bordered input-sm w-44"/>
 		</div>
 		<div class="form-control">
 			<label class="label py-0"><span class="label-text text-xs">Rel</span></label>
@@ -102,7 +102,7 @@ templ linksEditorForm(routes []string) {
 		</div>
 		<div class="form-control">
 			<label class="label py-0"><span class="label-text text-xs">Target</span></label>
-			<input name="target" list="link-routes" placeholder="/demo/catalog" required class="input input-bordered input-sm w-44"/>
+			<input name="target" list="link-routes" placeholder="/apps/catalog" required class="input input-bordered input-sm w-44"/>
 		</div>
 		<div class="form-control">
 			<label class="label py-0"><span class="label-text text-xs">Title</span></label>

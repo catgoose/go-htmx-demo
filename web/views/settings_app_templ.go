@@ -56,7 +56,7 @@ func AppSettingsPage(currentTheme string) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</p><ul class=\"menu menu-sm\"><li><a href=\"/\">Architecture</a></li><li><a href=\"/hypermedia\">Web Standards Showcase</a></li></ul></div></details></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "</p><ul class=\"menu menu-sm\"><li><a href=\"/\">Architecture</a></li><li><a href=\"/patterns\">Web Standards Showcase</a></li></ul></div></details></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

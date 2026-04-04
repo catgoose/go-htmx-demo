@@ -46,7 +46,7 @@ func ListsPage(items []ListsDemoItem, info linkwell.PageInfo) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"p-4 space-y-6 max-w-4xl mx-auto\"><h1 class=\"text-2xl font-bold mb-4\">List Patterns</h1><div role=\"alert\" class=\"alert alert-info text-sm\"><span>Demonstrates: <strong>next</strong>, <strong>prev</strong>, <strong>search</strong>, <strong>sort</strong>, <strong>filter</strong> — all driven by HTMX. See <a href=\"/demo/inventory\" class=\"link link-primary\">Tables → Inventory</a> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"p-4 space-y-6 max-w-4xl mx-auto\"><h1 class=\"text-2xl font-bold mb-4\">List Patterns</h1><div role=\"alert\" class=\"alert alert-info text-sm\"><span>Demonstrates: <strong>next</strong>, <strong>prev</strong>, <strong>search</strong>, <strong>sort</strong>, <strong>filter</strong> — all driven by HTMX. See <a href=\"/apps/inventory\" class=\"link link-primary\">Tables → Inventory</a> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -79,7 +79,7 @@ func ListsPage(items []ListsDemoItem, info linkwell.PageInfo) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.FilterBar(linkwell.NewFilterBar("/demo/inventory/items", "#inventory-table-container",
+			templ_7745c5c3_Err = components.FilterBar(linkwell.NewFilterBar("/apps/inventory/items", "#inventory-table-container",
 				linkwell.SearchField("q", "Search items…", ""),
 			)).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -107,7 +107,7 @@ func ListsPage(items []ListsDemoItem, info linkwell.PageInfo) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.FilterBar(linkwell.NewFilterBar("/demo/inventory/items", "#inventory-table-container",
+			templ_7745c5c3_Err = components.FilterBar(linkwell.NewFilterBar("/apps/inventory/items", "#inventory-table-container",
 				linkwell.SelectField("category", "Category", "",
 					linkwell.SelectOptions("",
 						"", "All",
@@ -144,15 +144,15 @@ func ListsPage(items []ListsDemoItem, info linkwell.PageInfo) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			templ_7745c5c3_Err = components.TableHeader([]linkwell.TableCol{
-				linkwell.SortableCol("name", "Name", "name", "asc", "/demo/inventory/items", "#inventory-table-container", "#filter-form"),
-				linkwell.SortableCol("category", "Category", "name", "asc", "/demo/inventory/items", "#inventory-table-container", "#filter-form"),
-				linkwell.SortableCol("price", "Price", "", "", "/demo/inventory/items", "#inventory-table-container", "#filter-form"),
+				linkwell.SortableCol("name", "Name", "name", "asc", "/apps/inventory/items", "#inventory-table-container", "#filter-form"),
+				linkwell.SortableCol("category", "Category", "name", "asc", "/apps/inventory/items", "#inventory-table-container", "#filter-form"),
+				linkwell.SortableCol("price", "Price", "", "", "/apps/inventory/items", "#inventory-table-container", "#filter-form"),
 				{Label: "Actions"},
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<tbody><tr><td colspan=\"4\" class=\"text-center text-base-content/50 text-sm py-4\">← live rows from /demo/inventory</td></tr></tbody></table></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<tbody><tr><td colspan=\"4\" class=\"text-center text-base-content/50 text-sm py-4\">← live rows from /apps/inventory</td></tr></tbody></table></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

@@ -50,7 +50,7 @@ func numTileWrapper(t NumTile) templ.Component {
 			ID:        fmt.Sprintf("iv-%s", t.ID),
 			TargetKey: "tile", TargetValue: t.ID,
 			IntervalMs: t.IntervalMs, Scale: t.Scale,
-			PostURL: "/hypermedia/realtime/tile-interval",
+			PostURL: "/realtime/dashboard/tile-interval",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

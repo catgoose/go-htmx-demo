@@ -46,7 +46,7 @@ func bulkSortIndicator(col linkwell.TableCol) string {
 	}
 }
 
-// BulkPage is the full page for /demo/bulk.
+// BulkPage is the full page for /apps/bulk.
 // The toolbar and FilterBar live outside the table container so they survive swaps.
 func BulkPage(bar linkwell.FilterBar, tableContainer templ.Component) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -74,9 +74,9 @@ func BulkPage(bar linkwell.FilterBar, tableContainer templ.Component) templ.Comp
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = components.Controls(linkwell.BulkActions(linkwell.BulkActionCfg{
-			DeleteURL:        "/demo/bulk/items",
-			ActivateURL:      "/demo/bulk/items/activate",
-			DeactivateURL:    "/demo/bulk/items/deactivate",
+			DeleteURL:        "/apps/bulk/items",
+			ActivateURL:      "/apps/bulk/items/activate",
+			DeactivateURL:    "/apps/bulk/items/deactivate",
 			TableTarget:      "#bulk-table-container",
 			CheckboxSelector: ".row-check",
 		})).Render(ctx, templ_7745c5c3_Buffer)

@@ -20,7 +20,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-const loggingBase = "/demo/logging"
+const loggingBase = "/platform/logging"
 
 func (ar *appRoutes) initLoggingRoutes(broker *tavern.SSEBroker) {
 	// Client beacon endpoint — fire-and-forget analytics via navigator.sendBeacon.

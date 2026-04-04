@@ -20,7 +20,7 @@ type CRUDViewItem struct {
 	ID     int
 }
 
-// CRUDPage is the full-page layout for /hypermedia/crud.
+// CRUDPage is the full-page layout for /patterns/crud.
 func CRUDPage(items []CRUDViewItem) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
@@ -42,7 +42,7 @@ func CRUDPage(items []CRUDViewItem) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"p-4 space-y-6 max-w-4xl mx-auto\"><h1 class=\"text-2xl font-bold mb-4\">CRUD Patterns</h1><div role=\"alert\" class=\"alert alert-info text-sm\"><span>Demonstrates: <strong>create</strong>, <strong>edit</strong>, <strong>patch</strong>, <strong>update</strong>, <strong>delete</strong> — all inline, no page reload.</span></div><div class=\"card bg-base-100 shadow border border-base-300\"><div class=\"card-body p-4\"><div class=\"flex items-center justify-between\"><h2 class=\"card-title text-base\">Items</h2><button class=\"btn btn-sm btn-primary\" hx-post=\"/hypermedia/crud/items\" hx-target=\"#crud-new-row\" hx-swap=\"outerHTML\" hx-vals='{\"name\":\"New Item\",\"notes\":\"\"}'>+ Add Item</button></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"p-4 space-y-6 max-w-4xl mx-auto\"><h1 class=\"text-2xl font-bold mb-4\">CRUD Patterns</h1><div role=\"alert\" class=\"alert alert-info text-sm\"><span>Demonstrates: <strong>create</strong>, <strong>edit</strong>, <strong>patch</strong>, <strong>update</strong>, <strong>delete</strong> — all inline, no page reload.</span></div><div class=\"card bg-base-100 shadow border border-base-300\"><div class=\"card-body p-4\"><div class=\"flex items-center justify-between\"><h2 class=\"card-title text-base\">Items</h2><button class=\"btn btn-sm btn-primary\" hx-post=\"/patterns/crud/items\" hx-target=\"#crud-new-row\" hx-swap=\"outerHTML\" hx-vals='{\"name\":\"New Item\",\"notes\":\"\"}'>+ Add Item</button></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -54,23 +54,23 @@ func CRUDPage(items []CRUDViewItem) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = crudPatternCard("Create", "POST /hypermedia/crud/items", "Appends a new row by posting a form and swapping the placeholder row with the returned row fragment.").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = crudPatternCard("Create", "POST /patterns/crud/items", "Appends a new row by posting a form and swapping the placeholder row with the returned row fragment.").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = crudPatternCard("Edit", "GET /hypermedia/crud/items/:id/edit", "Replaces the display row with an inline edit form (outerHTML swap).").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = crudPatternCard("Edit", "GET /patterns/crud/items/:id/edit", "Replaces the display row with an inline edit form (outerHTML swap).").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = crudPatternCard("Update (PUT)", "PUT /hypermedia/crud/items/:id", "Submits the edit form; server returns the updated display row.").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = crudPatternCard("Update (PUT)", "PUT /patterns/crud/items/:id", "Submits the edit form; server returns the updated display row.").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = crudPatternCard("Patch (toggle)", "PATCH /hypermedia/crud/items/:id/toggle", "Flips the status field without a full edit form.").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = crudPatternCard("Patch (toggle)", "PATCH /patterns/crud/items/:id/toggle", "Flips the status field without a full edit form.").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = crudPatternCard("Delete", "DELETE /hypermedia/crud/items/:id", "Removes the row from the DOM via hx-swap=\"delete\" (no server fragment returned).").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = crudPatternCard("Delete", "DELETE /patterns/crud/items/:id", "Removes the row from the DOM via hx-swap=\"delete\" (no server fragment returned).").Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -145,9 +145,9 @@ func CRUDItemRow(item CRUDViewItem) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		rowID := fmt.Sprintf("crud-row-%d", item.ID)
-		editURL := fmt.Sprintf("/hypermedia/crud/items/%d/edit", item.ID)
-		toggleURL := fmt.Sprintf("/hypermedia/crud/items/%d/toggle", item.ID)
-		deleteURL := fmt.Sprintf("/hypermedia/crud/items/%d", item.ID)
+		editURL := fmt.Sprintf("/patterns/crud/items/%d/edit", item.ID)
+		toggleURL := fmt.Sprintf("/patterns/crud/items/%d/toggle", item.ID)
+		deleteURL := fmt.Sprintf("/patterns/crud/items/%d", item.ID)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "<tr id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
@@ -324,8 +324,8 @@ func CRUDEditRow(item CRUDViewItem) templ.Component {
 		}
 		ctx = templ.ClearChildren(ctx)
 		rowID := fmt.Sprintf("crud-row-%d", item.ID)
-		saveURL := fmt.Sprintf("/hypermedia/crud/items/%d", item.ID)
-		cancelURL := fmt.Sprintf("/hypermedia/crud/items/%d", item.ID)
+		saveURL := fmt.Sprintf("/patterns/crud/items/%d", item.ID)
+		cancelURL := fmt.Sprintf("/patterns/crud/items/%d", item.ID)
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 20, "<tr id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

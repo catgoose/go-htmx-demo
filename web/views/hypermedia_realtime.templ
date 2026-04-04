@@ -8,7 +8,7 @@ import (
 	"fmt"
 )
 
-// RealtimePage is the full-page layout for /hypermedia/realtime.
+// RealtimePage is the full-page layout for /realtime/dashboard.
 templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []ServiceStatus, svcLatencies []ServiceLatency, tiles []NumTile, masterEnabled bool, masterMs int) {
 	<link rel="stylesheet" href={ version.Asset("/public/css/charts.min.css") }/>
 	<style>
@@ -65,7 +65,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 							if masterEnabled {
 								checked
 							}
-							_="on change if my.checked then call window._ivPost(the first .iv-wrap in the next .master-slider) else fetch /hypermedia/realtime/interval-restore with method:'POST'"/>
+							_="on change if my.checked then call window._ivPost(the first .iv-wrap in the next .master-slider) else fetch /realtime/dashboard/interval-restore with method:'POST'"/>
 						<span class="text-sm font-semibold">Master Control</span>
 					</label>
 					<div class="master-slider flex-1 flex items-center gap-2">
@@ -73,7 +73,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 							ID: "iv-master",
 							TargetKey: "scope", TargetValue: "all",
 							IntervalMs: masterMs, Scale: components.AutoScale(masterMs),
-							PostURL: "/hypermedia/realtime/interval-all",
+							PostURL: "/realtime/dashboard/interval-all",
 						})
 					</div>
 				</div>
@@ -94,7 +94,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-network",
 							TargetKey: "section", TargetValue: "network",
-							IntervalMs: 1000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+							IntervalMs: 1000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
 					</div>
 					@networkChart(snap)
@@ -107,7 +107,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-services",
 							TargetKey: "section", TargetValue: "services",
-							IntervalMs: 3000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+							IntervalMs: 3000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
 					</div>
 					@servicesChart(services)
@@ -123,7 +123,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-latency",
 							TargetKey: "section", TargetValue: "latency",
-							IntervalMs: 2000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+							IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
 					</div>
 					@latencyHistChart(snap)
@@ -136,7 +136,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-error-spark",
 							TargetKey: "section", TargetValue: "error-spark",
-							IntervalMs: 2000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+							IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
 					</div>
 					@errorSparkline(snap)
@@ -149,7 +149,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-req-dist",
 							TargetKey: "section", TargetValue: "req-dist",
-							IntervalMs: 2000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+							IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
 					</div>
 					@requestDistChart(snap)
@@ -165,7 +165,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-throughput",
 							TargetKey: "section", TargetValue: "throughput",
-							IntervalMs: 2000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+							IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
 					</div>
 					@throughputSplitChart(snap)
@@ -178,7 +178,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-svc-latency",
 							TargetKey: "section", TargetValue: "svc-latency",
-							IntervalMs: 3000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+							IntervalMs: 3000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
 					</div>
 					@serviceLatencyChart(svcLatencies, 150)
@@ -194,7 +194,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-gauges",
 							TargetKey: "section", TargetValue: "gauges",
-							IntervalMs: 2000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+							IntervalMs: 2000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
 					</div>
 					@cpuMemGauges(snap)
@@ -207,7 +207,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-disk-io",
 							TargetKey: "section", TargetValue: "disk-io",
-							IntervalMs: 3000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+							IntervalMs: 3000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
 					</div>
 					@diskIOChart(snap)
@@ -220,7 +220,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-conn-pool",
 							TargetKey: "section", TargetValue: "conn-pool",
-							IntervalMs: 3000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+							IntervalMs: 3000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
 					</div>
 					@connPool(snap)
@@ -236,7 +236,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-sys-stats",
 							TargetKey: "section", TargetValue: "sys-stats",
-							IntervalMs: 5000, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+							IntervalMs: 5000, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
 					</div>
 					@dashboardSystemStats(initial)
@@ -249,7 +249,7 @@ templ RealtimePage(initial health.SystemStats, snap MetricsSnapshot, services []
 						@components.IntervalSlider(components.IntervalSliderCfg{
 							ID: "iv-events",
 							TargetKey: "section", TargetValue: "events",
-							IntervalMs: 1500, Scale: "s", PostURL: "/hypermedia/realtime/interval",
+							IntervalMs: 1500, Scale: "s", PostURL: "/realtime/dashboard/interval",
 						})
 					</div>
 					<div
@@ -285,7 +285,7 @@ templ OOBMasterToggle(enabled bool) {
 			if enabled {
 				checked
 			}
-			_="on change if my.checked then call window._ivPost(the first .iv-wrap in the next .master-slider) else fetch /hypermedia/realtime/interval-restore with method:'POST'"/>
+			_="on change if my.checked then call window._ivPost(the first .iv-wrap in the next .master-slider) else fetch /realtime/dashboard/interval-restore with method:'POST'"/>
 		<span class="text-sm font-semibold">Master Control</span>
 	</label>
 }

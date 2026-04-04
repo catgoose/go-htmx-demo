@@ -31,7 +31,7 @@ type timelineEvt struct {
 	ID    int
 }
 
-// componentsState holds mutable demo state for /hypermedia/components.
+// componentsState holds mutable demo state for /components/widgets.
 type componentsState struct {
 	chatMsgs     []chatMsg
 	timelineEvts []timelineEvt
@@ -70,7 +70,7 @@ func newComponentsState() *componentsState {
 	return s
 }
 
-const componentsBase = hypermediaBase + "/components"
+const componentsBase = "/components/widgets"
 
 func (ar *appRoutes) initComponentsRoutes() {
 	s := newComponentsState()

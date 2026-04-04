@@ -84,17 +84,17 @@ func (ar *appRoutes) initRealtimeRoutes(broker *tavern.SSEBroker) {
 	rtBroker = broker
 	numBroker = broker
 	initRTIntervals()
-	ar.e.GET("/hypermedia/realtime", ar.handleRealtimePage())
-	ar.e.POST("/hypermedia/realtime/interval", handleRTInterval)
-	ar.e.POST("/hypermedia/realtime/interval-all", handleRTIntervalAll)
-	ar.e.POST("/hypermedia/realtime/interval-restore", handleRTIntervalRestore)
-	ar.e.POST("/hypermedia/realtime/pin", handleRTPin)
+	ar.e.GET("/realtime/dashboard", ar.handleRealtimePage())
+	ar.e.POST("/realtime/dashboard/interval", handleRTInterval)
+	ar.e.POST("/realtime/dashboard/interval-all", handleRTIntervalAll)
+	ar.e.POST("/realtime/dashboard/interval-restore", handleRTIntervalRestore)
+	ar.e.POST("/realtime/dashboard/pin", handleRTPin)
 	ar.e.GET("/sse/system", handleSSESystem(broker))
 	ar.e.GET("/sse/dashboard", handleSSEDashboard(broker))
 
 	// Numerical tile publisher (shares the page, separate SSE stream)
 	initTileIntervals()
-	ar.e.POST("/hypermedia/realtime/tile-interval", handleNumericalInterval)
+	ar.e.POST("/realtime/dashboard/tile-interval", handleNumericalInterval)
 	ar.e.GET("/sse/numerical", handleSSENumerical(broker))
 
 	go ar.publishSystemStats(broker)
@@ -352,7 +352,7 @@ func broadcastCardSlider(section string, ms int, unit string) {
 		TargetValue: section,
 		IntervalMs:  ms,
 		Scale:       unit,
-		PostURL:     "/hypermedia/realtime/interval",
+		PostURL:     "/realtime/dashboard/interval",
 		OOB:         true,
 	}
 	buf := statsBufPool.Get().(*bytes.Buffer)
@@ -385,7 +385,7 @@ func broadcastMasterState(enabled bool, ms int) {
 			TargetValue: "all",
 			IntervalMs:  ms,
 			Scale:       components.AutoScale(ms),
-			PostURL:     "/hypermedia/realtime/interval-all",
+			PostURL:     "/realtime/dashboard/interval-all",
 			OOB:         true,
 		}
 		if err := components.IntervalSlider(cfg).Render(context.Background(), buf); err != nil {

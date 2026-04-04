@@ -31,7 +31,7 @@ type accordionPanel struct {
 	ID      int
 }
 
-// components2State holds mutable demo state for /hypermedia/components2.
+// components2State holds mutable demo state for /components/cards.
 type components2State struct {
 	categories      map[string][]string
 	selectedTheme   string
@@ -74,7 +74,7 @@ func newComponents2State() *components2State {
 	}
 }
 
-const components2Base = hypermediaBase + "/components2"
+const components2Base = "/components/cards"
 
 func (ar *appRoutes) initComponents2Routes() {
 	s := newComponents2State()
