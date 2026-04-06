@@ -222,6 +222,10 @@ func (ar *appRoutes) InitRoutes() error {
 	// setup:feature:sse:start
 	ar.initRealtimeRoutes(ar.broker)
 	ar.initNotificationsRoutes(ar.broker)
+	ar.initDocRoutes(ar.broker)
+	ar.initSensorRoutes(ar.broker)
+	ar.initObservatoryRoutes(ar.broker)
+	ar.initAuctionRoutes(ar.broker)
 	// setup:feature:sse:end
 
 	db, err := demo.Open("db/demo.db")

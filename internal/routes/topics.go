@@ -13,4 +13,5 @@ const (
 	TopicAdminPanel    = "admin-panel"
 	TopicNumericalDash    = "numerical-dash"
 	TopicNotifications    = "notifications"
+	TopicObservatory      = "observatory"
 )
