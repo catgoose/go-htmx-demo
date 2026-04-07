@@ -161,6 +161,7 @@ func (p *peopleRoutes) handlePersonSSE(c echo.Context) error {
 
 	// Set replay policy so reconnecting clients receive missed updates.
 	p.broker.SetReplayPolicy(topic, 5)
+	p.broker.SetReplayGapPolicy(topic, tavern.GapFallbackToSnapshot, nil)
 
 	c.Response().Header().Set("Content-Type", "text/event-stream")
 	c.Response().Header().Set("Cache-Control", "no-cache")

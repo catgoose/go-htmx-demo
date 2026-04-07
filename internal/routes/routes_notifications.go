@@ -98,6 +98,7 @@ func (n *notificationRoutes) handleSSE(c echo.Context) error {
 	// inherently scoped — no risk of leaking another user's notifications.
 	userTopic := notifUserTopic(identity.ID)
 	n.broker.SetReplayPolicy(userTopic, 50)
+	n.broker.SetReplayGapPolicy(userTopic, tavern.GapFallbackToSnapshot, nil)
 
 	// Build a filter that checks the user's current category preferences.
 	// The rendered HTML includes data-cat="<category>" so we can detect it.
