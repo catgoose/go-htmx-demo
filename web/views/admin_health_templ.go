@@ -16,7 +16,7 @@ import (
 )
 
 // AdminHealthPage renders the /admin/health page with live health status.
-func AdminHealthPage(h health.Response) templ.Component {
+func AdminHealthPage(h health.Response, intervals map[string]int) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -43,7 +43,7 @@ func AdminHealthPage(h health.Response) templ.Component {
 		}
 		templ_7745c5c3_Err = components.IntervalSlider(components.IntervalSliderCfg{
 			TargetKey: "section", TargetValue: "health",
-			IntervalMs: 5000, Scale: "s", PostURL: "/admin/settings/interval",
+			IntervalMs: intervalOr(intervals, "health", 5000), Scale: components.AutoScale(intervalOr(intervals, "health", 5000)), PostURL: "/admin/settings/interval",
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
