@@ -81,6 +81,17 @@ func handleAdminInterval(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+// snapshotAdminIntervals returns a copy of the current admin section intervals.
+func snapshotAdminIntervals() map[string]int {
+	adminIntervals.mu.RLock()
+	defer adminIntervals.mu.RUnlock()
+	out := make(map[string]int, len(adminIntervals.intervals))
+	for k, v := range adminIntervals.intervals {
+		out[k] = v
+	}
+	return out
+}
+
 // ── Publisher ────────────────────────────────────────────────────────────────
 
 func (ar *appRoutes) newAdminPublisher(broker *tavern.SSEBroker) *tavern.ScheduledPublisher {
@@ -139,6 +150,7 @@ func (ar *appRoutes) buildAdminPanelData(broker *tavern.SSEBroker, c echo.Contex
 		SSECounts: counts,
 		Features:  features,
 		Routes:    routes,
+		Intervals: snapshotAdminIntervals(),
 	}
 }
 
