@@ -77,6 +77,9 @@ func (ar *appRoutes) initDocRoutes(broker *tavern.SSEBroker) {
 
 	// Define topic group for a single SSE endpoint.
 	broker.DefineGroup("doc-all", []string{topicDocContent, topicDocStats, topicDocSentiment, topicDocHistory})
+	for _, t := range []string{topicDocContent, topicDocStats, topicDocSentiment, topicDocHistory} {
+		broker.SetReplayGapPolicy(t, tavern.GapFallbackToSnapshot, nil)
+	}
 
 	ar.e.GET("/realtime/document", d.handlePage)
 	ar.e.GET("/sse/document", echo.WrapHandler(broker.GroupHandler("doc-all")))

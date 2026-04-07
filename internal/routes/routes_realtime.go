@@ -78,11 +78,13 @@ func (ar *appRoutes) initRealtimeRoutes(broker *tavern.SSEBroker) {
 	ar.e.POST("/realtime/dashboard/interval-restore", handleRTIntervalRestore)
 	ar.e.POST("/realtime/dashboard/pin", handleRTPin)
 	ar.e.GET("/sse/system", echo.WrapHandler(broker.SSEHandler(TopicSystemStats)))
+	broker.SetReplayGapPolicy(TopicDashMetrics, tavern.GapFallbackToSnapshot, nil)
 	ar.e.GET("/sse/dashboard", echo.WrapHandler(broker.SSEHandler(TopicDashMetrics)))
 
 	// Numerical tile publisher (shares the page, separate SSE stream)
 	initTileIntervals()
 	ar.e.POST("/realtime/dashboard/tile-interval", handleNumericalInterval)
+	broker.SetReplayGapPolicy(TopicNumericalDash, tavern.GapFallbackToSnapshot, nil)
 	ar.e.GET("/sse/numerical", echo.WrapHandler(broker.SSEHandler(TopicNumericalDash)))
 
 	sysPub := ar.newSystemStatsPublisher(broker)
