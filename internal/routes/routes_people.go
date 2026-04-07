@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"strconv"
 	"sync/atomic"
-	"time"
 
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
@@ -150,7 +149,7 @@ func (p *peopleRoutes) broadcastPersonUpdate(person demo.Person) {
 		WithID(eventID).
 		String()
 	statsBufPool.Put(buf)
-	p.broker.PublishWithTTL(topic, msg, 60*time.Second)
+	p.broker.PublishWithID(topic, eventID, msg)
 }
 
 func (p *peopleRoutes) handlePersonSSE(c echo.Context) error {
