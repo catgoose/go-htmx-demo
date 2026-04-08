@@ -41,14 +41,15 @@ func (ar *appRoutes) initTavernReplayRoutes(broker *tavern.SSEBroker) {
 		return renderReplaySnapshot("Replay gap detected: requested events are no longer in the replay window. Showing live events from here.")
 	})
 
-	// On reconnect, send debug info to the reconnecting subscriber.
-	// In v0.4.64+, OnReconnect fires AFTER replay delivery, so
-	// ReplayDelivered/ReplayDropped are accurate.
+	// On reconnect, publish debug info so the UI shows replay stats.
+	// Uses Publish (broadcast) instead of SendToSubscriber because the
+	// callback fires in a goroutine and SendToSubscriber is non-blocking —
+	// the message is silently dropped if the channel buffer is full.
 	broker.OnReconnect(TopicTavernReplay, func(info tavern.ReconnectInfo) {
 		gapDetected := info.LastEventID != "" && info.Gap == 0
 		html := renderReplayDebug(info.LastEventID, info.ReplayDelivered, info.ReplayDropped, info.Gap, gapDetected)
 		msg := tavern.NewSSEMessage("replay-debug", html).String()
-		info.SendToSubscriber(msg)
+		broker.Publish(TopicTavernReplay, msg)
 	})
 
 	ar.e.GET("/realtime/tavern/replay", r.handlePage)
@@ -59,6 +60,7 @@ func (ar *appRoutes) initTavernReplayRoutes(broker *tavern.SSEBroker) {
 	ar.e.POST("/realtime/tavern/replay/lifetime", r.handleLifetime)
 	ar.e.POST("/realtime/tavern/replay/delay", r.handleDelay)
 	ar.e.POST("/realtime/tavern/replay/rate", r.handleRate)
+	ar.e.POST("/realtime/tavern/replay/preset", r.handlePreset)
 
 	broker.RunPublisher(ar.ctx, r.startPublisher)
 }
@@ -135,6 +137,27 @@ func (r *tavernReplayRoutes) handleRate(c echo.Context) error {
 	}
 	r.publishRate.Store(int64(time.Duration(ms) * time.Millisecond))
 	return c.HTML(http.StatusOK, formatRateLabel(ms))
+}
+
+func (r *tavernReplayRoutes) handlePreset(c echo.Context) error {
+	var window int
+	switch c.FormValue("preset") {
+	case "replay":
+		window = 50
+	case "gap":
+		window = 5
+	default:
+		return c.String(http.StatusBadRequest, "unknown preset")
+	}
+	r.lab.SetReplayWindow(window)
+	r.broker.SetReplayPolicy(TopicTavernReplay, window)
+	r.lifetime.Store(int64(3 * time.Second))
+	r.reconnectDelay.Store(int64(5 * time.Second))
+	r.publishRate.Store(int64(2 * time.Second))
+	// Tell the client to sync slider values.
+	c.Response().Header().Set("HX-Trigger", fmt.Sprintf(
+		`{"replay-preset":{"window":%d,"lifetime":3,"delay":5,"rate":2000}}`, window))
+	return c.NoContent(http.StatusNoContent)
 }
 
 func formatRateLabel(ms int) string {
