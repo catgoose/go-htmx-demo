@@ -105,6 +105,24 @@ func (bl *BackpressureLab) RecordTierChange(topic, subID string, oldTier, newTie
 	}
 }
 
+// HighestTier returns the highest tier from recent tier changes, or 0 (normal)
+// if no changes have been recorded.
+func (bl *BackpressureLab) HighestTier() int {
+	bl.mu.RLock()
+	defer bl.mu.RUnlock()
+	highest := 0
+	seen := make(map[string]int)
+	for _, tc := range bl.tierChanges {
+		seen[tc.Topic+"/"+tc.SubID] = tc.NewTier
+	}
+	for _, tier := range seen {
+		if tier > highest {
+			highest = tier
+		}
+	}
+	return highest
+}
+
 // TierChanges returns a copy of recent tier change events.
 func (bl *BackpressureLab) TierChanges() []TierChange {
 	bl.mu.RLock()

@@ -6,6 +6,7 @@ import (
 	"catgoose/dothog/internal/demo"
 	"fmt"
 	"github.com/catgoose/tavern"
+	"strings"
 )
 
 // TavernBackpressureData holds the view-model for the backpressure lab.
@@ -22,8 +23,8 @@ templ TavernBackpressurePage(data TavernBackpressureData) {
 			<div>
 				<h1 class="text-2xl font-bold">Backpressure Lab</h1>
 				<p class="text-xs text-base-content/50">
-					Adaptive backpressure tiers, slow subscriber eviction, and stress presets.
-					Select a preset and watch tier transitions happen.
+					Live delivery degradation under backpressure.
+					Select a stress preset and watch messages throttle, simplify, and drop.
 				</p>
 			</div>
 		</div>
@@ -40,6 +41,7 @@ templ TavernBackpressurePage(data TavernBackpressureData) {
 			<div sse-swap="bp-metrics" hx-target="#bp-metrics" hx-swap="innerHTML" style="display:none"></div>
 			<div sse-swap="bp-tier-log" hx-target="#bp-tier-log" hx-swap="innerHTML" style="display:none"></div>
 			<div sse-swap="bp-preset" hx-target="#bp-active-preset" hx-swap="innerHTML" style="display:none"></div>
+			<div sse-swap="bp-current-tier" hx-target="#bp-current-tier" hx-swap="innerHTML" style="display:none"></div>
 			@backpressurePanels(data)
 		</div>
 	</div>
@@ -60,34 +62,53 @@ templ TavernBackpressurePreset(preset string) {
 	{ preset }
 }
 
+// BackpressureStreamEvent renders a single stream message card.
+templ BackpressureStreamEvent(topic, message string, simplified bool) {
+	if simplified {
+		<div class="flex items-center gap-2 py-1 px-2 text-xs opacity-50 border-l-2 border-warning/40 bg-warning/5 rounded-r">
+			<span class="badge badge-xs badge-warning font-mono shrink-0">simplified</span>
+			<span class="font-mono truncate text-base-content/50">{ bpStripSimplified(message) }</span>
+		</div>
+	} else {
+		<div class="flex items-center gap-2 py-1.5 px-2 text-xs border-l-2 border-success/40 bg-base-200 rounded-r">
+			<span class={ "badge badge-xs font-mono shrink-0", bpTopicBadge(topic) }>{ topic }</span>
+			<span class="font-mono truncate">{ message }</span>
+		</div>
+	}
+}
+
+// BackpressureCurrentTier renders the tier indicator badge.
+templ BackpressureCurrentTier(tierName string) {
+	<div class={ "flex items-center gap-2 px-3 py-2 rounded text-sm font-medium", bpTierIndicatorClass(tierName) }>
+		<span class={ "badge badge-sm", bpTierIndicatorBadge(tierName) }>{ tierName }</span>
+		<span class="text-xs">{ bpTierExplanation(tierName) }</span>
+	</div>
+}
+
 templ backpressurePanels(data TavernBackpressureData) {
 	<div class="space-y-4">
-		<!-- Tier Explanation (static) -->
+		<!-- Current Tier Indicator -->
+		<div id="bp-current-tier">
+			@BackpressureCurrentTier("normal")
+		</div>
+
+		<!-- Live Stream Panel (separate SSE connection through demo broker) -->
 		<div class="card bg-base-200 shadow-sm">
 			<div class="card-body p-4">
-				<h2 class="card-title text-sm font-semibold uppercase tracking-wider text-base-content/50">Backpressure Tiers</h2>
-				<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-					<div class="rounded p-2 bg-success/10 border border-success/20">
-						<div class="text-xs font-semibold text-success">Normal (0)</div>
-						<div class="text-xs text-base-content/50">Full-fidelity delivery. All messages arrive as-is.</div>
-					</div>
-					<div class="rounded p-2 bg-warning/10 border border-warning/20">
-						<div class="text-xs font-semibold text-warning">Throttle (1)</div>
-						<div class="text-xs text-base-content/50">Buffer filling. Delivery continues but subscriber is lagging.</div>
-					</div>
-					<div class="rounded p-2 bg-orange-500/10 border border-orange-500/20">
-						<div class="text-xs font-semibold text-orange-500">Simplify (2)</div>
-						<div class="text-xs text-base-content/50">Degraded delivery. Messages run through simplified renderer.</div>
-					</div>
-					<div class="rounded p-2 bg-error/10 border border-error/20">
-						<div class="text-xs font-semibold text-error">Disconnect (3)</div>
-						<div class="text-xs text-base-content/50">Subscriber evicted. Too far behind to recover.</div>
+				<h2 class="card-title text-sm font-semibold uppercase tracking-wider text-base-content/50">Live Delivery Stream</h2>
+				<div
+					hx-ext="sse"
+					sse-connect="/sse/tavern/backpressure/stream"
+				>
+					<div sse-swap="bp-stream" hx-target="#bp-stream-log" hx-swap="afterbegin" style="display:none"></div>
+					<div id="bp-stream-log" class="max-h-72 overflow-y-auto space-y-0.5 scroll-smooth" data-testid="stream-log">
+						<p class="text-xs text-base-content/30 py-2">Waiting for stream events...</p>
 					</div>
 				</div>
 			</div>
 		</div>
 
-		<!-- Controls (static — never swapped by SSE) + Metrics (swapped) -->
+		<!-- Controls + Metrics (compact row) -->
 		<div class="flex gap-4">
 			<div class="flex-1 card bg-base-200 shadow-sm">
 				<div class="card-body p-4 space-y-3">
@@ -121,11 +142,36 @@ templ backpressurePanels(data TavernBackpressureData) {
 			</div>
 		</div>
 
-		<!-- Tier Change Log (swapped) -->
+		<!-- Tier Explanation -->
+		<div class="card bg-base-200 shadow-sm">
+			<div class="card-body p-4">
+				<h2 class="card-title text-sm font-semibold uppercase tracking-wider text-base-content/50">Backpressure Tiers</h2>
+				<div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+					<div class="rounded p-2 bg-success/10 border border-success/20">
+						<div class="text-xs font-semibold text-success">Normal (0)</div>
+						<div class="text-xs text-base-content/50">Full-fidelity delivery. All messages arrive as-is.</div>
+					</div>
+					<div class="rounded p-2 bg-warning/10 border border-warning/20">
+						<div class="text-xs font-semibold text-warning">Throttle (1)</div>
+						<div class="text-xs text-base-content/50">Buffer filling. Delivery continues but subscriber is lagging.</div>
+					</div>
+					<div class="rounded p-2 bg-orange-500/10 border border-orange-500/20">
+						<div class="text-xs font-semibold text-orange-500">Simplify (2)</div>
+						<div class="text-xs text-base-content/50">Degraded delivery. Messages run through simplified renderer.</div>
+					</div>
+					<div class="rounded p-2 bg-error/10 border border-error/20">
+						<div class="text-xs font-semibold text-error">Disconnect (3)</div>
+						<div class="text-xs text-base-content/50">Subscriber evicted. Too far behind to recover.</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Tier Change Log -->
 		<div class="card bg-base-200 shadow-sm">
 			<div class="card-body p-4">
 				<h2 class="card-title text-sm font-semibold uppercase tracking-wider text-base-content/50">Tier Change Log</h2>
-				<div id="bp-tier-log" class="max-h-64 overflow-y-auto space-y-1" data-testid="tier-log">
+				<div id="bp-tier-log" class="max-h-48 overflow-y-auto space-y-1" data-testid="tier-log">
 					@backpressureTierLog(data)
 				</div>
 			</div>
@@ -209,4 +255,66 @@ func bpTopicDrop(m tavern.BrokerMetrics, topic string) int64 {
 		return ts.Dropped
 	}
 	return 0
+}
+
+func bpStripSimplified(msg string) string {
+	return strings.TrimPrefix(msg, "[simplified] ")
+}
+
+func bpTopicBadge(topic string) string {
+	switch topic {
+	case "bp-alpha":
+		return "badge-primary"
+	case "bp-beta":
+		return "badge-secondary"
+	case "bp-gamma":
+		return "badge-accent"
+	default:
+		return "badge-ghost"
+	}
+}
+
+func bpTierIndicatorClass(tierName string) string {
+	switch tierName {
+	case "normal":
+		return "bg-success/10 border border-success/30 text-success"
+	case "throttle":
+		return "bg-warning/10 border border-warning/30 text-warning"
+	case "simplify":
+		return "bg-orange-500/10 border border-orange-500/30 text-orange-500"
+	case "disconnect":
+		return "bg-error/10 border border-error/30 text-error"
+	default:
+		return "bg-base-200 border border-base-300 text-base-content/50"
+	}
+}
+
+func bpTierIndicatorBadge(tierName string) string {
+	switch tierName {
+	case "normal":
+		return "badge-success"
+	case "throttle":
+		return "badge-warning"
+	case "simplify":
+		return "badge-accent"
+	case "disconnect":
+		return "badge-error"
+	default:
+		return "badge-ghost"
+	}
+}
+
+func bpTierExplanation(tierName string) string {
+	switch tierName {
+	case "normal":
+		return "Full-fidelity delivery. All messages arrive as published."
+	case "throttle":
+		return "Subscriber is lagging. Every other message is being skipped."
+	case "simplify":
+		return "Degraded delivery. Messages are simplified to reduce load."
+	case "disconnect":
+		return "Subscriber evicted. Connection was too far behind."
+	default:
+		return "Unknown tier state."
+	}
 }
