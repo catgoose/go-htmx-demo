@@ -212,8 +212,8 @@ func (bp *tavernBackpressRoutes) startMetricsPublisher(ctx context.Context) {
 			bp.mainBroker.Publish(TopicTavernBackpress, tavern.NewSSEMessage("bp-tier-log", tierLogHTML).String())
 
 			tierName := bpTierNameFromInt(bp.lab.HighestTier())
-			tierHTML := renderBPCurrentTier(tierName)
-			bp.mainBroker.Publish(TopicTavernBackpress, tavern.NewSSEMessage("bp-current-tier", tierHTML).String())
+			bp.mainBroker.Publish(TopicTavernBackpress, tavern.NewSSEMessage("bp-tier-badge", renderBPTierBadge(tierName)).String())
+			bp.mainBroker.Publish(TopicTavernBackpress, tavern.NewSSEMessage("bp-tier-text", bpTierExplanation(tierName)).String())
 
 			if data.ActivePreset != lastPreset {
 				lastPreset = data.ActivePreset
@@ -265,11 +265,26 @@ func renderBPStreamEvent(topic, message string, simplified bool) string {
 	return buf.String()
 }
 
-func renderBPCurrentTier(tierName string) string {
+func renderBPTierBadge(tierName string) string {
 	buf := &bytes.Buffer{}
-	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render bp current tier")
-	if err := views.BackpressureCurrentTier(tierName).Render(ctx, buf); err != nil {
+	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render bp tier badge")
+	if err := views.BackpressureTierBadge(tierName).Render(ctx, buf); err != nil {
 		return ""
 	}
 	return buf.String()
+}
+
+func bpTierExplanation(tierName string) string {
+	switch tierName {
+	case "normal":
+		return "Full-fidelity delivery. All messages arrive as published."
+	case "throttle":
+		return "Subscriber is lagging. Every other message is being skipped."
+	case "simplify":
+		return "Degraded delivery. Messages are simplified to reduce load."
+	case "disconnect":
+		return "Subscriber evicted. Connection was too far behind."
+	default:
+		return "Unknown tier state."
+	}
 }

@@ -21,7 +21,7 @@ type TavernBackpressureData struct {
 templ TavernBackpressurePage(data TavernBackpressureData, batchWindow time.Duration) {
 	<style>
 		#bp-stream-log, #bp-stream-log *,
-		#bp-current-tier, #bp-current-tier *,
+		#bp-tier-badge, #bp-tier-text,
 		#bp-metrics, #bp-metrics *,
 		#bp-tier-log, #bp-tier-log *,
 		#bp-active-preset {
@@ -53,7 +53,8 @@ templ TavernBackpressurePage(data TavernBackpressureData, batchWindow time.Durat
 			<div sse-swap="bp-metrics" hx-target="#bp-metrics" hx-swap="innerHTML settle:0 transition:false" style="display:none"></div>
 			<div sse-swap="bp-tier-log" hx-target="#bp-tier-log" hx-swap="innerHTML settle:0 transition:false" style="display:none"></div>
 			<div sse-swap="bp-preset" hx-target="#bp-active-preset" hx-swap="innerHTML settle:0 transition:false" style="display:none"></div>
-			<div sse-swap="bp-current-tier" hx-target="#bp-current-tier" hx-swap="innerHTML settle:0 transition:false" style="display:none"></div>
+			<div sse-swap="bp-tier-badge" hx-target="#bp-tier-badge" hx-swap="innerHTML settle:0 transition:false" style="display:none"></div>
+			<div sse-swap="bp-tier-text" hx-target="#bp-tier-text" hx-swap="innerHTML settle:0 transition:false" style="display:none"></div>
 			@backpressurePanels(data, batchWindow)
 		</div>
 	</div>
@@ -89,19 +90,19 @@ templ BackpressureStreamEvent(topic, message string, simplified bool) {
 	}
 }
 
-// BackpressureCurrentTier renders the tier indicator badge.
-templ BackpressureCurrentTier(tierName string) {
-	<div class={ "flex items-center gap-2 px-3 py-2 rounded text-sm font-medium", bpTierIndicatorClass(tierName) }>
-		<span class={ "badge badge-sm", bpTierIndicatorBadge(tierName) }>{ tierName }</span>
-		<span class="text-xs">{ bpTierExplanation(tierName) }</span>
-	</div>
+// BackpressureTierBadge renders just the tier badge span content.
+templ BackpressureTierBadge(tierName string) {
+	<span class={ "badge badge-sm", bpTierIndicatorBadge(tierName) }>{ tierName }</span>
 }
 
 templ backpressurePanels(data TavernBackpressureData, batchWindow time.Duration) {
 	<div class="space-y-4">
-		<!-- Current Tier Indicator (fixed height prevents mid-swap overflow) -->
-		<div id="bp-current-tier" class="h-10 overflow-hidden" style="contain:layout paint;isolation:isolate">
-			@BackpressureCurrentTier("normal")
+		<!-- Current Tier Indicator (stable shell, only inner spans swap) -->
+		<div class="flex items-center gap-2 px-3 h-10 rounded bg-base-200 border border-base-300 overflow-hidden">
+			<span id="bp-tier-badge">
+				@BackpressureTierBadge("normal")
+			</span>
+			<span id="bp-tier-text" class="text-xs truncate whitespace-nowrap">{ bpTierExplanation("normal") }</span>
 		</div>
 
 		<!-- Live Stream Panel (separate SSE connection through demo broker) -->
@@ -346,21 +347,6 @@ func bpTopicBadge(topic string) string {
 		return "badge-accent"
 	default:
 		return "badge-ghost"
-	}
-}
-
-func bpTierIndicatorClass(tierName string) string {
-	switch tierName {
-	case "normal":
-		return "bg-success/10 border border-success/30 text-success"
-	case "throttle":
-		return "bg-warning/10 border border-warning/30 text-warning"
-	case "simplify":
-		return "bg-orange-500/10 border border-orange-500/30 text-orange-500"
-	case "disconnect":
-		return "bg-error/10 border border-error/30 text-error"
-	default:
-		return "bg-base-200 border border-base-300 text-base-content/50"
 	}
 }
 
