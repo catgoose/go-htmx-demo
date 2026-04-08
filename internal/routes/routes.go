@@ -183,6 +183,7 @@ func (ar *appRoutes) InitRoutes() error {
 
 	// setup:feature:sse:start
 	ar.broker = tavern.NewSSEBroker(
+		tavern.WithBufferSize(128),
 		tavern.WithKeepalive(30*time.Second),
 		tavern.WithSlowSubscriberEviction(100),
 		tavern.WithSlowSubscriberCallback(func(topic string) {
