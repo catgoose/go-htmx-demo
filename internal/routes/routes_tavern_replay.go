@@ -129,8 +129,8 @@ func (r *tavernReplayRoutes) publishEvent() {
 	id, seq := r.lab.NextEvent()
 	ts := time.Now().Format("15:04:05")
 	html := renderReplayEvent(seq, id, ts)
-	msg := tavern.NewSSEMessage("replay-event", html).WithID(id).String()
-	r.broker.Publish(TopicTavernReplay, msg)
+	msg := tavern.NewSSEMessage("replay-event", html).String()
+	r.broker.PublishWithID(TopicTavernReplay, id, msg)
 }
 
 func (r *tavernReplayRoutes) startPublisher(ctx context.Context) {
