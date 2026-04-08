@@ -34,14 +34,14 @@ func TavernReplayPage(replayWindow int) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-5xl mx-auto p-4 space-y-4\"><div class=\"flex items-center justify-between flex-wrap gap-2\"><div><h1 class=\"text-2xl font-bold\">Replay Lab</h1><p class=\"text-xs text-base-content/50\">Test Last-Event-ID resume, replay window limits, and gap fallback. Disconnect your network, wait, then reconnect to watch missed events replay.</p></div></div><div hx-ext=\"sse\" sse-connect=\"/sse/tavern/replay\" data-tavern-reconnecting-class=\"opacity-50\" data-tavern-gap-action=\"banner\"><div data-tavern-status class=\"hidden text-xs text-warning flex items-center gap-1 py-1 px-2 rounded bg-warning/10 mb-2\"><span class=\"loading loading-spinner loading-xs\"></span> Reconnecting...</div><div data-tavern-gap class=\"hidden text-xs text-error flex items-center gap-1 py-1 px-2 rounded bg-error/10 mb-2\">Replay gap detected — some events were missed. Snapshot delivered instead.</div><div sse-swap=\"replay-event\" hx-target=\"#replay-log\" hx-swap=\"afterbegin\" style=\"display:none\"></div><div sse-swap=\"replay-snapshot\" hx-target=\"#replay-log\" hx-swap=\"innerHTML\" style=\"display:none\"></div><div class=\"flex gap-4\"><!-- Left: Event Log --><div class=\"flex-[2] min-w-0 space-y-4\"><div class=\"card bg-base-200 shadow-sm\"><div class=\"card-body p-4\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Event Log</h2><div id=\"replay-log\" class=\"max-h-96 overflow-y-auto space-y-1 font-mono text-xs\" data-testid=\"replay-log\"><p class=\"text-base-content/30\">Waiting for events...</p></div></div></div></div><!-- Right: Controls --><div class=\"flex-1 min-w-0 space-y-4\"><div class=\"card bg-base-200 shadow-sm\"><div class=\"card-body p-4 space-y-3\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Controls</h2><button class=\"btn btn-sm btn-primary w-full\" hx-post=\"/realtime/tavern/replay/emit\" hx-swap=\"none\">Emit Event</button> <button class=\"btn btn-sm btn-warning w-full\" hx-post=\"/realtime/tavern/replay/burst\" hx-swap=\"none\">Burst 30 Events</button></div></div><div class=\"card bg-base-200 shadow-sm\"><div class=\"card-body p-4 space-y-3\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Replay Window</h2><p class=\"text-xs text-base-content/40\">Current: <span id=\"replay-window-val\" data-testid=\"replay-window\" class=\"font-mono badge badge-ghost badge-xs\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-5xl mx-auto p-4 space-y-4\"><div class=\"flex items-center justify-between flex-wrap gap-2\"><div><h1 class=\"text-2xl font-bold\">Replay Lab</h1><p class=\"text-xs text-base-content/50\">Test Last-Event-ID resume, replay window limits, and gap fallback. Disconnect your network, wait, then reconnect to watch missed events replay.</p></div></div><div id=\"replay-sse-container\" hx-ext=\"sse\" sse-connect=\"/sse/tavern/replay\" data-tavern-reconnecting-class=\"opacity-50\" data-tavern-gap-action=\"banner\"><div data-tavern-status class=\"hidden text-xs text-warning flex items-center gap-1 py-1 px-2 rounded bg-warning/10 mb-2\"><span class=\"loading loading-spinner loading-xs\"></span> Reconnecting...</div><div data-tavern-gap class=\"hidden text-xs text-error flex items-center gap-1 py-1 px-2 rounded bg-error/10 mb-2\">Replay gap detected — some events were missed. Snapshot delivered instead.</div><div sse-swap=\"replay-event\" hx-target=\"#replay-log\" hx-swap=\"afterbegin\" style=\"display:none\"></div><div sse-swap=\"replay-snapshot\" hx-target=\"#replay-log\" hx-swap=\"innerHTML\" style=\"display:none\"></div><div class=\"flex gap-4\"><!-- Left: Event Log --><div class=\"flex-[2] min-w-0 space-y-4\"><div class=\"card bg-base-200 shadow-sm\"><div class=\"card-body p-4\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Event Log</h2><div id=\"replay-log\" class=\"max-h-96 overflow-y-auto space-y-1 font-mono text-xs\" data-testid=\"replay-log\"><p class=\"text-base-content/30\">Waiting for events...</p></div></div></div></div><!-- Right: Controls --><div class=\"flex-1 min-w-0 space-y-4\"><div class=\"card bg-base-200 shadow-sm\"><div class=\"card-body p-4 space-y-3\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Controls</h2><button id=\"replay-disconnect-btn\" class=\"btn btn-sm btn-error w-full\" onclick=\"replaySimulateDisconnect()\">Simulate Disconnect</button> <button class=\"btn btn-sm btn-primary w-full\" hx-post=\"/realtime/tavern/replay/emit\" hx-swap=\"none\">Emit Event</button> <button class=\"btn btn-sm btn-warning w-full\" hx-post=\"/realtime/tavern/replay/burst\" hx-swap=\"none\">Burst 30 Events</button></div></div><div class=\"card bg-base-200 shadow-sm\"><div class=\"card-body p-4 space-y-3\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Replay Window</h2><p class=\"text-xs text-base-content/40\">Current: <span id=\"replay-window-val\" data-testid=\"replay-window\" class=\"font-mono badge badge-ghost badge-xs\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", replayWindow))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_replay.templ`, Line: 75, Col: 191}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_replay.templ`, Line: 83, Col: 191}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -59,7 +59,7 @@ func TavernReplayPage(replayWindow int) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf(`{"window":"%d"}`, n))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_replay.templ`, Line: 81, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_replay.templ`, Line: 89, Col: 53}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -72,7 +72,7 @@ func TavernReplayPage(replayWindow int) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", n))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_replay.templ`, Line: 85, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_replay.templ`, Line: 93, Col: 32}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -83,7 +83,40 @@ func TavernReplayPage(replayWindow int) templ.Component {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div></div></div><div class=\"card bg-base-200 shadow-sm\"><div class=\"card-body p-4\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">How to Test</h2><ol class=\"text-xs text-base-content/50 list-decimal list-inside space-y-1\"><li>Watch events arrive in the log</li><li>Disable your network (airplane mode or DevTools)</li><li>Wait for several events to be missed</li><li>Re-enable the network</li><li>Missed events replay automatically via Last-Event-ID</li><li>Use \"Burst 30\" to overflow the window and trigger a gap</li></ol></div></div></div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 6, "</div></div></div><div class=\"card bg-base-200 shadow-sm\"><div class=\"card-body p-4\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">How to Test</h2><ol class=\"text-xs text-base-content/50 list-decimal list-inside space-y-1\"><li>Watch events arrive in the log</li><li>Click \"Simulate Disconnect\" to drop the SSE connection</li><li>Events continue on the server but don't arrive</li><li>After 3s the connection resumes with Last-Event-ID</li><li>Missed events replay automatically</li><li>Use \"Burst 30\" during disconnect to overflow the window and trigger a gap</li></ol></div></div></div></div></div></div>")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = replayDisconnectScript().Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		return nil
+	})
+}
+
+func replayDisconnectScript() templ.Component {
+	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
+			return templ_7745c5c3_CtxErr
+		}
+		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+		if !templ_7745c5c3_IsBuffer {
+			defer func() {
+				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+				if templ_7745c5c3_Err == nil {
+					templ_7745c5c3_Err = templ_7745c5c3_BufErr
+				}
+			}()
+		}
+		ctx = templ.InitializeContext(ctx)
+		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var5 == nil {
+			templ_7745c5c3_Var5 = templ.NopComponent
+		}
+		ctx = templ.ClearChildren(ctx)
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<script>\n\t\tfunction replaySimulateDisconnect() {\n\t\t\tvar btn = document.getElementById('replay-disconnect-btn');\n\t\t\tvar container = document.getElementById('replay-sse-container');\n\t\t\tif (!container) return;\n\n\t\t\tvar sseConnect = container.getAttribute('sse-connect');\n\t\t\tcontainer.removeAttribute('sse-connect');\n\t\t\thtmx.process(container);\n\n\t\t\tbtn.textContent = 'Disconnected (reconnecting in 3s...)';\n\t\t\tbtn.disabled = true;\n\n\t\t\tsetTimeout(function() {\n\t\t\t\tcontainer.setAttribute('sse-connect', sseConnect);\n\t\t\t\thtmx.process(container);\n\t\t\t\tbtn.textContent = 'Simulate Disconnect';\n\t\t\t\tbtn.disabled = false;\n\t\t\t}, 3000);\n\t\t}\n\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -108,51 +141,51 @@ func ReplayEvent(seq int64, id string, timestamp string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var5 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var5 == nil {
-			templ_7745c5c3_Var5 = templ.NopComponent
+		templ_7745c5c3_Var6 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var6 == nil {
+			templ_7745c5c3_Var6 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<div class=\"flex items-center gap-2 py-0.5 border-b border-base-300 last:border-0\" data-testid=\"replay-event\"><span class=\"badge badge-xs badge-primary font-mono\">")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var6 string
-		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#%d", seq))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_replay.templ`, Line: 114, Col: 80}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "</span> <span class=\"text-base-content/40 tabular-nums shrink-0\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<div class=\"flex items-center gap-2 py-0.5 border-b border-base-300 last:border-0\" data-testid=\"replay-event\"><span class=\"badge badge-xs badge-primary font-mono\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var7 string
-		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(timestamp)
+		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#%d", seq))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_replay.templ`, Line: 115, Col: 70}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_replay.templ`, Line: 147, Col: 80}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</span> <span class=\"text-base-content/60 truncate\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "</span> <span class=\"text-base-content/40 tabular-nums shrink-0\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var8 string
-		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(id)
+		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(timestamp)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_replay.templ`, Line: 116, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_replay.templ`, Line: 148, Col: 70}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 10, "</span> <span class=\"text-base-content/60 truncate\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var9 string
+		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(id)
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_replay.templ`, Line: 149, Col: 50}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</span></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -177,25 +210,25 @@ func ReplaySnapshot(message string) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var9 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var9 == nil {
-			templ_7745c5c3_Var9 = templ.NopComponent
+		templ_7745c5c3_Var10 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var10 == nil {
+			templ_7745c5c3_Var10 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "<div class=\"py-2 px-3 rounded bg-warning/10 text-warning text-xs\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "<div class=\"py-2 px-3 rounded bg-warning/10 text-warning text-xs\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var10 string
-		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(message)
+		var templ_7745c5c3_Var11 string
+		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(message)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_replay.templ`, Line: 123, Col: 11}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_replay.templ`, Line: 156, Col: 11}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 13, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

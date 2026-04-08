@@ -18,6 +18,7 @@ templ TavernReplayPage(replayWindow int) {
 		</div>
 
 		<div
+			id="replay-sse-container"
 			hx-ext="sse"
 			sse-connect="/sse/tavern/replay"
 			data-tavern-reconnecting-class="opacity-50"
@@ -52,6 +53,13 @@ templ TavernReplayPage(replayWindow int) {
 					<div class="card bg-base-200 shadow-sm">
 						<div class="card-body p-4 space-y-3">
 							<h2 class="card-title text-sm font-semibold uppercase tracking-wider text-base-content/50">Controls</h2>
+							<button
+								id="replay-disconnect-btn"
+								class="btn btn-sm btn-error w-full"
+								onclick="replaySimulateDisconnect()"
+							>
+								Simulate Disconnect
+							</button>
 							<button
 								class="btn btn-sm btn-primary w-full"
 								hx-post="/realtime/tavern/replay/emit"
@@ -94,11 +102,11 @@ templ TavernReplayPage(replayWindow int) {
 							<h2 class="card-title text-sm font-semibold uppercase tracking-wider text-base-content/50">How to Test</h2>
 							<ol class="text-xs text-base-content/50 list-decimal list-inside space-y-1">
 								<li>Watch events arrive in the log</li>
-								<li>Disable your network (airplane mode or DevTools)</li>
-								<li>Wait for several events to be missed</li>
-								<li>Re-enable the network</li>
-								<li>Missed events replay automatically via Last-Event-ID</li>
-								<li>Use "Burst 30" to overflow the window and trigger a gap</li>
+								<li>Click "Simulate Disconnect" to drop the SSE connection</li>
+								<li>Events continue on the server but don't arrive</li>
+								<li>After 3s the connection resumes with Last-Event-ID</li>
+								<li>Missed events replay automatically</li>
+								<li>Use "Burst 30" during disconnect to overflow the window and trigger a gap</li>
 							</ol>
 						</div>
 					</div>
@@ -106,6 +114,31 @@ templ TavernReplayPage(replayWindow int) {
 			</div>
 		</div>
 	</div>
+	@replayDisconnectScript()
+}
+
+templ replayDisconnectScript() {
+	<script>
+		function replaySimulateDisconnect() {
+			var btn = document.getElementById('replay-disconnect-btn');
+			var container = document.getElementById('replay-sse-container');
+			if (!container) return;
+
+			var sseConnect = container.getAttribute('sse-connect');
+			container.removeAttribute('sse-connect');
+			htmx.process(container);
+
+			btn.textContent = 'Disconnected (reconnecting in 3s...)';
+			btn.disabled = true;
+
+			setTimeout(function() {
+				container.setAttribute('sse-connect', sseConnect);
+				htmx.process(container);
+				btn.textContent = 'Simulate Disconnect';
+				btn.disabled = false;
+			}, 3000);
+		}
+	</script>
 }
 
 // ReplayEvent renders a single event entry in the log.
