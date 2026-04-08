@@ -228,6 +228,12 @@ func (ar *appRoutes) InitRoutes() error {
 	ar.initSensorRoutes(ar.broker)
 	ar.initObservatoryRoutes(ar.broker)
 	ar.initAuctionRoutes(ar.broker)
+	ar.e.GET("/realtime/tavern", handler.HandleComponent(views.TavernIndexPage()))
+	ar.initTavernReplayRoutes(ar.broker)
+	ar.initTavernBackpressRoutes(ar.broker)
+	ar.initTavernSubsRoutes(ar.broker)
+	ar.initTavernPublishRoutes(ar.broker)
+	ar.initTavernHooksRoutes(ar.broker)
 	// setup:feature:sse:end
 
 	db, err := demo.Open("db/demo.db")
