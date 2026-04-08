@@ -8,15 +8,15 @@ import (
 )
 
 // TavernReplayPage renders the replay lab.
-templ TavernReplayPage(replayWindow int, lifetime time.Duration) {
+templ TavernReplayPage(replayWindow int, lifetime time.Duration, reconnectDelay time.Duration) {
 	<div class="max-w-5xl mx-auto p-4 space-y-4">
 		<div class="flex items-center justify-between flex-wrap gap-2">
 			<div>
 				<h1 class="text-2xl font-bold">Replay Lab</h1>
 				<p class="text-xs text-base-content/50">
 					Test Last-Event-ID replay. The server closes each SSE connection after
-					the configured lifetime. The browser reconnects automatically with
-					Last-Event-ID, and missed events replay from the buffer.
+					the configured lifetime, then the browser waits the reconnect delay
+					before reconnecting with Last-Event-ID. Missed events replay from the buffer.
 				</p>
 			</div>
 		</div>
@@ -85,10 +85,6 @@ templ TavernReplayPage(replayWindow int, lifetime time.Duration) {
 						<p class="text-xs text-base-content/40">
 							Current: <span id="replay-lifetime-val" data-testid="replay-lifetime" class="font-mono badge badge-ghost badge-xs">{ formatLifetime(lifetime) }</span>
 						</p>
-						<p class="text-xs text-base-content/40">
-							Server closes each connection after this duration.
-							New connections pick up the latest setting.
-						</p>
 						<div class="flex gap-2 flex-wrap">
 							for _, s := range []int{3, 10, 30} {
 								<button
@@ -102,14 +98,40 @@ templ TavernReplayPage(replayWindow int, lifetime time.Duration) {
 								</button>
 							}
 						</div>
-						<!-- Connection countdown — reset on each htmx:sseOpen -->
 						<div class="flex items-center gap-2 text-xs text-base-content/40">
-							<span>Age:</span>
-							<span id="replay-conn-age" class="font-mono tabular-nums" data-testid="replay-conn-age">0s</span>
-							<span>/</span>
-							<span id="replay-conn-limit" class="font-mono tabular-nums" data-testid="replay-conn-limit">{ formatLifetime(lifetime) }</span>
+							<span>Closes in:</span>
+							<span id="replay-conn-age" class="font-mono tabular-nums" data-testid="replay-conn-age">-</span>
 						</div>
 						<progress id="replay-conn-progress" class="progress progress-primary w-full" value="0" max="100"></progress>
+					</div>
+				</div>
+
+				<div class="card bg-base-200 shadow-sm">
+					<div class="card-body p-4 space-y-3">
+						<h2 class="card-title text-sm font-semibold uppercase tracking-wider text-base-content/50">Reconnect Delay</h2>
+						<p class="text-xs text-base-content/40">
+							Current: <span id="replay-delay-val" data-testid="replay-delay" class="font-mono badge badge-ghost badge-xs">{ formatLifetime(reconnectDelay) }</span>
+						</p>
+						<p class="text-xs text-base-content/40">
+							How long the browser waits before reconnecting (SSE retry: directive).
+						</p>
+						<div class="flex gap-2 flex-wrap">
+							for _, s := range []int{1, 3, 5, 10} {
+								<button
+									class="btn btn-xs btn-outline"
+									hx-post="/realtime/tavern/replay/delay"
+									hx-vals={ fmt.Sprintf(`{"seconds":"%d"}`, s) }
+									hx-target="#replay-delay-val"
+									hx-swap="innerHTML"
+								>
+									{ fmt.Sprintf("%ds", s) }
+								</button>
+							}
+						</div>
+						<div id="replay-reconnect-countdown" class="hidden text-xs text-warning flex items-center gap-1">
+							<span class="loading loading-spinner loading-xs"></span>
+							Reconnecting in <span id="replay-reconnect-remaining" class="font-mono tabular-nums">-</span>
+						</div>
 					</div>
 				</div>
 
@@ -146,12 +168,13 @@ templ TavernReplayPage(replayWindow int, lifetime time.Duration) {
 					<div class="card-body p-4">
 						<h2 class="card-title text-sm font-semibold uppercase tracking-wider text-base-content/50">How to Test</h2>
 						<ol class="text-xs text-base-content/50 list-decimal list-inside space-y-1">
-							<li>Set connection lifetime to 3s</li>
-							<li>Watch the countdown — server closes the stream at 0</li>
-							<li>The browser reconnects with Last-Event-ID automatically</li>
-							<li>Missed events replay into the log</li>
-							<li>The "Last Reconnect" panel shows what the server received</li>
-							<li>Set replay window to 5, then "Burst 30" to trigger a gap</li>
+							<li>Set lifetime to 3s, reconnect delay to 5s, replay window to 5</li>
+							<li>Watch events arrive, then the server closes the stream</li>
+							<li>The reconnect countdown shows the delay</li>
+							<li>Emit events or "Burst 30" during the delay</li>
+							<li>On reconnect, missed events replay into the log</li>
+							<li>The "Last Reconnect" panel shows Last-Event-ID and replayed count</li>
+							<li>"Burst 30" with window 5 triggers a gap fallback</li>
 						</ol>
 					</div>
 				</div>
@@ -161,65 +184,93 @@ templ TavernReplayPage(replayWindow int, lifetime time.Duration) {
 	@replayCountdownScript()
 }
 
-// replayCountdownScript drives the connection age countdown. It resets
-// on each htmx:sseOpen (new connection) and pauses on disconnect.
+// replayCountdownScript drives both countdowns:
+// 1. Connection age — counts up toward lifetime, resets on htmx:sseOpen
+// 2. Reconnect delay — counts down from delay, shown on disconnect, hidden on open
 templ replayCountdownScript() {
 	<script>
 		(function() {
 			var sse = document.getElementById('replay-sse');
 			var ageEl = document.getElementById('replay-conn-age');
-			var limitEl = document.getElementById('replay-conn-limit');
 			var progressEl = document.getElementById('replay-conn-progress');
-			var timer = null;
-			var startTime = 0;
+			var lifetimeValEl = document.getElementById('replay-lifetime-val');
+			var delayValEl = document.getElementById('replay-delay-val');
+			var reconnCountdown = document.getElementById('replay-reconnect-countdown');
+			var reconnRemaining = document.getElementById('replay-reconnect-remaining');
+			var connTimer = null;
+			var reconnTimer = null;
+			var connStart = 0;
 
-			function getLimit() {
-				var text = limitEl.textContent.trim();
-				return parseInt(text, 10) || 30;
+			function parseSeconds(el) {
+				return parseInt(el.textContent.trim(), 10) || 1;
 			}
 
-			function tick() {
-				var elapsed = Math.floor((Date.now() - startTime) / 1000);
-				var limit = getLimit();
-				ageEl.textContent = elapsed + 's';
+			// --- Connection age countdown ---
+			function connTick() {
+				var elapsed = (Date.now() - connStart) / 1000;
+				var limit = parseSeconds(lifetimeValEl);
+				var remaining = Math.max(0, limit - elapsed);
+				ageEl.textContent = remaining.toFixed(1) + 's';
 				var pct = Math.min(100, (elapsed / limit) * 100);
 				progressEl.value = pct;
-				if (pct >= 100) {
-					progressEl.classList.remove('progress-primary');
-					progressEl.classList.add('progress-error');
-				} else if (pct >= 80) {
-					progressEl.classList.remove('progress-primary');
-					progressEl.classList.add('progress-warning');
+				progressEl.classList.remove('progress-primary', 'progress-warning', 'progress-error');
+				if (pct >= 100) progressEl.classList.add('progress-error');
+				else if (pct >= 80) progressEl.classList.add('progress-warning');
+				else progressEl.classList.add('progress-primary');
+			}
+
+			function startConnTimer() {
+				stopConnTimer();
+				connStart = Date.now();
+				connTick();
+				connTimer = setInterval(connTick, 200);
+			}
+
+			function stopConnTimer() {
+				if (connTimer) { clearInterval(connTimer); connTimer = null; }
+			}
+
+			// --- Reconnect delay countdown ---
+			function startReconnCountdown() {
+				stopReconnCountdown();
+				var delay = parseSeconds(delayValEl);
+				var disconnAt = Date.now();
+				reconnCountdown.classList.remove('hidden');
+				function tick() {
+					var elapsed = (Date.now() - disconnAt) / 1000;
+					var remaining = Math.max(0, delay - elapsed);
+					reconnRemaining.textContent = remaining.toFixed(1) + 's';
+					if (remaining <= 0) stopReconnCountdown();
 				}
+				tick();
+				reconnTimer = setInterval(tick, 200);
 			}
 
-			function startTimer() {
-				stopTimer();
-				startTime = Date.now();
-				ageEl.textContent = '0s';
-				progressEl.value = 0;
-				progressEl.classList.remove('progress-warning', 'progress-error');
-				progressEl.classList.add('progress-primary');
-				timer = setInterval(tick, 1000);
+			function stopReconnCountdown() {
+				if (reconnTimer) { clearInterval(reconnTimer); reconnTimer = null; }
+				reconnCountdown.classList.add('hidden');
 			}
 
-			function stopTimer() {
-				if (timer) { clearInterval(timer); timer = null; }
-			}
+			// --- Events ---
+			sse.addEventListener('htmx:sseOpen', function() {
+				startConnTimer();
+				stopReconnCountdown();
+			});
 
-			// Reset countdown on each new SSE connection.
-			sse.addEventListener('htmx:sseOpen', startTimer);
+			sse.addEventListener('htmx:sseError', function() {
+				stopConnTimer();
+				ageEl.textContent = '-';
+				progressEl.value = 100;
+				progressEl.classList.remove('progress-primary', 'progress-warning');
+				progressEl.classList.add('progress-error');
+				startReconnCountdown();
+			});
 
-			// Pause countdown on disconnect.
-			sse.addEventListener('htmx:sseError', stopTimer);
-
-			// Update the limit display when lifetime changes.
-			// The hx-target swaps #replay-lifetime-val; mirror it to #replay-conn-limit.
-			var lifetimeVal = document.getElementById('replay-lifetime-val');
-			if (lifetimeVal) {
+			// Sync delay display when lifetime/delay values change via hx-target swap.
+			if (lifetimeValEl) {
 				new MutationObserver(function() {
-					limitEl.textContent = lifetimeVal.textContent;
-				}).observe(lifetimeVal, { childList: true, characterData: true, subtree: true });
+					if (connTimer) connTick();
+				}).observe(lifetimeValEl, { childList: true, characterData: true, subtree: true });
 			}
 		})();
 	</script>
