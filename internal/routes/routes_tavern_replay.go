@@ -40,6 +40,7 @@ func (ar *appRoutes) initTavernReplayRoutes(broker *tavern.SSEBroker) {
 	ar.e.POST("/realtime/tavern/replay/burst", r.handleBurst)
 	ar.e.POST("/realtime/tavern/replay/window", r.handleWindow)
 	ar.e.POST("/realtime/tavern/replay/disconnect", r.handleDisconnect)
+	ar.e.GET("/realtime/tavern/replay/sse-panel", r.handleSSEPanel)
 
 	broker.RunPublisher(ar.ctx, r.startPublisher)
 }
@@ -68,6 +69,10 @@ func (r *tavernReplayRoutes) handleWindow(c echo.Context) error {
 	r.lab.SetReplayWindow(n)
 	r.broker.SetReplayPolicy(TopicTavernReplay, n)
 	return c.HTML(http.StatusOK, fmt.Sprintf("%d", n))
+}
+
+func (r *tavernReplayRoutes) handleSSEPanel(c echo.Context) error {
+	return handler.RenderComponent(c, views.ReplaySSEContainer())
 }
 
 func (r *tavernReplayRoutes) handleDisconnect(c echo.Context) error {
