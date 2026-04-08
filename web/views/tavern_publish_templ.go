@@ -41,7 +41,7 @@ func TavernPublishPage(data TavernPublishData) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-6xl mx-auto p-4 space-y-4\"><div class=\"flex items-center justify-between flex-wrap gap-2\"><div><h1 class=\"text-2xl font-bold\">Publish Lab</h1><p class=\"text-xs text-base-content/50\">Compare publish methods side by side. Same input, different delivery behavior.</p></div><a href=\"/realtime/tavern\" class=\"btn btn-ghost btn-xs\">Back to Gallery</a></div><div class=\"flex gap-2 flex-wrap\"><button class=\"btn btn-sm btn-primary\" hx-post=\"/realtime/tavern/publish/spam\" hx-vals='{\"mode\":\"identical\"}' hx-swap=\"none\">Spam 20 Identical</button> <button class=\"btn btn-sm btn-secondary\" hx-post=\"/realtime/tavern/publish/spam\" hx-vals='{\"mode\":\"varied\"}' hx-swap=\"none\">Spam 20 Varied</button> <button class=\"btn btn-sm btn-ghost\" hx-post=\"/realtime/tavern/publish/reset\" hx-swap=\"none\">Reset</button></div><div hx-ext=\"sse\" sse-connect=\"/sse/tavern/publish\" data-tavern-reconnecting-class=\"opacity-50\"><div data-tavern-status class=\"hidden text-xs text-warning flex items-center gap-1 py-1 px-2 rounded bg-warning/10 mb-2\"><span class=\"loading loading-spinner loading-xs\"></span> Reconnecting...</div><div sse-swap=\"tavern/pub/raw\" hx-target=\"#pub-raw-log\" hx-swap=\"afterbegin\" style=\"display:none\"></div><div sse-swap=\"tavern/pub/debounced\" hx-target=\"#pub-debounce-log\" hx-swap=\"afterbegin\" style=\"display:none\"></div><div sse-swap=\"tavern/pub/throttled\" hx-target=\"#pub-throttle-log\" hx-swap=\"afterbegin\" style=\"display:none\"></div><div sse-swap=\"tavern/pub/ifchanged\" hx-target=\"#pub-changed-log\" hx-swap=\"afterbegin\" style=\"display:none\"></div><div class=\"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-6xl mx-auto p-4 space-y-4\"><div class=\"flex items-center justify-between flex-wrap gap-2\"><div><h1 class=\"text-2xl font-bold\">Publish Lab</h1><p class=\"text-xs text-base-content/50\">Compare publish methods side by side. Same input, different delivery behavior.</p></div></div><div class=\"flex gap-2 flex-wrap\"><button class=\"btn btn-sm btn-primary\" hx-post=\"/realtime/tavern/publish/spam\" hx-vals='{\"mode\":\"identical\"}' hx-swap=\"none\">Spam 20 Identical</button> <button class=\"btn btn-sm btn-secondary\" hx-post=\"/realtime/tavern/publish/spam\" hx-vals='{\"mode\":\"varied\"}' hx-swap=\"none\">Spam 20 Varied</button> <button class=\"btn btn-sm btn-ghost\" hx-post=\"/realtime/tavern/publish/reset\" hx-swap=\"none\">Reset</button></div><div hx-ext=\"sse\" sse-connect=\"/sse/tavern/publish\" data-tavern-reconnecting-class=\"opacity-50\"><div data-tavern-status class=\"hidden text-xs text-warning flex items-center gap-1 py-1 px-2 rounded bg-warning/10 mb-2\"><span class=\"loading loading-spinner loading-xs\"></span> Reconnecting...</div><div sse-swap=\"tavern/pub/raw\" hx-target=\"#pub-raw-log\" hx-swap=\"afterbegin\" style=\"display:none\"></div><div sse-swap=\"tavern/pub/debounced\" hx-target=\"#pub-debounce-log\" hx-swap=\"afterbegin\" style=\"display:none\"></div><div sse-swap=\"tavern/pub/throttled\" hx-target=\"#pub-throttle-log\" hx-swap=\"afterbegin\" style=\"display:none\"></div><div sse-swap=\"tavern/pub/ifchanged\" hx-target=\"#pub-changed-log\" hx-swap=\"afterbegin\" style=\"display:none\"></div><div class=\"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -97,7 +97,7 @@ func publishPanel(title string, apiName string, description string, logID string
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(title)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 81, Col: 101}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 80, Col: 101}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -110,7 +110,7 @@ func publishPanel(title string, apiName string, description string, logID string
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(description)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 82, Col: 56}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 81, Col: 56}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -123,7 +123,7 @@ func publishPanel(title string, apiName string, description string, logID string
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(apiName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 84, Col: 50}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 83, Col: 50}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -136,7 +136,7 @@ func publishPanel(title string, apiName string, description string, logID string
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs("count-" + logID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 85, Col: 90}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 84, Col: 90}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -149,7 +149,7 @@ func publishPanel(title string, apiName string, description string, logID string
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", count))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 85, Col: 119}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 84, Col: 119}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
@@ -162,7 +162,7 @@ func publishPanel(title string, apiName string, description string, logID string
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(logID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 87, Col: 18}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 86, Col: 18}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -175,7 +175,7 @@ func publishPanel(title string, apiName string, description string, logID string
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(logID)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 87, Col: 103}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 86, Col: 103}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -218,7 +218,7 @@ func PubEventEntry(seq int, message string, timestamp string) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#%d", seq))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 97, Col: 80}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 96, Col: 80}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -231,7 +231,7 @@ func PubEventEntry(seq int, message string, timestamp string) templ.Component {
 		var templ_7745c5c3_Var12 string
 		templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(timestamp)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 98, Col: 70}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 97, Col: 70}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 		if templ_7745c5c3_Err != nil {
@@ -244,7 +244,7 @@ func PubEventEntry(seq int, message string, timestamp string) templ.Component {
 		var templ_7745c5c3_Var13 string
 		templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(message)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 99, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_publish.templ`, Line: 98, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 		if templ_7745c5c3_Err != nil {
