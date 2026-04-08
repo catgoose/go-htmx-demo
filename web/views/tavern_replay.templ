@@ -22,19 +22,21 @@ templ TavernReplayPage(replayWindow int, lifetime time.Duration) {
 		</div>
 
 		<!-- Single stable SSE container — never replaced. Browser EventSource
-		     handles reconnection natively with Last-Event-ID. -->
+		     handles reconnection natively with Last-Event-ID.
+		     tavern.js attaches control event listeners (tavern-reconnected,
+		     tavern-replay-gap) directly to the EventSource via htmx:sseOpen. -->
 		<div
+			id="replay-sse"
 			hx-ext="sse"
 			sse-connect="/sse/tavern/replay"
 			data-tavern-reconnecting-class="opacity-50"
 			data-tavern-gap-action="banner"
+			data-tavern-gap-banner-text="Replay gap — some events were missed. Click to refresh."
+			data-tavern-debug
 		>
 			<div data-tavern-status class="hidden text-xs text-warning flex items-center gap-1 py-1 px-2 rounded bg-warning/10 mb-2">
 				<span class="loading loading-spinner loading-xs"></span>
 				Reconnecting...
-			</div>
-			<div data-tavern-gap class="hidden text-xs text-error flex items-center gap-1 py-1 px-2 rounded bg-error/10 mb-2">
-				Replay gap detected — some events were missed. Snapshot delivered instead.
 			</div>
 
 			<div sse-swap="replay-event" hx-target="#replay-log" hx-swap="afterbegin" style="display:none"></div>
@@ -100,6 +102,14 @@ templ TavernReplayPage(replayWindow int, lifetime time.Duration) {
 								</button>
 							}
 						</div>
+						<!-- Connection countdown — reset on each htmx:sseOpen -->
+						<div class="flex items-center gap-2 text-xs text-base-content/40">
+							<span>Age:</span>
+							<span id="replay-conn-age" class="font-mono tabular-nums" data-testid="replay-conn-age">0s</span>
+							<span>/</span>
+							<span id="replay-conn-limit" class="font-mono tabular-nums" data-testid="replay-conn-limit">{ formatLifetime(lifetime) }</span>
+						</div>
+						<progress id="replay-conn-progress" class="progress progress-primary w-full" value="0" max="100"></progress>
 					</div>
 				</div>
 
@@ -137,7 +147,7 @@ templ TavernReplayPage(replayWindow int, lifetime time.Duration) {
 						<h2 class="card-title text-sm font-semibold uppercase tracking-wider text-base-content/50">How to Test</h2>
 						<ol class="text-xs text-base-content/50 list-decimal list-inside space-y-1">
 							<li>Set connection lifetime to 3s</li>
-							<li>Watch events arrive, then the server closes the stream</li>
+							<li>Watch the countdown — server closes the stream at 0</li>
 							<li>The browser reconnects with Last-Event-ID automatically</li>
 							<li>Missed events replay into the log</li>
 							<li>The "Last Reconnect" panel shows what the server received</li>
@@ -148,6 +158,71 @@ templ TavernReplayPage(replayWindow int, lifetime time.Duration) {
 			</div>
 		</div>
 	</div>
+	@replayCountdownScript()
+}
+
+// replayCountdownScript drives the connection age countdown. It resets
+// on each htmx:sseOpen (new connection) and pauses on disconnect.
+templ replayCountdownScript() {
+	<script>
+		(function() {
+			var sse = document.getElementById('replay-sse');
+			var ageEl = document.getElementById('replay-conn-age');
+			var limitEl = document.getElementById('replay-conn-limit');
+			var progressEl = document.getElementById('replay-conn-progress');
+			var timer = null;
+			var startTime = 0;
+
+			function getLimit() {
+				var text = limitEl.textContent.trim();
+				return parseInt(text, 10) || 30;
+			}
+
+			function tick() {
+				var elapsed = Math.floor((Date.now() - startTime) / 1000);
+				var limit = getLimit();
+				ageEl.textContent = elapsed + 's';
+				var pct = Math.min(100, (elapsed / limit) * 100);
+				progressEl.value = pct;
+				if (pct >= 100) {
+					progressEl.classList.remove('progress-primary');
+					progressEl.classList.add('progress-error');
+				} else if (pct >= 80) {
+					progressEl.classList.remove('progress-primary');
+					progressEl.classList.add('progress-warning');
+				}
+			}
+
+			function startTimer() {
+				stopTimer();
+				startTime = Date.now();
+				ageEl.textContent = '0s';
+				progressEl.value = 0;
+				progressEl.classList.remove('progress-warning', 'progress-error');
+				progressEl.classList.add('progress-primary');
+				timer = setInterval(tick, 1000);
+			}
+
+			function stopTimer() {
+				if (timer) { clearInterval(timer); timer = null; }
+			}
+
+			// Reset countdown on each new SSE connection.
+			sse.addEventListener('htmx:sseOpen', startTimer);
+
+			// Pause countdown on disconnect.
+			sse.addEventListener('htmx:sseError', stopTimer);
+
+			// Update the limit display when lifetime changes.
+			// The hx-target swaps #replay-lifetime-val; mirror it to #replay-conn-limit.
+			var lifetimeVal = document.getElementById('replay-lifetime-val');
+			if (lifetimeVal) {
+				new MutationObserver(function() {
+					limitEl.textContent = lifetimeVal.textContent;
+				}).observe(lifetimeVal, { childList: true, characterData: true, subtree: true });
+			}
+		})();
+	</script>
 }
 
 // ReplayEvent renders a single event entry in the log.
