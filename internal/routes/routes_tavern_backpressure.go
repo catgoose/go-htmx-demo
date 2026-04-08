@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"net/http"
+	"strings"
 	"time"
 
 	"catgoose/dothog/internal/demo"
@@ -60,6 +61,7 @@ func (ar *appRoutes) initTavernBackpressRoutes(mainBroker *tavern.SSEBroker) {
 
 	ar.e.GET("/realtime/tavern/backpressure", bp.handlePage)
 	ar.e.GET("/sse/tavern/backpressure", echo.WrapHandler(mainBroker.SSEHandler(TopicTavernBackpress)))
+	ar.e.GET("/sse/tavern/backpressure/stream", bp.handleStreamSSE)
 	ar.e.POST("/realtime/tavern/backpressure/preset", bp.handlePreset)
 }
 
@@ -71,6 +73,37 @@ func (bp *tavernBackpressRoutes) handlePage(c echo.Context) error {
 func (bp *tavernBackpressRoutes) handlePreset(c echo.Context) error {
 	bp.lab.SetPreset(c.FormValue("preset"))
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (bp *tavernBackpressRoutes) handleStreamSSE(c echo.Context) error {
+	c.Response().Header().Set("Content-Type", "text/event-stream")
+	c.Response().Header().Set("Cache-Control", "no-cache")
+	c.Response().Header().Set("Connection", "keep-alive")
+	c.Response().WriteHeader(http.StatusOK)
+	flusher, ok := c.Response().Writer.(http.Flusher)
+	if !ok {
+		return fmt.Errorf("streaming unsupported")
+	}
+
+	msgs, unsub := bp.demoBroker.SubscribeMulti("bp-alpha", "bp-beta", "bp-gamma")
+	defer unsub()
+
+	ctx := c.Request().Context()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		case tm, ok := <-msgs:
+			if !ok {
+				return nil
+			}
+			simplified := strings.HasPrefix(tm.Data, "[simplified] ")
+			html := renderBPStreamEvent(tm.Topic, tm.Data, simplified)
+			sseMsg := tavern.NewSSEMessage("bp-stream", html).String()
+			_, _ = fmt.Fprint(c.Response(), sseMsg)
+			flusher.Flush()
+		}
+	}
 }
 
 func (bp *tavernBackpressRoutes) buildData() views.TavernBackpressureData {
@@ -126,11 +159,30 @@ func (bp *tavernBackpressRoutes) startMetricsPublisher(ctx context.Context) {
 			tierLogHTML := renderBPTierLog(data)
 			bp.mainBroker.Publish(TopicTavernBackpress, tavern.NewSSEMessage("bp-tier-log", tierLogHTML).String())
 
+			tierName := bpTierNameFromInt(bp.lab.HighestTier())
+			tierHTML := renderBPCurrentTier(tierName)
+			bp.mainBroker.Publish(TopicTavernBackpress, tavern.NewSSEMessage("bp-current-tier", tierHTML).String())
+
 			if data.ActivePreset != lastPreset {
 				lastPreset = data.ActivePreset
 				bp.mainBroker.Publish(TopicTavernBackpress, tavern.NewSSEMessage("bp-preset", data.ActivePreset).String())
 			}
 		}
+	}
+}
+
+func bpTierNameFromInt(tier int) string {
+	switch tier {
+	case 0:
+		return "normal"
+	case 1:
+		return "throttle"
+	case 2:
+		return "simplify"
+	case 3:
+		return "disconnect"
+	default:
+		return fmt.Sprintf("tier-%d", tier)
 	}
 }
 
@@ -147,6 +199,24 @@ func renderBPTierLog(data views.TavernBackpressureData) string {
 	buf := &bytes.Buffer{}
 	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render bp tier log")
 	if err := views.TavernBackpressureTierLog(data).Render(ctx, buf); err != nil {
+		return ""
+	}
+	return buf.String()
+}
+
+func renderBPStreamEvent(topic, message string, simplified bool) string {
+	buf := &bytes.Buffer{}
+	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render bp stream event")
+	if err := views.BackpressureStreamEvent(topic, message, simplified).Render(ctx, buf); err != nil {
+		return ""
+	}
+	return buf.String()
+}
+
+func renderBPCurrentTier(tierName string) string {
+	buf := &bytes.Buffer{}
+	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render bp current tier")
+	if err := views.BackpressureCurrentTier(tierName).Render(ctx, buf); err != nil {
 		return ""
 	}
 	return buf.String()
