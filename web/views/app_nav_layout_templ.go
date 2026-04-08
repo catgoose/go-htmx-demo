@@ -104,7 +104,7 @@ func AppNavLayout(content templ.Component, cfg linkwell.NavConfig, csrfToken str
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<!-- Main Content --><main class=\"app-main flex-1 p-4 md:p-6\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 7, "<!-- Main Content (z-0 keeps content below sticky nav z-50) --><main class=\"app-main flex-1 p-4 md:p-6 relative z-0\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
