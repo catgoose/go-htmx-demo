@@ -15,6 +15,7 @@ import (
 	"fmt"
 	"github.com/catgoose/tavern"
 	"strings"
+	"time"
 )
 
 // TavernBackpressureData holds the view-model for the backpressure lab.
@@ -25,7 +26,7 @@ type TavernBackpressureData struct {
 	TierChanges  []demo.TierChange
 }
 
-func TavernBackpressurePage(data TavernBackpressureData) templ.Component {
+func TavernBackpressurePage(data TavernBackpressureData, batchWindow time.Duration) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -46,11 +47,11 @@ func TavernBackpressurePage(data TavernBackpressureData) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"max-w-5xl mx-auto p-4 space-y-4\"><div class=\"flex items-center justify-between flex-wrap gap-2\"><div><h1 class=\"text-2xl font-bold\">Backpressure Lab</h1><p class=\"text-xs text-base-content/50\">Live delivery degradation under backpressure. Select a stress preset and watch messages throttle, simplify, and drop.</p></div></div><div hx-ext=\"sse\" sse-connect=\"/sse/tavern/backpressure\" data-tavern-reconnecting-class=\"opacity-50\"><div data-tavern-status class=\"hidden text-xs text-warning flex items-center gap-1 py-1 px-2 rounded bg-warning/10 mb-2\"><span class=\"loading loading-spinner loading-xs\"></span> Reconnecting...</div><div sse-swap=\"bp-metrics\" hx-target=\"#bp-metrics\" hx-swap=\"innerHTML\" style=\"display:none\"></div><div sse-swap=\"bp-tier-log\" hx-target=\"#bp-tier-log\" hx-swap=\"innerHTML\" style=\"display:none\"></div><div sse-swap=\"bp-preset\" hx-target=\"#bp-active-preset\" hx-swap=\"innerHTML\" style=\"display:none\"></div><div sse-swap=\"bp-current-tier\" hx-target=\"#bp-current-tier\" hx-swap=\"innerHTML\" style=\"display:none\"></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<style>\n\t\t#bp-stream-log, #bp-stream-log * {\n\t\t\ttransition: none !important;\n\t\t\tanimation: none !important;\n\t\t\tscroll-behavior: auto !important;\n\t\t}\n\t</style><div class=\"max-w-5xl mx-auto p-4 space-y-4\"><div class=\"flex items-center justify-between flex-wrap gap-2\"><div><h1 class=\"text-2xl font-bold\">Backpressure Lab</h1><p class=\"text-xs text-base-content/50\">Live delivery degradation under backpressure. Select a stress preset and watch messages throttle, simplify, and drop.</p></div></div><div hx-ext=\"sse\" sse-connect=\"/sse/tavern/backpressure\" data-tavern-reconnecting-class=\"opacity-50\"><div data-tavern-status class=\"hidden text-xs text-warning flex items-center gap-1 py-1 px-2 rounded bg-warning/10 mb-2\"><span class=\"loading loading-spinner loading-xs\"></span> Reconnecting...</div><div sse-swap=\"bp-metrics\" hx-target=\"#bp-metrics\" hx-swap=\"innerHTML\" style=\"display:none\"></div><div sse-swap=\"bp-tier-log\" hx-target=\"#bp-tier-log\" hx-swap=\"innerHTML\" style=\"display:none\"></div><div sse-swap=\"bp-preset\" hx-target=\"#bp-active-preset\" hx-swap=\"innerHTML\" style=\"display:none\"></div><div sse-swap=\"bp-current-tier\" hx-target=\"#bp-current-tier\" hx-swap=\"innerHTML\" style=\"display:none\"></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = backpressurePanels(data).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = backpressurePanels(data, batchWindow).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -147,7 +148,7 @@ func TavernBackpressurePreset(preset string) templ.Component {
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(preset)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 62, Col: 9}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 70, Col: 9}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -187,7 +188,7 @@ func BackpressureStreamEvent(topic, message string, simplified bool) templ.Compo
 			var templ_7745c5c3_Var7 string
 			templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(bpStripSimplified(message))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 70, Col: 85}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 78, Col: 85}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 			if templ_7745c5c3_Err != nil {
@@ -227,7 +228,7 @@ func BackpressureStreamEvent(topic, message string, simplified bool) templ.Compo
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(topic)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 74, Col: 83}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 82, Col: 83}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -240,7 +241,7 @@ func BackpressureStreamEvent(topic, message string, simplified bool) templ.Compo
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(message)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 75, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 83, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -324,7 +325,7 @@ func BackpressureCurrentTier(tierName string) templ.Component {
 		var templ_7745c5c3_Var17 string
 		templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(tierName)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 83, Col: 77}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 91, Col: 77}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 		if templ_7745c5c3_Err != nil {
@@ -337,7 +338,7 @@ func BackpressureCurrentTier(tierName string) templ.Component {
 		var templ_7745c5c3_Var18 string
 		templ_7745c5c3_Var18, templ_7745c5c3_Err = templ.JoinStringErrs(bpTierExplanation(tierName))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 84, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 92, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var18))
 		if templ_7745c5c3_Err != nil {
@@ -351,7 +352,7 @@ func BackpressureCurrentTier(tierName string) templ.Component {
 	})
 }
 
-func backpressurePanels(data TavernBackpressureData) templ.Component {
+func backpressurePanels(data TavernBackpressureData, batchWindow time.Duration) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -380,7 +381,7 @@ func backpressurePanels(data TavernBackpressureData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div><!-- Live Stream Panel (separate SSE connection through demo broker) --><div class=\"card bg-base-200 shadow-sm\"><div class=\"card-body p-4\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Live Delivery Stream</h2><div hx-ext=\"sse\" sse-connect=\"/sse/tavern/backpressure/stream\"><div sse-swap=\"bp-stream\" hx-target=\"#bp-stream-log\" hx-swap=\"afterbegin\" style=\"display:none\"></div><div id=\"bp-stream-log\" class=\"max-h-72 overflow-y-auto space-y-0.5 scroll-smooth\" data-testid=\"stream-log\"><p class=\"text-xs text-base-content/30 py-2\">Waiting for stream events...</p></div></div></div></div><!-- Controls + Metrics (compact row) --><div class=\"flex gap-4\"><div class=\"flex-1 card bg-base-200 shadow-sm\"><div class=\"card-body p-4 space-y-3\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Stress Preset</h2><div class=\"flex gap-2 flex-wrap\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 17, "</div><!-- Live Stream Panel (separate SSE connection through demo broker) --><div class=\"card bg-base-200 shadow-sm overflow-hidden\"><div class=\"card-body p-4\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Live Delivery Stream</h2><div hx-ext=\"sse\" sse-connect=\"/sse/tavern/backpressure/stream\"><div sse-swap=\"bp-stream\" hx-target=\"#bp-stream-log\" hx-swap=\"afterbegin settle:0 transition:false\" style=\"display:none\"></div><div id=\"bp-stream-log\" class=\"max-h-72 overflow-y-auto overflow-x-hidden space-y-0.5\" style=\"contain:paint;isolation:isolate\" data-testid=\"stream-log\"><p class=\"text-xs text-base-content/30 py-2\">Waiting for stream events...</p></div></div></div></div><!-- Controls + Metrics (compact row) --><div class=\"flex gap-4\"><div class=\"flex-1 card bg-base-200 shadow-sm\"><div class=\"card-body p-4 space-y-3\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Stress Preset</h2><div class=\"flex gap-2 flex-wrap\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -392,7 +393,7 @@ func backpressurePanels(data TavernBackpressureData) templ.Component {
 			var templ_7745c5c3_Var20 string
 			templ_7745c5c3_Var20, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf(`{"preset":"%s"}`, preset))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 121, Col: 56}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 129, Col: 56}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var20))
 			if templ_7745c5c3_Err != nil {
@@ -405,7 +406,7 @@ func backpressurePanels(data TavernBackpressureData) templ.Component {
 			var templ_7745c5c3_Var21 string
 			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs("preset-" + preset)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 123, Col: 40}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 131, Col: 40}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
@@ -418,7 +419,7 @@ func backpressurePanels(data TavernBackpressureData) templ.Component {
 			var templ_7745c5c3_Var22 string
 			templ_7745c5c3_Var22, templ_7745c5c3_Err = templ.JoinStringErrs(preset)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 125, Col: 16}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 133, Col: 16}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var22))
 			if templ_7745c5c3_Err != nil {
@@ -436,13 +437,39 @@ func backpressurePanels(data TavernBackpressureData) templ.Component {
 		var templ_7745c5c3_Var23 string
 		templ_7745c5c3_Var23, templ_7745c5c3_Err = templ.JoinStringErrs(data.ActivePreset)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 130, Col: 134}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 138, Col: 134}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var23))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</span></p></div></div><div class=\"flex-1 card bg-base-200 shadow-sm\"><div class=\"card-body p-4\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Demo Broker Metrics</h2><div id=\"bp-metrics\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 23, "</span></p></div></div><div class=\"flex-1 card bg-base-200 shadow-sm\"><div class=\"card-body p-4 space-y-3\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Batch Window</h2><input type=\"range\" min=\"0\" max=\"500\" step=\"50\" value=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var24 string
+		templ_7745c5c3_Var24, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", batchWindow.Milliseconds()))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 151, Col: 59}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var24))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "\" class=\"range range-xs range-primary\" hx-post=\"/realtime/tavern/backpressure/batch\" hx-trigger=\"input changed delay:150ms\" hx-target=\"#bp-batch-label\" hx-swap=\"innerHTML\" hx-include=\"this\" name=\"ms\"><p class=\"text-xs text-base-content/40\"><span id=\"bp-batch-label\" class=\"font-mono badge badge-ghost badge-xs\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var25 string
+		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(bpBatchLabel(batchWindow))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 161, Col: 104}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</span> <span class=\"ml-1\">0 = raw, higher = coalesced</span></p></div></div><div class=\"flex-1 card bg-base-200 shadow-sm\"><div class=\"card-body p-4\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Demo Broker Metrics</h2><div id=\"bp-metrics\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -450,7 +477,7 @@ func backpressurePanels(data TavernBackpressureData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 24, "</div></div></div></div><!-- Tier Explanation --><div class=\"card bg-base-200 shadow-sm\"><div class=\"card-body p-4\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Backpressure Tiers</h2><div class=\"grid grid-cols-2 sm:grid-cols-4 gap-2\"><div class=\"rounded p-2 bg-success/10 border border-success/20\"><div class=\"text-xs font-semibold text-success\">Normal (0)</div><div class=\"text-xs text-base-content/50\">Full-fidelity delivery. All messages arrive as-is.</div></div><div class=\"rounded p-2 bg-warning/10 border border-warning/20\"><div class=\"text-xs font-semibold text-warning\">Throttle (1)</div><div class=\"text-xs text-base-content/50\">Buffer filling. Delivery continues but subscriber is lagging.</div></div><div class=\"rounded p-2 bg-orange-500/10 border border-orange-500/20\"><div class=\"text-xs font-semibold text-orange-500\">Simplify (2)</div><div class=\"text-xs text-base-content/50\">Degraded delivery. Messages run through simplified renderer.</div></div><div class=\"rounded p-2 bg-error/10 border border-error/20\"><div class=\"text-xs font-semibold text-error\">Disconnect (3)</div><div class=\"text-xs text-base-content/50\">Subscriber evicted. Too far behind to recover.</div></div></div></div></div><!-- Tier Change Log --><div class=\"card bg-base-200 shadow-sm\"><div class=\"card-body p-4\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Tier Change Log</h2><div id=\"bp-tier-log\" class=\"max-h-48 overflow-y-auto space-y-1\" data-testid=\"tier-log\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "</div></div></div></div><!-- Tier Explanation --><div class=\"card bg-base-200 shadow-sm\"><div class=\"card-body p-4\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Backpressure Tiers</h2><div class=\"grid grid-cols-2 sm:grid-cols-4 gap-2\"><div class=\"rounded p-2 bg-success/10 border border-success/20\"><div class=\"text-xs font-semibold text-success\">Normal (0)</div><div class=\"text-xs text-base-content/50\">Full-fidelity delivery. All messages arrive as-is.</div></div><div class=\"rounded p-2 bg-warning/10 border border-warning/20\"><div class=\"text-xs font-semibold text-warning\">Throttle (1)</div><div class=\"text-xs text-base-content/50\">Buffer filling. Delivery continues but subscriber is lagging.</div></div><div class=\"rounded p-2 bg-orange-500/10 border border-orange-500/20\"><div class=\"text-xs font-semibold text-orange-500\">Simplify (2)</div><div class=\"text-xs text-base-content/50\">Degraded delivery. Messages run through simplified renderer.</div></div><div class=\"rounded p-2 bg-error/10 border border-error/20\"><div class=\"text-xs font-semibold text-error\">Disconnect (3)</div><div class=\"text-xs text-base-content/50\">Subscriber evicted. Too far behind to recover.</div></div></div></div></div><!-- Tier Change Log --><div class=\"card bg-base-200 shadow-sm\"><div class=\"card-body p-4\"><h2 class=\"card-title text-sm font-semibold uppercase tracking-wider text-base-content/50\">Tier Change Log</h2><div id=\"bp-tier-log\" class=\"max-h-48 overflow-y-auto space-y-1\" data-testid=\"tier-log\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -458,7 +485,7 @@ func backpressurePanels(data TavernBackpressureData) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 25, "</div></div></div></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "</div></div></div></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -482,74 +509,74 @@ func backpressureMetrics(data TavernBackpressureData) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var24 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var24 == nil {
-			templ_7745c5c3_Var24 = templ.NopComponent
+		templ_7745c5c3_Var26 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var26 == nil {
+			templ_7745c5c3_Var26 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 26, "<div class=\"grid grid-cols-2 gap-2 text-xs\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "<div class=\"grid grid-cols-2 gap-2 text-xs\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for _, topic := range data.Topics {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 27, "<div class=\"stat p-0\"><div class=\"stat-title text-xs truncate\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var25 string
-			templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(topic)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 186, Col: 52}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 28, "</div><div class=\"stat-value text-sm tabular-nums\" data-testid=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var26 string
-			templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs("metric-pub-" + topic)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 187, Col: 84}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 29, "<div class=\"stat p-0\"><div class=\"stat-title text-xs truncate\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var27 string
-			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", bpTopicPub(data.Metrics, topic)))
+			templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(topic)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 187, Col: 139}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 218, Col: 52}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</div><div class=\"stat-desc tabular-nums\">")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 30, "</div><div class=\"stat-value text-sm tabular-nums\" data-testid=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var28 string
-			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d dropped", bpTopicDrop(data.Metrics, topic)))
+			templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs("metric-pub-" + topic)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 189, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 219, Col: 84}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "</div></div>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 31, "\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var29 string
+			templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", bpTopicPub(data.Metrics, topic)))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 219, Col: 139}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</div><div class=\"stat-desc tabular-nums\">")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			var templ_7745c5c3_Var30 string
+			templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d dropped", bpTopicDrop(data.Metrics, topic)))
+			if templ_7745c5c3_Err != nil {
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 221, Col: 66}
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "</div></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 32, "</div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "</div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -573,13 +600,13 @@ func backpressureTierLog(data TavernBackpressureData) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var29 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var29 == nil {
-			templ_7745c5c3_Var29 = templ.NopComponent
+		templ_7745c5c3_Var31 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var31 == nil {
+			templ_7745c5c3_Var31 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		if len(data.TierChanges) == 0 {
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<p class=\"text-xs text-base-content/30\">No tier changes yet. Try a heavier stress preset.</p>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "<p class=\"text-xs text-base-content/30\">No tier changes yet. Try a heavier stress preset.</p>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -611,108 +638,108 @@ func tierChangeEntry(tc demo.TierChange) templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var30 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var30 == nil {
-			templ_7745c5c3_Var30 = templ.NopComponent
+		templ_7745c5c3_Var32 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var32 == nil {
+			templ_7745c5c3_Var32 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "<div class=\"flex items-center gap-2 py-0.5 border-b border-base-300 last:border-0 text-xs\"><span class=\"text-base-content/40 tabular-nums font-mono shrink-0\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "<div class=\"flex items-center gap-2 py-0.5 border-b border-base-300 last:border-0 text-xs\"><span class=\"text-base-content/40 tabular-nums font-mono shrink-0\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var31 string
-		templ_7745c5c3_Var31, templ_7745c5c3_Err = templ.JoinStringErrs(tc.Timestamp.Format("15:04:05"))
+		var templ_7745c5c3_Var33 string
+		templ_7745c5c3_Var33, templ_7745c5c3_Err = templ.JoinStringErrs(tc.Timestamp.Format("15:04:05"))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 208, Col: 102}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 240, Col: 102}
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var31))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "</span> <span class=\"truncate\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var33))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var32 string
-		templ_7745c5c3_Var32, templ_7745c5c3_Err = templ.JoinStringErrs(tc.Topic)
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 209, Col: 35}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var32))
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "</span> ")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		var templ_7745c5c3_Var33 = []any{"badge badge-xs", bpTierBadgeClass(tc.OldTier)}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var33...)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "<span class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "</span> <span class=\"truncate\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var34 string
-		templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var33).String())
+		templ_7745c5c3_Var34, templ_7745c5c3_Err = templ.JoinStringErrs(tc.Topic)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 1, Col: 0}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 241, Col: 35}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var34))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "</span> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var35 string
-		templ_7745c5c3_Var35, templ_7745c5c3_Err = templ.JoinStringErrs(bpTierName(tc.OldTier))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 210, Col: 89}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var35))
+		var templ_7745c5c3_Var35 = []any{"badge badge-xs", bpTierBadgeClass(tc.OldTier)}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var35...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "</span> <span class=\"text-base-content/30\">-&gt;</span> ")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<span class=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var36 = []any{"badge badge-xs", bpTierBadgeClass(tc.NewTier)}
-		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var36...)
+		var templ_7745c5c3_Var36 string
+		templ_7745c5c3_Var36, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var35).String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 1, Col: 0}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var36))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<span class=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var37 string
-		templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var36).String())
+		templ_7745c5c3_Var37, templ_7745c5c3_Err = templ.JoinStringErrs(bpTierName(tc.OldTier))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 1, Col: 0}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 242, Col: 89}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var37))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 41, "</span> <span class=\"text-base-content/30\">-&gt;</span> ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		var templ_7745c5c3_Var38 string
-		templ_7745c5c3_Var38, templ_7745c5c3_Err = templ.JoinStringErrs(bpTierName(tc.NewTier))
-		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 212, Col: 89}
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var38))
+		var templ_7745c5c3_Var38 = []any{"badge badge-xs", bpTierBadgeClass(tc.NewTier)}
+		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var38...)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "</span></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 42, "<span class=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var39 string
+		templ_7745c5c3_Var39, templ_7745c5c3_Err = templ.JoinStringErrs(templ.CSSClasses(templ_7745c5c3_Var38).String())
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 1, Col: 0}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var39))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 43, "\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var40 string
+		templ_7745c5c3_Var40, templ_7745c5c3_Err = templ.JoinStringErrs(bpTierName(tc.NewTier))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/tavern_backpressure.templ`, Line: 244, Col: 89}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var40))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 44, "</span></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -762,6 +789,14 @@ func bpTopicDrop(m tavern.BrokerMetrics, topic string) int64 {
 		return ts.Dropped
 	}
 	return 0
+}
+
+func bpBatchLabel(d time.Duration) string {
+	ms := d.Milliseconds()
+	if ms == 0 {
+		return "raw"
+	}
+	return fmt.Sprintf("%dms", ms)
 }
 
 func bpStripSimplified(msg string) string {

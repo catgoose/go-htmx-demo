@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/catgoose/tavern"
 	"strings"
+	"time"
 )
 
 // TavernBackpressureData holds the view-model for the backpressure lab.
@@ -17,7 +18,14 @@ type TavernBackpressureData struct {
 	TierChanges  []demo.TierChange
 }
 
-templ TavernBackpressurePage(data TavernBackpressureData) {
+templ TavernBackpressurePage(data TavernBackpressureData, batchWindow time.Duration) {
+	<style>
+		#bp-stream-log, #bp-stream-log * {
+			transition: none !important;
+			animation: none !important;
+			scroll-behavior: auto !important;
+		}
+	</style>
 	<div class="max-w-5xl mx-auto p-4 space-y-4">
 		<div class="flex items-center justify-between flex-wrap gap-2">
 			<div>
@@ -42,7 +50,7 @@ templ TavernBackpressurePage(data TavernBackpressureData) {
 			<div sse-swap="bp-tier-log" hx-target="#bp-tier-log" hx-swap="innerHTML" style="display:none"></div>
 			<div sse-swap="bp-preset" hx-target="#bp-active-preset" hx-swap="innerHTML" style="display:none"></div>
 			<div sse-swap="bp-current-tier" hx-target="#bp-current-tier" hx-swap="innerHTML" style="display:none"></div>
-			@backpressurePanels(data)
+			@backpressurePanels(data, batchWindow)
 		</div>
 	</div>
 }
@@ -85,7 +93,7 @@ templ BackpressureCurrentTier(tierName string) {
 	</div>
 }
 
-templ backpressurePanels(data TavernBackpressureData) {
+templ backpressurePanels(data TavernBackpressureData, batchWindow time.Duration) {
 	<div class="space-y-4">
 		<!-- Current Tier Indicator -->
 		<div id="bp-current-tier">
@@ -93,15 +101,15 @@ templ backpressurePanels(data TavernBackpressureData) {
 		</div>
 
 		<!-- Live Stream Panel (separate SSE connection through demo broker) -->
-		<div class="card bg-base-200 shadow-sm">
+		<div class="card bg-base-200 shadow-sm overflow-hidden">
 			<div class="card-body p-4">
 				<h2 class="card-title text-sm font-semibold uppercase tracking-wider text-base-content/50">Live Delivery Stream</h2>
 				<div
 					hx-ext="sse"
 					sse-connect="/sse/tavern/backpressure/stream"
 				>
-					<div sse-swap="bp-stream" hx-target="#bp-stream-log" hx-swap="afterbegin" style="display:none"></div>
-					<div id="bp-stream-log" class="max-h-72 overflow-y-auto space-y-0.5 scroll-smooth" data-testid="stream-log">
+					<div sse-swap="bp-stream" hx-target="#bp-stream-log" hx-swap="afterbegin settle:0 transition:false" style="display:none"></div>
+					<div id="bp-stream-log" class="max-h-72 overflow-y-auto overflow-x-hidden space-y-0.5" style="contain:paint;isolation:isolate" data-testid="stream-log">
 						<p class="text-xs text-base-content/30 py-2">Waiting for stream events...</p>
 					</div>
 				</div>
@@ -128,6 +136,30 @@ templ backpressurePanels(data TavernBackpressureData) {
 					</div>
 					<p class="text-xs text-base-content/40">
 						Active: <span id="bp-active-preset" class="font-mono badge badge-ghost badge-xs" data-testid="active-preset">{ data.ActivePreset }</span>
+					</p>
+				</div>
+			</div>
+
+			<div class="flex-1 card bg-base-200 shadow-sm">
+				<div class="card-body p-4 space-y-3">
+					<h2 class="card-title text-sm font-semibold uppercase tracking-wider text-base-content/50">Batch Window</h2>
+					<input
+						type="range"
+						min="0"
+						max="500"
+						step="50"
+						value={ fmt.Sprintf("%d", batchWindow.Milliseconds()) }
+						class="range range-xs range-primary"
+						hx-post="/realtime/tavern/backpressure/batch"
+						hx-trigger="input changed delay:150ms"
+						hx-target="#bp-batch-label"
+						hx-swap="innerHTML"
+						hx-include="this"
+						name="ms"
+					/>
+					<p class="text-xs text-base-content/40">
+						<span id="bp-batch-label" class="font-mono badge badge-ghost badge-xs">{ bpBatchLabel(batchWindow) }</span>
+						<span class="ml-1">0 = raw, higher = coalesced</span>
 					</p>
 				</div>
 			</div>
@@ -255,6 +287,14 @@ func bpTopicDrop(m tavern.BrokerMetrics, topic string) int64 {
 		return ts.Dropped
 	}
 	return 0
+}
+
+func bpBatchLabel(d time.Duration) string {
+	ms := d.Milliseconds()
+	if ms == 0 {
+		return "raw"
+	}
+	return fmt.Sprintf("%dms", ms)
 }
 
 func bpStripSimplified(msg string) string {

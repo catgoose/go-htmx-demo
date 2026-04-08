@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"net/http"
+	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"catgoose/dothog/internal/demo"
@@ -21,9 +23,10 @@ import (
 )
 
 type tavernBackpressRoutes struct {
-	mainBroker *tavern.SSEBroker
-	demoBroker *tavern.SSEBroker
-	lab        *demo.BackpressureLab
+	mainBroker  *tavern.SSEBroker
+	demoBroker  *tavern.SSEBroker
+	lab         *demo.BackpressureLab
+	batchWindow atomic.Int64 // nanoseconds; 0 = raw (flush per message)
 }
 
 func (ar *appRoutes) initTavernBackpressRoutes(mainBroker *tavern.SSEBroker) {
@@ -63,16 +66,27 @@ func (ar *appRoutes) initTavernBackpressRoutes(mainBroker *tavern.SSEBroker) {
 	ar.e.GET("/sse/tavern/backpressure", echo.WrapHandler(mainBroker.SSEHandler(TopicTavernBackpress)))
 	ar.e.GET("/sse/tavern/backpressure/stream", bp.handleStreamSSE)
 	ar.e.POST("/realtime/tavern/backpressure/preset", bp.handlePreset)
+	ar.e.POST("/realtime/tavern/backpressure/batch", bp.handleBatch)
 }
 
 func (bp *tavernBackpressRoutes) handlePage(c echo.Context) error {
 	data := bp.buildData()
-	return handler.RenderBaseLayout(c, views.TavernBackpressurePage(data))
+	bw := time.Duration(bp.batchWindow.Load())
+	return handler.RenderBaseLayout(c, views.TavernBackpressurePage(data, bw))
 }
 
 func (bp *tavernBackpressRoutes) handlePreset(c echo.Context) error {
 	bp.lab.SetPreset(c.FormValue("preset"))
 	return c.NoContent(http.StatusNoContent)
+}
+
+func (bp *tavernBackpressRoutes) handleBatch(c echo.Context) error {
+	ms, err := strconv.Atoi(c.FormValue("ms"))
+	if err != nil || ms < 0 || ms > 500 {
+		return c.String(http.StatusBadRequest, "invalid batch window")
+	}
+	bp.batchWindow.Store(int64(time.Duration(ms) * time.Millisecond))
+	return c.HTML(http.StatusOK, formatBatchLabel(ms))
 }
 
 func (bp *tavernBackpressRoutes) handleStreamSSE(c echo.Context) error {
@@ -89,21 +103,59 @@ func (bp *tavernBackpressRoutes) handleStreamSSE(c echo.Context) error {
 	defer unsub()
 
 	ctx := c.Request().Context()
+	w := c.Response()
+
 	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		case tm, ok := <-msgs:
-			if !ok {
+		bw := time.Duration(bp.batchWindow.Load())
+		if bw == 0 {
+			// Raw mode: flush per message.
+			select {
+			case <-ctx.Done():
 				return nil
+			case tm, ok := <-msgs:
+				if !ok {
+					return nil
+				}
+				simplified := strings.HasPrefix(tm.Data, "[simplified] ")
+				html := renderBPStreamEvent(tm.Topic, tm.Data, simplified)
+				_, _ = fmt.Fprint(w, tavern.NewSSEMessage("bp-stream", html).String())
+				flusher.Flush()
 			}
-			simplified := strings.HasPrefix(tm.Data, "[simplified] ")
-			html := renderBPStreamEvent(tm.Topic, tm.Data, simplified)
-			sseMsg := tavern.NewSSEMessage("bp-stream", html).String()
-			_, _ = fmt.Fprint(c.Response(), sseMsg)
-			flusher.Flush()
+		} else {
+			// Batch mode: collect during window, flush once.
+			timer := time.NewTimer(bw)
+			var batch bytes.Buffer
+			collecting := true
+			for collecting {
+				select {
+				case <-ctx.Done():
+					timer.Stop()
+					return nil
+				case tm, ok := <-msgs:
+					if !ok {
+						timer.Stop()
+						return nil
+					}
+					simplified := strings.HasPrefix(tm.Data, "[simplified] ")
+					html := renderBPStreamEvent(tm.Topic, tm.Data, simplified)
+					batch.WriteString(tavern.NewSSEMessage("bp-stream", html).String())
+				case <-timer.C:
+					collecting = false
+				}
+			}
+			if batch.Len() > 0 {
+				_, _ = batch.WriteTo(w)
+				flusher.Flush()
+			}
 		}
 	}
+}
+
+func formatBatchLabel(ms int) string {
+	if ms == 0 {
+		return "raw"
+	}
+	return fmt.Sprintf("%dms", ms)
 }
 
 func (bp *tavernBackpressRoutes) buildData() views.TavernBackpressureData {
