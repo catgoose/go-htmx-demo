@@ -8,6 +8,7 @@ import (
 	crand "crypto/rand"
 	"encoding/hex"
 	"fmt"
+	"sort"
 	"math/rand/v2"
 	"net/http"
 	"strings"
@@ -49,7 +50,8 @@ func (ar *appRoutes) initNotificationsRoutes(broker *tavern.SSEBroker) {
 		RenderFunc: func(topic string, users []presence.Info) string {
 			// Multiple SSE connections may share the same identity (e.g.
 			// multiple tabs). Collapse by identity ID so each user appears
-			// once in the rendered list.
+			// once in the rendered list. Sort by identity ID for stable
+			// rendering order across reconnects.
 			seen := make(map[string]struct{})
 			var vu []views.NotifPresenceUser
 			for _, u := range users {
@@ -67,6 +69,9 @@ func (ar *appRoutes) initNotificationsRoutes(broker *tavern.SSEBroker) {
 					Color: u.Avatar,
 				})
 			}
+			sort.Slice(vu, func(i, j int) bool {
+				return vu[i].ID < vu[j].ID
+			})
 			// We render without a "current user" context here — the presence
 			// list is broadcast to all subscribers so "(you)" is omitted in
 			// the OOB swap. The initial render in the page template shows it.
