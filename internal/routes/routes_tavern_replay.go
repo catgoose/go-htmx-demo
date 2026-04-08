@@ -25,6 +25,7 @@ type tavernReplayRoutes struct {
 	lab            *demo.ReplayLab
 	lifetime       atomic.Int64 // nanoseconds; 0 = no limit
 	reconnectDelay atomic.Int64 // nanoseconds; 0 = default (1s)
+	publishRate    atomic.Int64 // nanoseconds
 }
 
 func (ar *appRoutes) initTavernReplayRoutes(broker *tavern.SSEBroker) {
@@ -32,6 +33,7 @@ func (ar *appRoutes) initTavernReplayRoutes(broker *tavern.SSEBroker) {
 	r := &tavernReplayRoutes{broker: broker, lab: lab}
 	r.lifetime.Store(int64(10 * time.Second))
 	r.reconnectDelay.Store(int64(5 * time.Second))
+	r.publishRate.Store(int64(2 * time.Second))
 
 	broker.SetReplayPolicy(TopicTavernReplay, lab.ReplayWindow())
 
@@ -56,6 +58,7 @@ func (ar *appRoutes) initTavernReplayRoutes(broker *tavern.SSEBroker) {
 	ar.e.POST("/realtime/tavern/replay/window", r.handleWindow)
 	ar.e.POST("/realtime/tavern/replay/lifetime", r.handleLifetime)
 	ar.e.POST("/realtime/tavern/replay/delay", r.handleDelay)
+	ar.e.POST("/realtime/tavern/replay/rate", r.handleRate)
 
 	broker.RunPublisher(ar.ctx, r.startPublisher)
 }
@@ -63,7 +66,8 @@ func (ar *appRoutes) initTavernReplayRoutes(broker *tavern.SSEBroker) {
 func (r *tavernReplayRoutes) handlePage(c echo.Context) error {
 	lt := time.Duration(r.lifetime.Load())
 	rd := time.Duration(r.reconnectDelay.Load())
-	return handler.RenderBaseLayout(c, views.TavernReplayPage(r.lab.ReplayWindow(), lt, rd))
+	pr := time.Duration(r.publishRate.Load())
+	return handler.RenderBaseLayout(c, views.TavernReplayPage(r.lab.ReplayWindow(), lt, rd, pr))
 }
 
 // handleSSE delegates to tavern's built-in SSEHandler with the current
@@ -124,6 +128,22 @@ func (r *tavernReplayRoutes) handleDelay(c echo.Context) error {
 	return c.HTML(http.StatusOK, fmt.Sprintf("%ds", s))
 }
 
+func (r *tavernReplayRoutes) handleRate(c echo.Context) error {
+	ms, err := strconv.Atoi(c.FormValue("ms"))
+	if err != nil || ms < 100 {
+		return c.String(http.StatusBadRequest, "invalid rate")
+	}
+	r.publishRate.Store(int64(time.Duration(ms) * time.Millisecond))
+	return c.HTML(http.StatusOK, formatRateLabel(ms))
+}
+
+func formatRateLabel(ms int) string {
+	if ms >= 1000 {
+		return fmt.Sprintf("%.1fs", float64(ms)/1000)
+	}
+	return fmt.Sprintf("%dms", ms)
+}
+
 func (r *tavernReplayRoutes) publishEvent() {
 	id, seq := r.lab.NextEvent()
 	ts := time.Now().Format("15:04:05")
@@ -133,7 +153,8 @@ func (r *tavernReplayRoutes) publishEvent() {
 }
 
 func (r *tavernReplayRoutes) startPublisher(ctx context.Context) {
-	ticker := time.NewTicker(2 * time.Second)
+	rate := time.Duration(r.publishRate.Load())
+	ticker := time.NewTicker(rate)
 	defer ticker.Stop()
 	for {
 		select {
@@ -141,6 +162,10 @@ func (r *tavernReplayRoutes) startPublisher(ctx context.Context) {
 			return
 		case <-ticker.C:
 			r.publishEvent()
+			if cur := time.Duration(r.publishRate.Load()); cur != rate {
+				rate = cur
+				ticker.Reset(rate)
+			}
 		}
 	}
 }
