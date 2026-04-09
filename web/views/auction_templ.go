@@ -482,72 +482,85 @@ func auctionBidForm(item demo.AuctionItem) templ.Component {
 			templ_7745c5c3_Var24 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<form class=\"flex items-end gap-2 mt-2\" hx-post=\"/realtime/auction/bid\" hx-target=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 33, "<form class=\"mt-2 space-y-1\" data-item-id=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var25 string
-		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#auction-inner-%d", item.ID))
+		templ_7745c5c3_Var25, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(item.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/auction.templ`, Line: 119, Col: 55}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/auction.templ`, Line: 118, Col: 38}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var25))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" hx-swap=\"outerHTML\"><input type=\"hidden\" name=\"item_id\" value=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 34, "\" hx-post=\"/realtime/auction/bid\" hx-target=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var26 string
-		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(item.ID))
+		templ_7745c5c3_Var26, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("#auction-inner-%d", item.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/auction.templ`, Line: 122, Col: 67}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/auction.templ`, Line: 120, Col: 55}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var26))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\"><div class=\"form-control flex-1\"><label class=\"label py-0\"><span class=\"label-text text-xs\">Your name</span></label> <input type=\"text\" name=\"bidder\" placeholder=\"Anonymous\" class=\"input input-xs input-bordered w-full\"></div><div class=\"form-control flex-1\"><label class=\"label py-0\"><span class=\"label-text text-xs\">Amount ($)</span></label> <input type=\"number\" name=\"amount\" step=\"0.01\" min=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 35, "\" hx-swap=\"outerHTML\" hx-on::before-swap=\"handleBidResponse(event)\"><div class=\"flex items-end gap-2\"><input type=\"hidden\" name=\"item_id\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var27 string
-		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", float64(item.CurrentBid+1)/100))
+		templ_7745c5c3_Var27, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(item.ID))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/auction.templ`, Line: 142, Col: 61}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/auction.templ`, Line: 125, Col: 68}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var27))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\" placeholder=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 36, "\"><div class=\"form-control flex-1\"><label class=\"label py-0\"><span class=\"label-text text-xs\">Your name</span></label> <input type=\"text\" name=\"bidder\" placeholder=\"Anonymous\" class=\"input input-xs input-bordered w-full\"></div><div class=\"form-control flex-1\"><label class=\"label py-0\"><span class=\"label-text text-xs\">Amount ($)</span></label> <input type=\"number\" name=\"amount\" step=\"0.01\" min=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var28 string
-		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", float64(item.CurrentBid+100)/100))
+		templ_7745c5c3_Var28, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", float64(item.CurrentBid+1)/100))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/auction.templ`, Line: 143, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/auction.templ`, Line: 145, Col: 62}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var28))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "\" class=\"input input-xs input-bordered w-full tabular-nums\" required></div><button type=\"submit\" class=\"btn btn-primary btn-xs\">Place</button> <button type=\"button\" class=\"btn btn-ghost btn-xs\" data-item-id=\"")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 37, "\" placeholder=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var29 string
-		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(item.ID))
+		templ_7745c5c3_Var29, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", float64(item.CurrentBid+100)/100))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/auction.templ`, Line: 149, Col: 89}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/auction.templ`, Line: 146, Col: 72}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var29))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\" onclick=\"closeBidForm(+this.dataset.itemId)\">&times;</button></form>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 38, "\" class=\"input input-xs input-bordered w-full tabular-nums\" required></div><button type=\"submit\" class=\"btn btn-primary btn-xs\">Place</button> <button type=\"button\" class=\"btn btn-ghost btn-xs\" data-item-id=\"")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		var templ_7745c5c3_Var30 string
+		templ_7745c5c3_Var30, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(item.ID))
+		if templ_7745c5c3_Err != nil {
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `web/views/auction.templ`, Line: 152, Col: 90}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var30))
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "\" onclick=\"closeBidForm(+this.dataset.itemId)\">&times;</button></div><p data-bid-error class=\"hidden text-xs text-error mt-1\"></p></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -571,12 +584,12 @@ func auctionScript() templ.Component {
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var30 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var30 == nil {
-			templ_7745c5c3_Var30 = templ.NopComponent
+		templ_7745c5c3_Var31 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var31 == nil {
+			templ_7745c5c3_Var31 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 39, "<script>\n\t\tvar auctionSSE;\n\n\t\tfunction connectAuctions() {\n\t\t\tif (auctionSSE) {\n\t\t\t\tauctionSSE.close();\n\t\t\t\tauctionSSE = null;\n\t\t\t}\n\t\t\tvar statusEl = document.getElementById('sse-status');\n\n\t\t\tauctionSSE = new EventSource('/sse/auction');\n\t\t\tauctionSSE.onopen = function() {\n\t\t\t\tif (statusEl) {\n\t\t\t\t\tstatusEl.textContent = 'connected';\n\t\t\t\t\tstatusEl.classList.remove('badge-ghost', 'badge-error');\n\t\t\t\t\tstatusEl.classList.add('badge-success');\n\t\t\t\t}\n\t\t\t};\n\t\t\tauctionSSE.onerror = function() {\n\t\t\t\tif (statusEl) {\n\t\t\t\t\tstatusEl.textContent = 'disconnected';\n\t\t\t\t\tstatusEl.classList.remove('badge-success');\n\t\t\t\t\tstatusEl.classList.add('badge-error');\n\t\t\t\t}\n\t\t\t};\n\n\t\t\t// Listen for auction topic events. The SSE event type is the topic\n\t\t\t// name (e.g. \"auction/item-3\"). We listen on all 8 possible topics.\n\t\t\tfor (var i = 1; i <= 8; i++) {\n\t\t\t\t(function(id) {\n\t\t\t\t\tvar topic = 'auction/item-' + id;\n\t\t\t\t\tauctionSSE.addEventListener(topic, function(e) {\n\t\t\t\t\t\tvar inner = document.getElementById('auction-inner-' + id);\n\t\t\t\t\t\tif (!inner) return;\n\n\t\t\t\t\t\t// Parse the incoming HTML and swap inner content.\n\t\t\t\t\t\tvar wrapper = document.createElement('div');\n\t\t\t\t\t\twrapper.innerHTML = e.data.trim();\n\t\t\t\t\t\tvar newEl = wrapper.firstElementChild;\n\t\t\t\t\t\tif (newEl) {\n\t\t\t\t\t\t\tinner.replaceWith(newEl);\n\t\t\t\t\t\t}\n\n\t\t\t\t\t\t// Pulse animation on the card.\n\t\t\t\t\t\tvar card = document.getElementById('auction-card-' + id);\n\t\t\t\t\t\tif (card) {\n\t\t\t\t\t\t\tcard.classList.add('ring', 'ring-primary', 'ring-opacity-50');\n\t\t\t\t\t\t\tsetTimeout(function() {\n\t\t\t\t\t\t\t\tcard.classList.remove('ring', 'ring-primary', 'ring-opacity-50');\n\t\t\t\t\t\t\t}, 600);\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\t\t\t\t})(i);\n\t\t\t}\n\t\t}\n\n\t\t// Called after watch toggle to reconnect with updated cookie.\n\t\tfunction reconnectAuctions() {\n\t\t\t// Small delay to let the cookie settle after the HTMX response.\n\t\t\tsetTimeout(function() { connectAuctions(); }, 100);\n\t\t}\n\n\t\tfunction openBidForm(itemId, currentBidCents) {\n\t\t\tvar form = document.getElementById('bid-form-' + itemId);\n\t\t\tif (form) {\n\t\t\t\tform.classList.remove('hidden');\n\t\t\t\tvar amountInput = form.querySelector('input[name=\"amount\"]');\n\t\t\t\tif (amountInput) {\n\t\t\t\t\tamountInput.min = ((currentBidCents + 1) / 100).toFixed(2);\n\t\t\t\t\tamountInput.placeholder = ((currentBidCents + 100) / 100).toFixed(2);\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\n\t\tfunction closeBidForm(itemId) {\n\t\t\tvar form = document.getElementById('bid-form-' + itemId);\n\t\t\tif (form) {\n\t\t\t\tform.classList.add('hidden');\n\t\t\t}\n\t\t}\n\n\t\t// Connect on page load.\n\t\tconnectAuctions();\n\t</script>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 40, "<script>\n\t\tvar auctionSSE;\n\n\t\tfunction connectAuctions() {\n\t\t\tif (auctionSSE) {\n\t\t\t\tauctionSSE.close();\n\t\t\t\tauctionSSE = null;\n\t\t\t}\n\t\t\tvar statusEl = document.getElementById('sse-status');\n\n\t\t\tauctionSSE = new EventSource('/sse/auction');\n\t\t\tauctionSSE.onopen = function() {\n\t\t\t\tif (statusEl) {\n\t\t\t\t\tstatusEl.textContent = 'connected';\n\t\t\t\t\tstatusEl.classList.remove('badge-ghost', 'badge-error');\n\t\t\t\t\tstatusEl.classList.add('badge-success');\n\t\t\t\t}\n\t\t\t};\n\t\t\tauctionSSE.onerror = function() {\n\t\t\t\tif (statusEl) {\n\t\t\t\t\tstatusEl.textContent = 'disconnected';\n\t\t\t\t\tstatusEl.classList.remove('badge-success');\n\t\t\t\t\tstatusEl.classList.add('badge-error');\n\t\t\t\t}\n\t\t\t};\n\n\t\t\t// Listen for auction topic events. The SSE event type is the topic\n\t\t\t// name (e.g. \"auction/item-3\"). We listen on all 8 possible topics.\n\t\t\tfor (var i = 1; i <= 8; i++) {\n\t\t\t\t(function(id) {\n\t\t\t\t\tvar topic = 'auction/item-' + id;\n\t\t\t\t\tauctionSSE.addEventListener(topic, function(e) {\n\t\t\t\t\t\tvar inner = document.getElementById('auction-inner-' + id);\n\t\t\t\t\t\tif (!inner) return;\n\n\t\t\t\t\t\t// Parse the incoming HTML and swap inner content.\n\t\t\t\t\t\tvar wrapper = document.createElement('div');\n\t\t\t\t\t\twrapper.innerHTML = e.data.trim();\n\t\t\t\t\t\tvar newEl = wrapper.firstElementChild;\n\t\t\t\t\t\tif (newEl) {\n\t\t\t\t\t\t\tinner.replaceWith(newEl);\n\t\t\t\t\t\t}\n\n\t\t\t\t\t\t// Pulse animation on the card.\n\t\t\t\t\t\tvar card = document.getElementById('auction-card-' + id);\n\t\t\t\t\t\tif (card) {\n\t\t\t\t\t\t\tcard.classList.add('ring', 'ring-primary', 'ring-opacity-50');\n\t\t\t\t\t\t\tsetTimeout(function() {\n\t\t\t\t\t\t\t\tcard.classList.remove('ring', 'ring-primary', 'ring-opacity-50');\n\t\t\t\t\t\t\t}, 600);\n\t\t\t\t\t\t}\n\t\t\t\t\t});\n\t\t\t\t})(i);\n\t\t\t}\n\t\t}\n\n\t\t// Called after watch toggle to reconnect with updated cookie.\n\t\tfunction reconnectAuctions() {\n\t\t\t// Small delay to let the cookie settle after the HTMX response.\n\t\t\tsetTimeout(function() { connectAuctions(); }, 100);\n\t\t}\n\n\t\tfunction openBidForm(itemId, currentBidCents) {\n\t\t\tvar form = document.getElementById('bid-form-' + itemId);\n\t\t\tif (form) {\n\t\t\t\tform.classList.remove('hidden');\n\t\t\t\tvar amountInput = form.querySelector('input[name=\"amount\"]');\n\t\t\t\tif (amountInput) {\n\t\t\t\t\tamountInput.min = ((currentBidCents + 1) / 100).toFixed(2);\n\t\t\t\t\tamountInput.placeholder = ((currentBidCents + 100) / 100).toFixed(2);\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\n\t\tfunction closeBidForm(itemId) {\n\t\t\tvar form = document.getElementById('bid-form-' + itemId);\n\t\t\tif (form) {\n\t\t\t\tform.classList.add('hidden');\n\t\t\t}\n\t\t}\n\n\t\t// Intercept bid form responses: on 4xx, suppress the swap and show\n\t\t// the error inline so the form is preserved.\n\t\tfunction handleBidResponse(evt) {\n\t\t\tvar xhr = evt.detail.xhr;\n\t\t\tvar form = evt.detail.elt;\n\t\t\tvar errEl = form && form.querySelector('[data-bid-error]');\n\t\t\tif (xhr.status >= 400) {\n\t\t\t\tevt.detail.shouldSwap = false;\n\t\t\t\tif (errEl) {\n\t\t\t\t\terrEl.textContent = xhr.responseText || 'Bid failed';\n\t\t\t\t\terrEl.classList.remove('hidden');\n\t\t\t\t}\n\t\t\t\treturn;\n\t\t\t}\n\t\t\tif (errEl) {\n\t\t\t\terrEl.textContent = '';\n\t\t\t\terrEl.classList.add('hidden');\n\t\t\t}\n\t\t}\n\n\t\t// Connect on page load.\n\t\tconnectAuctions();\n\t</script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

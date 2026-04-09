@@ -114,41 +114,46 @@ templ AuctionWatchButton(item demo.AuctionItem, isWatched bool) {
 
 templ auctionBidForm(item demo.AuctionItem) {
 	<form
-		class="flex items-end gap-2 mt-2"
+		class="mt-2 space-y-1"
+		data-item-id={ strconv.Itoa(item.ID) }
 		hx-post="/realtime/auction/bid"
 		hx-target={ fmt.Sprintf("#auction-inner-%d", item.ID) }
 		hx-swap="outerHTML"
+		hx-on::before-swap="handleBidResponse(event)"
 	>
-		<input type="hidden" name="item_id" value={ strconv.Itoa(item.ID) }/>
-		<div class="form-control flex-1">
-			<label class="label py-0">
-				<span class="label-text text-xs">Your name</span>
-			</label>
-			<input
-				type="text"
-				name="bidder"
-				placeholder="Anonymous"
-				class="input input-xs input-bordered w-full"
-			/>
+		<div class="flex items-end gap-2">
+			<input type="hidden" name="item_id" value={ strconv.Itoa(item.ID) }/>
+			<div class="form-control flex-1">
+				<label class="label py-0">
+					<span class="label-text text-xs">Your name</span>
+				</label>
+				<input
+					type="text"
+					name="bidder"
+					placeholder="Anonymous"
+					class="input input-xs input-bordered w-full"
+				/>
+			</div>
+			<div class="form-control flex-1">
+				<label class="label py-0">
+					<span class="label-text text-xs">Amount ($)</span>
+				</label>
+				<input
+					type="number"
+					name="amount"
+					step="0.01"
+					min={ fmt.Sprintf("%.2f", float64(item.CurrentBid+1)/100) }
+					placeholder={ fmt.Sprintf("%.2f", float64(item.CurrentBid+100)/100) }
+					class="input input-xs input-bordered w-full tabular-nums"
+					required
+				/>
+			</div>
+			<button type="submit" class="btn btn-primary btn-xs">Place</button>
+			<button type="button" class="btn btn-ghost btn-xs" data-item-id={ strconv.Itoa(item.ID) } onclick="closeBidForm(+this.dataset.itemId)">
+				&times;
+			</button>
 		</div>
-		<div class="form-control flex-1">
-			<label class="label py-0">
-				<span class="label-text text-xs">Amount ($)</span>
-			</label>
-			<input
-				type="number"
-				name="amount"
-				step="0.01"
-				min={ fmt.Sprintf("%.2f", float64(item.CurrentBid+1)/100) }
-				placeholder={ fmt.Sprintf("%.2f", float64(item.CurrentBid+100)/100) }
-				class="input input-xs input-bordered w-full tabular-nums"
-				required
-			/>
-		</div>
-		<button type="submit" class="btn btn-primary btn-xs">Place</button>
-		<button type="button" class="btn btn-ghost btn-xs" data-item-id={ strconv.Itoa(item.ID) } onclick="closeBidForm(+this.dataset.itemId)">
-			&times;
-		</button>
+		<p data-bid-error class="hidden text-xs text-error mt-1"></p>
 	</form>
 }
 
@@ -231,6 +236,26 @@ templ auctionScript() {
 			var form = document.getElementById('bid-form-' + itemId);
 			if (form) {
 				form.classList.add('hidden');
+			}
+		}
+
+		// Intercept bid form responses: on 4xx, suppress the swap and show
+		// the error inline so the form is preserved.
+		function handleBidResponse(evt) {
+			var xhr = evt.detail.xhr;
+			var form = evt.detail.elt;
+			var errEl = form && form.querySelector('[data-bid-error]');
+			if (xhr.status >= 400) {
+				evt.detail.shouldSwap = false;
+				if (errEl) {
+					errEl.textContent = xhr.responseText || 'Bid failed';
+					errEl.classList.remove('hidden');
+				}
+				return;
+			}
+			if (errEl) {
+				errEl.textContent = '';
+				errEl.classList.add('hidden');
 			}
 		}
 
