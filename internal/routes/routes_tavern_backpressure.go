@@ -15,7 +15,6 @@ import (
 
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
-	"catgoose/dothog/internal/shared"
 	"catgoose/dothog/web/views"
 
 	"github.com/catgoose/tavern"
@@ -240,39 +239,19 @@ func bpTierNameFromInt(tier int) string {
 }
 
 func renderBPMetrics(data views.TavernBackpressureData) string {
-	buf := &bytes.Buffer{}
-	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render bp metrics")
-	if err := views.TavernBackpressureMetrics(data).Render(ctx, buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render bp metrics", views.TavernBackpressureMetrics(data))
 }
 
 func renderBPTierLog(data views.TavernBackpressureData) string {
-	buf := &bytes.Buffer{}
-	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render bp tier log")
-	if err := views.TavernBackpressureTierLog(data).Render(ctx, buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render bp tier log", views.TavernBackpressureTierLog(data))
 }
 
 func renderBPStreamEvent(topic, message string, simplified bool) string {
-	buf := &bytes.Buffer{}
-	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render bp stream event")
-	if err := views.BackpressureStreamEvent(topic, message, simplified).Render(ctx, buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render bp stream event", views.BackpressureStreamEvent(topic, message, simplified))
 }
 
 func renderBPTierBadge(tierName string) string {
-	buf := &bytes.Buffer{}
-	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render bp tier badge")
-	if err := views.BackpressureTierBadge(tierName).Render(ctx, buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render bp tier badge", views.BackpressureTierBadge(tierName))
 }
 
 func bpTierExplanation(tierName string) string {

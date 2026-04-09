@@ -3,7 +3,6 @@
 package routes
 
 import (
-	"bytes"
 	"context"
 	crand "crypto/rand"
 	"encoding/hex"
@@ -17,7 +16,6 @@ import (
 
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
-	"catgoose/dothog/internal/shared"
 	"catgoose/dothog/web/views"
 
 	"github.com/catgoose/tavern"
@@ -290,21 +288,11 @@ func (n *notificationRoutes) startSimulator(ctx context.Context) {
 }
 
 func renderNotifItemHTML(id string, cat demo.NotificationCategory, message, timestamp string) string {
-	buf := &bytes.Buffer{}
-	cmp := views.NotificationItem(id, cat, message, timestamp)
-	if err := cmp.Render(shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render notification"), buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render notification", views.NotificationItem(id, cat, message, timestamp))
 }
 
 func renderPresenceHTML(users []views.NotifPresenceUser, currentUserID string) string {
-	buf := &bytes.Buffer{}
-	cmp := views.PresenceList(users, currentUserID)
-	if err := cmp.Render(shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render presence"), buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render presence", views.PresenceList(users, currentUserID))
 }
 
 // notifUserTopic returns a per-user notification topic so that publish, subscribe,

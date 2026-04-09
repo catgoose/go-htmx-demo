@@ -3,7 +3,6 @@
 package routes
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"math/rand/v2"
@@ -12,7 +11,6 @@ import (
 	"time"
 
 	"catgoose/dothog/internal/routes/handler"
-	"catgoose/dothog/internal/shared"
 	"catgoose/dothog/web/views"
 
 	appenv "catgoose/dothog/internal/env"
@@ -262,10 +260,5 @@ func (s *tavernSubsRoutes) startPublisher(ctx context.Context) {
 }
 
 func renderSubsEvent(topic, message, timestamp string) string {
-	buf := &bytes.Buffer{}
-	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render subs event")
-	if err := views.SubsEventEntry(topic, message, timestamp).Render(ctx, buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render subs event", views.SubsEventEntry(topic, message, timestamp))
 }

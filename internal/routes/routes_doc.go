@@ -3,15 +3,12 @@
 package routes
 
 import (
-	"bytes"
-	"context"
 	"fmt"
 	"net/http"
 	"sync/atomic"
 
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
-	"catgoose/dothog/internal/shared"
 	"catgoose/dothog/web/views"
 
 	"github.com/catgoose/tavern"
@@ -131,39 +128,19 @@ func (d *docRoutes) handleStatsBadge(c echo.Context) error {
 // --- render helpers ---
 
 func renderDocContent(doc *demo.SharedDocument) string {
-	buf := &bytes.Buffer{}
-	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render doc content")
-	if err := views.DocContentDisplay(doc.Content()).Render(ctx, buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render doc content", views.DocContentDisplay(doc.Content()))
 }
 
 func renderDocStats(doc *demo.SharedDocument) string {
-	buf := &bytes.Buffer{}
-	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render doc stats")
-	if err := views.DocStatsPanel(doc.WordCount(), doc.CharCount()).Render(ctx, buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render doc stats", views.DocStatsPanel(doc.WordCount(), doc.CharCount()))
 }
 
 func renderDocSentiment(doc *demo.SharedDocument) string {
-	buf := &bytes.Buffer{}
-	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render doc sentiment")
-	if err := views.DocSentimentBadge(doc.Sentiment()).Render(ctx, buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render doc sentiment", views.DocSentimentBadge(doc.Sentiment()))
 }
 
 func renderDocHistory(doc *demo.SharedDocument) string {
-	buf := &bytes.Buffer{}
-	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render doc history")
-	if err := views.DocHistoryList(doc.Revisions()).Render(ctx, buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render doc history", views.DocHistoryList(doc.Revisions()))
 }
 
 func formatBytes(b int64) string {
