@@ -15,7 +15,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	appenv "catgoose/dothog/internal/env"
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
 	"catgoose/dothog/internal/shared"
@@ -25,8 +24,6 @@ import (
 	"github.com/catgoose/tavern/presence"
 	"github.com/labstack/echo/v4"
 )
-
-const notifCookie = "notif_identity"
 
 type notificationRoutes struct {
 	broker   *tavern.SSEBroker
@@ -95,39 +92,21 @@ func (ar *appRoutes) initNotificationsRoutes(broker *tavern.SSEBroker) {
 }
 
 func (n *notificationRoutes) handlePage(c echo.Context) error {
-	identity := getOrCreateNotifIdentity(c)
-	filters := n.filters.EnabledCategories(identity.ID)
-	state := views.NotifSimulatorState{
-		Paused:   n.paused.Load(),
-		MinDelay: time.Duration(n.minDelay.Load()),
-		MaxDelay: time.Duration(n.maxDelay.Load()),
-	}
-	return handler.RenderBaseLayout(c, views.NotificationsPage(identity, filters, state))
+	identity := resolveNotifIdentity(c.QueryParam("identity"))
+	return handler.RenderBaseLayout(c, views.NotificationsPage(identity, n.filters.EnabledCategories(identity.ID), n.simState()))
 }
 
 func (n *notificationRoutes) handleIdentitySwitch(c echo.Context) error {
-	id := c.FormValue("identity")
-	idx := demo.IdentityIndexByID(id)
-	if idx < 0 {
-		return c.String(http.StatusBadRequest, "unknown identity")
-	}
-	c.SetCookie(&http.Cookie{
-		Name:     notifCookie,
-		Value:    fmt.Sprintf("%d", idx),
-		Path:     "/",
-		MaxAge:   86400 * 30,
-		HttpOnly: true,
-		Secure:   !appenv.Dev(),
-		SameSite: http.SameSiteLaxMode,
-	})
-	identity := demo.AssignIdentity(idx)
-	filters := n.filters.EnabledCategories(identity.ID)
-	state := views.NotifSimulatorState{
+	identity := resolveNotifIdentity(c.FormValue("identity"))
+	return handler.RenderComponent(c, views.NotificationsPage(identity, n.filters.EnabledCategories(identity.ID), n.simState()))
+}
+
+func (n *notificationRoutes) simState() views.NotifSimulatorState {
+	return views.NotifSimulatorState{
 		Paused:   n.paused.Load(),
 		MinDelay: time.Duration(n.minDelay.Load()),
 		MaxDelay: time.Duration(n.maxDelay.Load()),
 	}
-	return handler.RenderComponent(c, views.NotificationsPage(identity, filters, state))
 }
 
 func (n *notificationRoutes) handleSimulatorPause(c echo.Context) error {
@@ -158,7 +137,7 @@ func (n *notificationRoutes) handleSimulatorSpeed(c echo.Context) error {
 }
 
 func (n *notificationRoutes) handleSSE(c echo.Context) error {
-	identity := getOrCreateNotifIdentity(c)
+	identity := resolveNotifIdentity(c.QueryParam("identity"))
 
 	c.Response().Header().Set("Content-Type", "text/event-stream")
 	c.Response().Header().Set("Cache-Control", "no-cache")
@@ -247,7 +226,7 @@ func (n *notificationRoutes) handleSSE(c echo.Context) error {
 }
 
 func (n *notificationRoutes) handleFilterUpdate(c echo.Context) error {
-	identity := getOrCreateNotifIdentity(c)
+	identity := resolveNotifIdentity(c.FormValue("identity"))
 	cat := demo.NotificationCategory(c.FormValue("category"))
 	enabled := c.FormValue("enabled") == "true"
 	n.filters.SetFilter(identity.ID, cat, enabled)
@@ -334,23 +313,13 @@ func notifUserTopic(userID string) string {
 	return TopicNotifications + "-" + userID
 }
 
-func getOrCreateNotifIdentity(c echo.Context) demo.NotificationIdentity {
-	if cookie, err := c.Cookie(notifCookie); err == nil && cookie.Value != "" {
-		// Parse index from cookie value
-		var idx int
-		if _, err := fmt.Sscanf(cookie.Value, "%d", &idx); err == nil {
+// resolveNotifIdentity returns the identity matching the given ID, or the
+// first identity in the pool if id is empty or unknown.
+func resolveNotifIdentity(id string) demo.NotificationIdentity {
+	if id != "" {
+		if idx := demo.IdentityIndexByID(id); idx >= 0 {
 			return demo.AssignIdentity(idx)
 		}
 	}
-	idx := demo.RandomIdentityIndex()
-	c.SetCookie(&http.Cookie{
-		Name:     notifCookie,
-		Value:    fmt.Sprintf("%d", idx),
-		Path:     "/",
-		MaxAge:   86400 * 30,
-		HttpOnly: true,
-		Secure:   !appenv.Dev(),
-		SameSite: http.SameSiteLaxMode,
-	})
-	return demo.AssignIdentity(idx)
+	return demo.AssignIdentity(0)
 }

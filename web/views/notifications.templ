@@ -115,7 +115,7 @@ templ NotificationsPage(identity demo.NotificationIdentity, filters map[demo.Not
 				<div
 					id="notifications-container"
 					hx-ext="sse"
-					sse-connect="/sse/notifications"
+					sse-connect={ "/sse/notifications?identity=" + identity.ID }
 					data-tavern-role="scoped"
 					data-tavern-scope="notifications"
 					data-tavern-reconnecting-class="opacity-50 pointer-events-none"
@@ -166,7 +166,7 @@ templ NotificationsPage(identity demo.NotificationIdentity, filters map[demo.Not
 									class="toggle toggle-xs toggle-primary"
 									checked?={ filters[cat] }
 									hx-post="/realtime/notifications/filter"
-									hx-vals={ fmt.Sprintf(`{"category":"%s"}`, string(cat)) }
+									hx-vals={ fmt.Sprintf(`{"category":"%s","identity":"%s"}`, string(cat), identity.ID) }
 									hx-swap="none"
 									hx-on::before-request="event.detail.parameters = event.detail.parameters || {}; event.detail.parameters.enabled = this.checked ? 'true' : 'false'"
 								/>
