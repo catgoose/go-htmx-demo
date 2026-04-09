@@ -240,10 +240,10 @@ templ auctionScript() {
 
 		// Bid form uses hx-swap="none" so we never depend on the auction-inner
 		// element existing at response time (it can be replaced by SSE updates
-		// mid-request, which would otherwise produce htmx:targetError). The
-		// server publishes the new card via SSE before returning, so the DOM
-		// updates through that path. Here we just show inline errors or close
-		// the form on success.
+		// mid-request, which would otherwise produce htmx:targetError). On
+		// success we apply the server's response HTML directly to the card —
+		// the SSE delivery only reaches subscribers of watched items, so the
+		// bidder may not get the SSE event for the item they just bid on.
 		function handleBidResponse(evt) {
 			var xhr = evt.detail.xhr;
 			var form = evt.detail.elt;
@@ -256,13 +256,22 @@ templ auctionScript() {
 				}
 				return;
 			}
-			// Success: clear error and close the bid form.
+			// Success: apply the new card HTML, clear error, close form.
+			var itemId = form.getAttribute('data-item-id');
+			if (itemId) {
+				var inner = document.getElementById('auction-inner-' + itemId);
+				if (inner && xhr.responseText) {
+					var wrapper = document.createElement('div');
+					wrapper.innerHTML = xhr.responseText.trim();
+					var newEl = wrapper.firstElementChild;
+					if (newEl) inner.replaceWith(newEl);
+				}
+				closeBidForm(+itemId);
+			}
 			if (errEl) {
 				errEl.textContent = '';
 				errEl.classList.add('hidden');
 			}
-			var itemId = form.getAttribute('data-item-id');
-			if (itemId) closeBidForm(+itemId);
 			form.reset();
 		}
 
