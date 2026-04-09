@@ -56,6 +56,10 @@ func TavernIndexPage() templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
+		templ_7745c5c3_Err = adminResourceCard("/realtime/tavern/recovery", "Recovery Lab", "One connection, three regions, three recovery strategies. Disconnect to see replay vs snapshot vs live.", "M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
 		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 2, "</div></div><div class=\"space-y-2\"><h2 class=\"text-sm font-semibold uppercase tracking-wider text-base-content/50\">See Also</h2><p class=\"text-xs text-base-content/40\">Existing demos that exercise Tavern features in realistic contexts.</p><div class=\"grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
