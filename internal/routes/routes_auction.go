@@ -3,7 +3,6 @@
 package routes
 
 import (
-	"bytes"
 	"context"
 	"fmt"
 	"math/rand/v2"
@@ -16,7 +15,6 @@ import (
 	appenv "catgoose/dothog/internal/env"
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
-	"catgoose/dothog/internal/shared"
 	"catgoose/dothog/web/views"
 
 	"github.com/catgoose/tavern"
@@ -118,12 +116,11 @@ func (a *auctionRoutes) handleWatchToggle(c echo.Context) error {
 		return c.String(http.StatusNotFound, "item not found")
 	}
 	nowWatched := !isWatched
-	buf := &bytes.Buffer{}
-	cmp := views.AuctionWatchButton(item, nowWatched)
-	if err := cmp.Render(shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render watch button"), buf); err != nil {
+	html := renderToString("render watch button", views.AuctionWatchButton(item, nowWatched))
+	if html == "" {
 		return c.String(http.StatusInternalServerError, "render error")
 	}
-	return c.HTML(http.StatusOK, buf.String())
+	return c.HTML(http.StatusOK, html)
 }
 
 func (a *auctionRoutes) startBotBidder(ctx context.Context) {
@@ -221,10 +218,5 @@ func (a *auctionRoutes) setWatchCookie(c echo.Context, watched map[int]bool) {
 }
 
 func renderAuctionCardUpdateHTML(item demo.AuctionItem) string {
-	buf := &bytes.Buffer{}
-	cmp := views.AuctionCardUpdate(item)
-	if err := cmp.Render(shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render auction card"), buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render auction card", views.AuctionCardUpdate(item))
 }

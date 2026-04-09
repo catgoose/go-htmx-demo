@@ -11,7 +11,6 @@ import (
 
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
-	"catgoose/dothog/internal/shared"
 	"catgoose/dothog/web/views"
 
 	"github.com/catgoose/tavern"
@@ -145,11 +144,5 @@ func (s *sensorRoutes) startPublisher(ctx context.Context) {
 }
 
 func (s *sensorRoutes) renderSensorCard(r demo.SensorReading) string {
-	history := s.grid.History(r.Topic)
-	buf := &bytes.Buffer{}
-	cmp := views.SensorCard(r, history)
-	if err := cmp.Render(shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render sensor card"), buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render sensor card", views.SensorCard(r, s.grid.History(r.Topic)))
 }

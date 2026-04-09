@@ -3,8 +3,6 @@
 package routes
 
 import (
-	"bytes"
-	"context"
 	"fmt"
 	"net/http"
 	"strings"
@@ -12,7 +10,6 @@ import (
 
 	"catgoose/dothog/internal/demo"
 	"catgoose/dothog/internal/routes/handler"
-	"catgoose/dothog/internal/shared"
 	"catgoose/dothog/web/views"
 
 	"github.com/catgoose/tavern"
@@ -163,37 +160,17 @@ func computeDerived(source string) string {
 }
 
 func renderHooksSource(source string) string {
-	buf := &bytes.Buffer{}
-	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render hooks source")
-	if err := views.HooksSourceDisplay(source).Render(ctx, buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render hooks source", views.HooksSourceDisplay(source))
 }
 
 func renderHooksDerived(derived string) string {
-	buf := &bytes.Buffer{}
-	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render hooks derived")
-	if err := views.HooksDerivedDisplay(derived).Render(ctx, buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render hooks derived", views.HooksDerivedDisplay(derived))
 }
 
 func renderHooksLog(events []demo.HookEvent) string {
-	buf := &bytes.Buffer{}
-	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render hooks log")
-	if err := views.HooksLogEntries(events).Render(ctx, buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render hooks log", views.HooksLogEntries(events))
 }
 
 func renderHooksStats(count, byteCount int64) string {
-	buf := &bytes.Buffer{}
-	ctx := shared.WithContextIDAndDescription(context.Background(), shared.GenerateContextID(), "render hooks stats")
-	if err := views.HooksStatsDisplay(count, byteCount).Render(ctx, buf); err != nil {
-		return ""
-	}
-	return buf.String()
+	return renderToString("render hooks stats", views.HooksStatsDisplay(count, byteCount))
 }
