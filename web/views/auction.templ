@@ -117,9 +117,8 @@ templ auctionBidForm(item demo.AuctionItem) {
 		class="mt-2 space-y-1"
 		data-item-id={ strconv.Itoa(item.ID) }
 		hx-post="/realtime/auction/bid"
-		hx-target={ fmt.Sprintf("#auction-inner-%d", item.ID) }
-		hx-swap="outerHTML"
-		hx-on::before-swap="handleBidResponse(event)"
+		hx-swap="none"
+		hx-on::after-request="handleBidResponse(event)"
 	>
 		<div class="flex items-end gap-2">
 			<input type="hidden" name="item_id" value={ strconv.Itoa(item.ID) }/>
@@ -239,24 +238,32 @@ templ auctionScript() {
 			}
 		}
 
-		// Intercept bid form responses: on 4xx, suppress the swap and show
-		// the error inline so the form is preserved.
+		// Bid form uses hx-swap="none" so we never depend on the auction-inner
+		// element existing at response time (it can be replaced by SSE updates
+		// mid-request, which would otherwise produce htmx:targetError). The
+		// server publishes the new card via SSE before returning, so the DOM
+		// updates through that path. Here we just show inline errors or close
+		// the form on success.
 		function handleBidResponse(evt) {
 			var xhr = evt.detail.xhr;
 			var form = evt.detail.elt;
 			var errEl = form && form.querySelector('[data-bid-error]');
+			if (!xhr || !form) return;
 			if (xhr.status >= 400) {
-				evt.detail.shouldSwap = false;
 				if (errEl) {
 					errEl.textContent = xhr.responseText || 'Bid failed';
 					errEl.classList.remove('hidden');
 				}
 				return;
 			}
+			// Success: clear error and close the bid form.
 			if (errEl) {
 				errEl.textContent = '';
 				errEl.classList.add('hidden');
 			}
+			var itemId = form.getAttribute('data-item-id');
+			if (itemId) closeBidForm(+itemId);
+			form.reset();
 		}
 
 		// Connect on page load.
