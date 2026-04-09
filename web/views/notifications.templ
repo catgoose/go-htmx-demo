@@ -81,13 +81,15 @@ templ NotificationsPage(identity demo.NotificationIdentity, filters map[demo.Not
 					Pause
 				}
 			</button>
-			<div class="join">
+			<div class="join" data-sim-speed-group>
 				for _, speed := range []string{"slow", "normal", "fast", "flood"} {
 					<button
-						class="btn btn-xs btn-outline join-item"
+						class={ "btn btn-xs btn-outline join-item", templ.KV("btn-active btn-primary", speed == notifActiveSpeed(sim)) }
+						data-speed={ speed }
 						hx-post="/realtime/notifications/simulator/speed"
 						hx-vals={ fmt.Sprintf(`{"speed":"%s"}`, speed) }
 						hx-swap="none"
+						onclick="notifSetActiveSpeed(this)"
 					>
 						{ speed }
 					</button>
@@ -206,6 +208,16 @@ templ notificationsScript() {
 			}
 		});
 
+		// Toggle active class on speed preset buttons.
+		function notifSetActiveSpeed(btn) {
+			const group = btn.closest('[data-sim-speed-group]');
+			if (!group) return;
+			group.querySelectorAll('button').forEach(function(b) {
+				b.classList.remove('btn-active', 'btn-primary');
+			});
+			btn.classList.add('btn-active', 'btn-primary');
+		}
+
 		// Scoped stream lifecycle: promote when ready, retire on teardown.
 		(function() {
 			var container = document.getElementById('notifications-container');
@@ -247,6 +259,24 @@ templ PresenceList(users []NotifPresenceUser, currentUserID string) {
 			}
 		</div>
 	}
+}
+
+// notifActiveSpeed maps the current min/max delay back to a preset name.
+// Returns "" if it doesn't match a known preset (e.g. user-customized).
+func notifActiveSpeed(sim NotifSimulatorState) string {
+	minMs := sim.MinDelay.Milliseconds()
+	maxMs := sim.MaxDelay.Milliseconds()
+	switch {
+	case minMs == 5000 && maxMs == 10000:
+		return "slow"
+	case minMs == 2000 && maxMs == 5000:
+		return "normal"
+	case minMs == 500 && maxMs == 1500:
+		return "fast"
+	case minMs == 50 && maxMs == 200:
+		return "flood"
+	}
+	return ""
 }
 
 func notifBadgeClass(cat demo.NotificationCategory) string {
