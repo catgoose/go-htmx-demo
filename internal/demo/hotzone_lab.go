@@ -13,28 +13,29 @@ import (
 // HotZoneMode describes how a region handles user commands.
 type HotZoneMode string
 
+// Command delivery modes for hot-zone regions.
 const (
-	HotZoneModeHXPost  HotZoneMode = "hx-post"
-	HotZoneModeTavern  HotZoneMode = "tavern-command"
+	HotZoneModeHXPost HotZoneMode = "hx-post"
+	HotZoneModeTavern HotZoneMode = "tavern-command"
 )
 
 // HotZoneRegion is a single independently-updating UI region.
 type HotZoneRegion struct {
-	ID           int
+	LastUpdate   time.Time
 	Label        string
 	Counter      int64 // number of SSE updates published
-	LastUpdate   time.Time
+	ID           int
 	PayloadRunes int // how many filler runes per update
 }
 
 // HotZoneSettings holds operator-controlled simulation parameters.
 type HotZoneSettings struct {
+	CommandMode      HotZoneMode // which interaction pattern the UI uses
 	UpdateIntervalMS int         // ms between ticks (50–5000)
 	RegionCount      int         // how many regions to show (1–6)
 	PayloadSize      int         // filler chars per region update (10–2000)
-	BurstMode        bool        // burst: publish all regions every tick
 	FocusedRegion    int         // 0 = random, 1–6 = only update that region
-	CommandMode      HotZoneMode // which interaction pattern the UI uses
+	BurstMode        bool        // burst: publish all regions every tick
 }
 
 // HotZoneCommandStat tracks command delivery metrics per mode.
@@ -47,18 +48,17 @@ type HotZoneCommandStat struct {
 
 // HotZoneLab wraps the shared state for the hot-zone stress surface.
 type HotZoneLab struct {
-	regions  [6]HotZoneRegion
-	settings HotZoneSettings
-	activity []HotZoneActivity
-	mu       sync.RWMutex
-	paused   bool
-
-	hxSent      atomic.Int64
-	hxOK        atomic.Int64
-	hxFail      atomic.Int64
-	tavernSent  atomic.Int64
-	tavernOK    atomic.Int64
-	tavernFail  atomic.Int64
+	activity   []HotZoneActivity
+	regions    [6]HotZoneRegion
+	settings   HotZoneSettings
+	hxSent     atomic.Int64
+	hxOK       atomic.Int64
+	hxFail     atomic.Int64
+	tavernSent atomic.Int64
+	tavernOK   atomic.Int64
+	tavernFail atomic.Int64
+	mu         sync.RWMutex
+	paused     bool
 }
 
 // HotZoneActivity records one action in the activity log.
