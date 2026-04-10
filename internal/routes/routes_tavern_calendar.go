@@ -296,7 +296,7 @@ func (r *tavernCalendarRoutes) renderDayFrame() string {
 	}
 	events := r.lab.Store.EventsForDay(selected)
 	return tavern.NewSSEMessage("cal-day",
-		renderToString("cal-lab day", views.CalendarLabDay(selected, events, settings)),
+		renderToString("cal-lab day events", views.CalendarLabDayEvents(selected, events, settings)),
 	).String()
 }
 
