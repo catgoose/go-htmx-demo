@@ -37,17 +37,35 @@ templ TavernCalendarPage(data CalendarLabData) {
 			function calLabDeselect(e) {
 				if (e.target.closest('#cal-lab-month') || e.target.closest('#cal-lab-day-events') || e.target.closest('.card-body')) return;
 				document.querySelectorAll('[data-cal-cell]').forEach(function(el) { el.classList.remove('ring-2', 'ring-accent'); });
-				fetch('/realtime/tavern/calendar/day/deselect', {method:'POST'});
+				Tavern.command('/realtime/tavern/calendar/day/deselect');
 			}
-			// Delegated click — uses fetch() directly, no DOM/htmx dependency.
-			// Immune to SSE innerHTML swaps destroying the click target.
+			// Delegated clicks — uses Tavern.command(), immune to SSE innerHTML
+			// swaps destroying the click target. All interactive elements inside
+			// hot regions use delegation + Tavern.command() instead of hx-post.
 			document.addEventListener('click', function(e) {
+				// Day cell selection
 				var cell = e.target.closest('[data-cal-cell]');
-				if (!cell || !cell.closest('#cal-lab-month')) return;
-				e.stopPropagation();
-				document.querySelectorAll('[data-cal-cell]').forEach(function(el) { el.classList.remove('ring-2', 'ring-accent'); });
-				cell.classList.add('ring-2', 'ring-accent');
-				fetch('/realtime/tavern/calendar/day?d=' + cell.dataset.calCell, {method:'POST'});
+				if (cell && cell.closest('#cal-lab-month')) {
+					e.stopPropagation();
+					document.querySelectorAll('[data-cal-cell]').forEach(function(el) { el.classList.remove('ring-2', 'ring-accent'); });
+					cell.classList.add('ring-2', 'ring-accent');
+					Tavern.command('/realtime/tavern/calendar/day?d=' + cell.dataset.calCell);
+					return;
+				}
+				// Month navigation (prev/next)
+				var nav = e.target.closest('[data-cal-nav]');
+				if (nav) {
+					e.preventDefault();
+					Tavern.command('/realtime/tavern/calendar/month?dir=' + nav.dataset.calNav);
+					return;
+				}
+				// Delete event
+				var del = e.target.closest('[data-cal-delete]');
+				if (del) {
+					e.preventDefault();
+					Tavern.command('/realtime/tavern/calendar/event/delete?id=' + del.dataset.calDelete);
+					return;
+				}
 			});
 		</script>
 
@@ -114,8 +132,7 @@ templ CalendarLabMonth(data CalendarMonthData, settings demo.CalendarLabSettings
 		<div class="flex items-center justify-between gap-2">
 			<button
 				class="btn btn-xs btn-ghost"
-				hx-post={ fmt.Sprintf("/realtime/tavern/calendar/month?dir=prev") }
-				hx-swap="none"
+				data-cal-nav="prev"
 				aria-label="previous month"
 			>
 				&#9664;
@@ -123,8 +140,7 @@ templ CalendarLabMonth(data CalendarMonthData, settings demo.CalendarLabSettings
 			<h2 class="text-base font-semibold tabular-nums">{ fmt.Sprintf("%s %d", data.Month.String(), data.Year) }</h2>
 			<button
 				class="btn btn-xs btn-ghost"
-				hx-post={ fmt.Sprintf("/realtime/tavern/calendar/month?dir=next") }
-				hx-swap="none"
+				data-cal-nav="next"
 				aria-label="next month"
 			>
 				&#9654;
@@ -356,8 +372,7 @@ templ calLabEventRow(e demo.CalendarEvent, day time.Time) {
 		</div>
 		<button
 			class="btn btn-ghost btn-xs"
-			hx-post={ fmt.Sprintf("/realtime/tavern/calendar/event/delete?id=%d&d=%s", e.ID, day.Format("2006-01-02")) }
-			hx-swap="none"
+			data-cal-delete={ fmt.Sprintf("%d", e.ID) }
 			aria-label="remove event"
 		>
 			&times;
