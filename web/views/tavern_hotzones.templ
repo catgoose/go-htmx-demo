@@ -123,9 +123,9 @@ templ HotZoneLabPage(data HotZoneLabData) {
 templ HotZoneRegionContent(region demo.HotZoneRegion, settings demo.HotZoneSettings) {
 	<figure class="relative">
 		if region.ImagePath != "" {
-			<img src={ region.ImagePath } alt={ region.ImageAlt } class="w-full aspect-square object-cover" loading="lazy"/>
+			<img src={ region.ImagePath } alt={ region.ImageAlt } class="w-full aspect-square object-cover max-h-32" loading="lazy"/>
 		} else {
-			<div class="w-full aspect-square bg-base-300 flex items-center justify-center text-base-content/20 text-xs">no image</div>
+			<div class="w-full aspect-square bg-base-300 flex items-center justify-center text-base-content/20 text-xs max-h-32">no image</div>
 		}
 		if region.Locked {
 			<div class="absolute top-1 right-1 badge badge-sm badge-warning gap-1 font-mono">locked</div>
