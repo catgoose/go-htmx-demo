@@ -33,10 +33,18 @@ templ HotZoneLabPage(data HotZoneLabData) {
 			hx-ext="sse"
 			sse-connect="/sse/tavern/hotzones"
 			tavern-reconnecting-class="opacity-60"
+			tavern-stale-class="opacity-40 pointer-events-none"
+			tavern-live-class=""
 			tavern-command-delegate="pointerdown"
 			tavern-command-target="[command-url]"
 			tavern-hot-policy="pause-on-pointerdown"
 		>
+			<div tavern-status-recovering class="hidden text-xs text-warning flex items-center gap-1 py-1 px-2 rounded bg-warning/10 mb-2">
+				<span>&#9888;</span> Reconnecting&hellip;
+			</div>
+			<div tavern-status-stale class="hidden text-xs text-error flex items-center gap-1 py-1 px-2 rounded bg-error/10 mb-2">
+				<span>&#9888;</span> Connection lost — data may be stale.
+			</div>
 			<!-- SSE swap targets (hidden relay elements) -->
 			for _, reg := range data.Regions {
 				<div sse-swap={ fmt.Sprintf("hz-region-%d", reg.ID) } hx-target={ fmt.Sprintf("#hz-region-%d", reg.ID) } hx-swap="innerHTML settle:0 transition:false" style="display:none"></div>
