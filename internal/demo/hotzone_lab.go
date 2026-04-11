@@ -38,12 +38,15 @@ type HotZoneSettings struct {
 	BurstMode        bool        // burst: publish all regions every tick
 }
 
-// HotZoneCommandStat tracks command delivery metrics per mode.
+// HotZoneCommandStat tracks command lifecycle metrics per mode.
+// Client-reported: Dispatched, Succeeded, Failed.
+// Server-reported: Received.
 type HotZoneCommandStat struct {
-	Mode      HotZoneMode
-	Sent      int64
-	Succeeded int64
-	Failed    int64
+	Mode       HotZoneMode
+	Dispatched int64
+	Received   int64
+	Succeeded  int64
+	Failed     int64
 }
 
 // HotZoneLab wraps the shared state for the hot-zone stress surface.
@@ -51,12 +54,14 @@ type HotZoneLab struct {
 	activity   []HotZoneActivity
 	regions    [6]HotZoneRegion
 	settings   HotZoneSettings
-	hxSent     atomic.Int64
-	hxOK       atomic.Int64
-	hxFail     atomic.Int64
-	tavernSent atomic.Int64
-	tavernOK   atomic.Int64
-	tavernFail atomic.Int64
+	hxDispatched     atomic.Int64
+	hxReceived       atomic.Int64
+	hxOK             atomic.Int64
+	hxFail           atomic.Int64
+	tavernDispatched atomic.Int64
+	tavernReceived   atomic.Int64
+	tavernOK         atomic.Int64
+	tavernFail       atomic.Int64
 	mu         sync.RWMutex
 	paused     bool
 }
@@ -194,21 +199,35 @@ func (l *HotZoneLab) Activity() []HotZoneActivity {
 	return out
 }
 
-// RecordCommand records a command attempt for stats.
-func (l *HotZoneLab) RecordCommand(mode HotZoneMode, success bool) {
+// RecordReceived records that the server endpoint handled a command.
+func (l *HotZoneLab) RecordReceived(mode HotZoneMode) {
 	switch mode {
 	case HotZoneModeHXPost:
-		l.hxSent.Add(1)
-		if success {
+		l.hxReceived.Add(1)
+	case HotZoneModeTavern:
+		l.tavernReceived.Add(1)
+	}
+}
+
+// RecordLifecycle records a client-reported command lifecycle event.
+func (l *HotZoneLab) RecordLifecycle(mode HotZoneMode, action string) {
+	switch mode {
+	case HotZoneModeHXPost:
+		switch action {
+		case "dispatched":
+			l.hxDispatched.Add(1)
+		case "succeeded":
 			l.hxOK.Add(1)
-		} else {
+		case "failed":
 			l.hxFail.Add(1)
 		}
 	case HotZoneModeTavern:
-		l.tavernSent.Add(1)
-		if success {
+		switch action {
+		case "dispatched":
+			l.tavernDispatched.Add(1)
+		case "succeeded":
 			l.tavernOK.Add(1)
-		} else {
+		case "failed":
 			l.tavernFail.Add(1)
 		}
 	}
@@ -217,17 +236,19 @@ func (l *HotZoneLab) RecordCommand(mode HotZoneMode, success bool) {
 // CommandStats returns delivery stats for both modes.
 func (l *HotZoneLab) CommandStats() [2]HotZoneCommandStat {
 	return [2]HotZoneCommandStat{
-		{Mode: HotZoneModeHXPost, Sent: l.hxSent.Load(), Succeeded: l.hxOK.Load(), Failed: l.hxFail.Load()},
-		{Mode: HotZoneModeTavern, Sent: l.tavernSent.Load(), Succeeded: l.tavernOK.Load(), Failed: l.tavernFail.Load()},
+		{Mode: HotZoneModeHXPost, Dispatched: l.hxDispatched.Load(), Received: l.hxReceived.Load(), Succeeded: l.hxOK.Load(), Failed: l.hxFail.Load()},
+		{Mode: HotZoneModeTavern, Dispatched: l.tavernDispatched.Load(), Received: l.tavernReceived.Load(), Succeeded: l.tavernOK.Load(), Failed: l.tavernFail.Load()},
 	}
 }
 
 // ResetStats zeroes all command counters.
 func (l *HotZoneLab) ResetStats() {
-	l.hxSent.Store(0)
+	l.hxDispatched.Store(0)
+	l.hxReceived.Store(0)
 	l.hxOK.Store(0)
 	l.hxFail.Store(0)
-	l.tavernSent.Store(0)
+	l.tavernDispatched.Store(0)
+	l.tavernReceived.Store(0)
 	l.tavernOK.Store(0)
 	l.tavernFail.Store(0)
 }
