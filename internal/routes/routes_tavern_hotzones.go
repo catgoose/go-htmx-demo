@@ -46,6 +46,7 @@ func (ar *appRoutes) initTavernHotZoneRoutes(broker *tavern.SSEBroker) {
 	ar.e.POST("/realtime/tavern/hotzones/pause", r.handlePause)
 	ar.e.POST("/realtime/tavern/hotzones/reset", r.handleReset)
 	ar.e.POST("/realtime/tavern/hotzones/command", r.handleCommand)
+	ar.e.POST("/realtime/tavern/hotzones/lifecycle", r.handleLifecycle)
 
 	broker.RunPublisher(ar.ctx, r.startSimulator)
 }
@@ -227,10 +228,34 @@ func (r *tavernHotZoneRoutes) handleCommand(c echo.Context) error {
 		mode = demo.HotZoneModeTavern
 	}
 
-	r.lab.RecordCommand(mode, true)
+	r.lab.RecordReceived(mode)
 	r.lab.RecordActivity(fmt.Sprintf("command via %s → region %d", mode, regionID))
 	r.publishStats()
 	r.publishActivity()
+	return c.NoContent(http.StatusNoContent)
+}
+
+// handleLifecycle receives client-reported command lifecycle events
+// (dispatched, succeeded, failed) so stats track the full lifecycle.
+func (r *tavernHotZoneRoutes) handleLifecycle(c echo.Context) error {
+	action := c.FormValue("action")
+	if action == "" {
+		action = c.QueryParam("action")
+	}
+	mode := demo.HotZoneMode(c.FormValue("mode"))
+	if mode == "" {
+		mode = demo.HotZoneMode(c.QueryParam("mode"))
+	}
+	if mode != demo.HotZoneModeHXPost && mode != demo.HotZoneModeTavern {
+		return c.NoContent(http.StatusBadRequest)
+	}
+	switch action {
+	case "dispatched", "succeeded", "failed":
+		r.lab.RecordLifecycle(mode, action)
+	default:
+		return c.NoContent(http.StatusBadRequest)
+	}
+	r.publishStats()
 	return c.NoContent(http.StatusNoContent)
 }
 
