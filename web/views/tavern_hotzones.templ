@@ -78,7 +78,7 @@ templ HotZoneLabPage(data HotZoneLabData) {
 				<div class="lg:col-span-9">
 					<div class={ hotZoneGridClass(data.Settings.RegionCount) }>
 						for i, reg := range data.Regions {
-							<div class="card bg-base-200 shadow-sm">
+							<div class="card bg-base-200 shadow-sm transition-shadow transition-colors duration-200" data-hz-card={ fmt.Sprintf("%d", reg.ID) }>
 								<div class="card-body p-3">
 									<div class="flex items-center justify-between mb-2">
 										<h3 class="text-xs font-semibold uppercase tracking-wider text-base-content/60">{ reg.Label }</h3>
@@ -408,9 +408,9 @@ templ hotZoneLifecycleScript() {
 		(function() {
 			var container = document.getElementById('hz-lab-container');
 			if (!container) return;
-			var flashTimers = new Map();
-			var flashClass = ['ring-1', 'ring-primary/30'];
-			var flashDuration = 300;
+			var hotTimers = {};
+			var hotClasses = ['ring-1', 'ring-primary/40', 'bg-primary/5'];
+			var cooldownMS = 1000;
 
 			function reportLifecycle(action, mode) {
 				fetch('/realtime/tavern/hotzones/lifecycle?action=' +
@@ -418,20 +418,19 @@ templ hotZoneLifecycleScript() {
 					encodeURIComponent(mode), { method: 'POST' });
 			}
 
-			function flashRegion(target) {
+			// Mark a region card as "hot" — stays lit while updates keep
+			// arriving, cools off after a quiet window.
+			function markHot(target) {
 				if (!target || !target.id || !target.id.startsWith('hz-region-')) return;
-				flashClass.forEach(function(cls) {
-					target.classList.add(cls);
-				});
-				if (flashTimers.has(target.id)) {
-					clearTimeout(flashTimers.get(target.id));
-				}
-				flashTimers.set(target.id, setTimeout(function() {
-					flashClass.forEach(function(cls) {
-						target.classList.remove(cls);
-					});
-					flashTimers.delete(target.id);
-				}, flashDuration));
+				var regionID = target.id.replace('hz-region-', '');
+				var card = document.querySelector('[data-hz-card="' + regionID + '"]');
+				if (!card) return;
+				hotClasses.forEach(function(cls) { card.classList.add(cls); });
+				if (hotTimers[regionID]) clearTimeout(hotTimers[regionID]);
+				hotTimers[regionID] = setTimeout(function() {
+					hotClasses.forEach(function(cls) { card.classList.remove(cls); });
+					delete hotTimers[regionID];
+				}, cooldownMS);
 			}
 
 			// Determine the active command mode from the page controls.
@@ -450,7 +449,7 @@ templ hotZoneLifecycleScript() {
 				reportLifecycle('failed', currentMode());
 			});
 			document.body.addEventListener('htmx:afterSwap', function(evt) {
-				flashRegion(evt.detail && evt.detail.target);
+				markHot(evt.detail && evt.detail.target);
 			});
 		})();
 	</script>
