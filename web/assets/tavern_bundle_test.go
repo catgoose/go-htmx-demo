@@ -47,13 +47,28 @@ func TestTavernBundleContract(t *testing.T) {
 	// Must contain event names the app dispatches/listens for.
 	// These are stable CustomEvent names baked into the bundle (tavern: prefix).
 	requiredEvents := []string{
-		"tavern:reconnected",
-		"tavern:replay-gap",
+		// Lifecycle (used by Toast Lab, Recovery Lab, Calendar Lab)
 		"tavern:disconnected",
-		"tavern:policy-activated",
-		"tavern:policy-deactivated",
+		"tavern:reconnected",
+		"tavern:live",
+		"tavern:recovering",
+		"tavern:stale",
+		"tavern:replay-gap",
+		"tavern:transport-open",
+		"tavern:transport-closed",
+		// Delegated commands (Hot-Zone Lab, Calendar Lab)
+		"tavern:command-sent",
 		"tavern:command-success",
 		"tavern:command-error",
+		// Hot-policy (Hot-Zone Lab, Calendar Lab)
+		"tavern:policy-activated",
+		"tavern:policy-deactivated",
+		// Scoped streams (Toast Lab, Notifications)
+		"tavern:stream-warming",
+		"tavern:stream-ready",
+		"tavern:stream-fallback",
+		"tavern:stream-promoted",
+		"tavern:stream-retired",
 	}
 	for _, evt := range requiredEvents {
 		if !strings.Contains(src, evt) {
