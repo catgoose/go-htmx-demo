@@ -35,6 +35,7 @@ func (ar *appRoutes) initTavernToastRoutes(broker *tavern.SSEBroker) {
 	}
 
 	broker.SetReplayPolicy(topicToastLog, 20)
+	broker.SetReplayPolicy(topicToastEvents, 10)
 
 	ar.e.GET("/realtime/tavern/toasts", r.handlePage)
 	ar.e.GET("/sse/tavern/toasts", r.handleSSE)
@@ -43,6 +44,7 @@ func (ar *appRoutes) initTavernToastRoutes(broker *tavern.SSEBroker) {
 	ar.e.POST("/realtime/tavern/toasts/reset", r.handleReset)
 	ar.e.POST("/realtime/tavern/toasts/emit", r.handleEmit)
 	ar.e.POST("/realtime/tavern/toasts/burst", r.handleBurst)
+	ar.e.POST("/realtime/tavern/toasts/lifecycle", r.handleLifecycle)
 
 	broker.RunPublisher(ar.ctx, r.startSimulator)
 }
@@ -58,7 +60,17 @@ func (r *tavernToastRoutes) handlePage(c echo.Context) error {
 }
 
 func (r *tavernToastRoutes) handleSSE(c echo.Context) error {
-	eventsCh, eventsUnsub := r.broker.Subscribe(topicToastEvents)
+	lastEventID := c.Request().Header.Get("Last-Event-ID")
+
+	// Subscribe to toast events — use replay-aware subscription when the
+	// operator has replay enabled, plain subscribe otherwise.
+	var eventsCh <-chan string
+	var eventsUnsub func()
+	if r.lab.Settings().ReplayRecent && lastEventID != "" {
+		eventsCh, eventsUnsub = r.broker.SubscribeFromIDWith(topicToastEvents, lastEventID)
+	} else {
+		eventsCh, eventsUnsub = r.broker.Subscribe(topicToastEvents)
+	}
 	defer eventsUnsub()
 
 	statsCh, statsUnsub := r.broker.SubscribeWithSnapshot(topicToastStats, func() string {
@@ -66,7 +78,6 @@ func (r *tavernToastRoutes) handleSSE(c echo.Context) error {
 	})
 	defer statsUnsub()
 
-	lastEventID := c.Request().Header.Get("Last-Event-ID")
 	logCh, logUnsub := r.broker.SubscribeFromIDWith(topicToastLog, lastEventID)
 	defer logUnsub()
 
@@ -210,12 +221,33 @@ func (r *tavernToastRoutes) handleBurst(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+// handleLifecycle receives client-side toast lifecycle reports so stats
+// stay accurate. The client POSTs action=displayed|dismissed|dropped.
+func (r *tavernToastRoutes) handleLifecycle(c echo.Context) error {
+	action := c.FormValue("action")
+	if action == "" {
+		action = c.QueryParam("action")
+	}
+	switch action {
+	case "displayed":
+		r.lab.IncrDisplayed()
+	case "dismissed":
+		r.lab.IncrDismissed()
+	case "dropped":
+		r.lab.IncrDropped()
+	default:
+		return c.NoContent(http.StatusBadRequest)
+	}
+	r.publishStats()
+	return c.NoContent(http.StatusNoContent)
+}
+
 // --- publishers ---
 
 func (r *tavernToastRoutes) publishEvent(evt demo.ToastEvent) {
 	data, _ := json.Marshal(evt)
 	msg := tavern.NewSSEMessage("toast-event", string(data)).String()
-	r.broker.Publish(topicToastEvents, msg)
+	r.broker.PublishWithID(topicToastEvents, evt.ID, msg)
 }
 
 func (r *tavernToastRoutes) publishStats() {
