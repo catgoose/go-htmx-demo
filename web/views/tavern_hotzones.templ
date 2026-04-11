@@ -38,8 +38,6 @@ templ HotZoneLabPage(data HotZoneLabData) {
 			tavern-live-class=""
 			tavern-hearth
 			tavern-hot-policy="pause-on-pointerdown"
-			tavern-updated-class="ring-1 ring-primary/30"
-			tavern-updated-ms="300"
 		>
 			<div tavern-status-recovering class="hidden text-xs text-warning flex items-center gap-1 py-1 px-2 rounded bg-warning/10 mb-2">
 				<span>&#9888;</span> Reconnecting&hellip;
@@ -410,11 +408,30 @@ templ hotZoneLifecycleScript() {
 		(function() {
 			var container = document.getElementById('hz-lab-container');
 			if (!container) return;
+			var flashTimers = new Map();
+			var flashClass = ['ring-1', 'ring-primary/30'];
+			var flashDuration = 300;
 
 			function reportLifecycle(action, mode) {
 				fetch('/realtime/tavern/hotzones/lifecycle?action=' +
 					encodeURIComponent(action) + '&mode=' +
 					encodeURIComponent(mode), { method: 'POST' });
+			}
+
+			function flashRegion(target) {
+				if (!target || !target.id || !target.id.startsWith('hz-region-')) return;
+				flashClass.forEach(function(cls) {
+					target.classList.add(cls);
+				});
+				if (flashTimers.has(target.id)) {
+					clearTimeout(flashTimers.get(target.id));
+				}
+				flashTimers.set(target.id, setTimeout(function() {
+					flashClass.forEach(function(cls) {
+						target.classList.remove(cls);
+					});
+					flashTimers.delete(target.id);
+				}, flashDuration));
 			}
 
 			// Determine the active command mode from the page controls.
@@ -431,6 +448,9 @@ templ hotZoneLifecycleScript() {
 			});
 			container.addEventListener('tavern:command-error', function() {
 				reportLifecycle('failed', currentMode());
+			});
+			document.body.addEventListener('htmx:afterSwap', function(evt) {
+				flashRegion(evt.detail && evt.detail.target);
 			});
 		})();
 	</script>
