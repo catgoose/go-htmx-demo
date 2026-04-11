@@ -108,6 +108,11 @@ templ ToastLabPage(data ToastLabData) {
 				error: 'alert-error'
 			};
 
+			// Report a lifecycle event to the server for stats tracking.
+			function reportLifecycle(action) {
+				fetch('/realtime/tavern/toasts/lifecycle?action=' + action, {method: 'POST'});
+			}
+
 			function updateCount() {
 				var n = stack.querySelectorAll('.toast-item').length;
 				countEl.textContent = n;
@@ -117,10 +122,11 @@ templ ToastLabPage(data ToastLabData) {
 			function addToast(evt) {
 				if (emptyEl) emptyEl.style.display = 'none';
 
-				// Enforce stack cap
+				// Enforce stack cap — drop oldest
 				var items = stack.querySelectorAll('.toast-item');
 				while (items.length >= maxStack) {
 					items[0].remove();
+					reportLifecycle('dropped');
 					items = stack.querySelectorAll('.toast-item');
 				}
 
@@ -145,12 +151,14 @@ templ ToastLabPage(data ToastLabData) {
 				dismiss.onclick = function() {
 					el.remove();
 					updateCount();
+					reportLifecycle('dismissed');
 				};
 
 				el.appendChild(body);
 				el.appendChild(dismiss);
 				stack.appendChild(el);
 				updateCount();
+				reportLifecycle('displayed');
 
 				// Auto-dismiss unless sticky
 				if (!evt.sticky && evt.duration_ms > 0) {
@@ -158,6 +166,7 @@ templ ToastLabPage(data ToastLabData) {
 						if (el.parentNode) {
 							el.remove();
 							updateCount();
+							reportLifecycle('dismissed');
 						}
 					}, evt.duration_ms);
 				}
