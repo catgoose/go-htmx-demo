@@ -423,7 +423,7 @@ templ hotZoneLifecycleScript() {
 			if (!container) return;
 			var hotTimers = {};
 			var hotClass = 'hz-card-hot';
-			var cooldownMS = 400;
+			var cooldownMS = 200;
 
 			function reportLifecycle(action, mode) {
 				fetch('/realtime/tavern/hotzones/lifecycle?action=' +
