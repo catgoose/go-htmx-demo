@@ -59,6 +59,7 @@ templ TavernCalendarPage(data CalendarLabData) {
 			tavern-reconnecting-class="opacity-60"
 			tavern-command-delegate="pointerdown"
 			tavern-command-target="[command-url]"
+			tavern-hot-policy="pause-on-pointerdown defer-on-focus"
 		>
 			<div sse-swap="cal-month" hx-target="#cal-lab-month" hx-swap="innerHTML settle:0 transition:false" style="display:none"></div>
 			<div sse-swap="cal-day" hx-target="#cal-lab-day-events" hx-swap="innerHTML settle:0 transition:false" style="display:none"></div>
