@@ -70,7 +70,7 @@ type HotZoneSettings struct {
 
 // DefaultHeatSettings returns sensible heat-map defaults.
 func DefaultHeatSettings() (int, int, int, int, string, string, string, string) {
-	return 1000, 10, 50, 100, "#22c55e", "#ef4444", "#a855f7", "#1e293b"
+	return 1000, 8, 16, 32, "#22c55e", "#ef4444", "#a855f7", "#1e293b"
 }
 
 // ApplyPreset sets fields to the named preset's values.
@@ -92,18 +92,18 @@ func (s *HotZoneSettings) ApplyPreset(p HotZonePreset) {
 		s.PayloadSize = 1500
 		s.BurstMode = true
 		s.FocusedRegion = 0
-		s.HeatThreshold1 = 20
-		s.HeatThreshold2 = 80
-		s.HeatThreshold3 = 150
+		s.HeatThreshold1 = 16
+		s.HeatThreshold2 = 32
+		s.HeatThreshold3 = 64
 	case HotZonePresetHell:
 		s.UpdateIntervalMS = 25
 		s.RegionCount = 8
 		s.PayloadSize = 4000
 		s.BurstMode = true
 		s.FocusedRegion = 0
-		s.HeatThreshold1 = 30
-		s.HeatThreshold2 = 100
-		s.HeatThreshold3 = 200
+		s.HeatThreshold1 = 32
+		s.HeatThreshold2 = 64
+		s.HeatThreshold3 = 128
 	default: // normal
 		s.UpdateIntervalMS = 500
 		s.RegionCount = 4

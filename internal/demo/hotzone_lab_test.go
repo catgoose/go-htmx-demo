@@ -22,9 +22,9 @@ func TestHotZoneLab_NewLab(t *testing.T) {
 	// Heat defaults
 	assert.True(t, s.HeatEnabled)
 	assert.Equal(t, 1000, s.HeatWindowMS)
-	assert.Equal(t, 10, s.HeatThreshold1)
-	assert.Equal(t, 50, s.HeatThreshold2)
-	assert.Equal(t, 100, s.HeatThreshold3)
+	assert.Equal(t, 8, s.HeatThreshold1)
+	assert.Equal(t, 16, s.HeatThreshold2)
+	assert.Equal(t, 32, s.HeatThreshold3)
 	assert.Equal(t, "#22c55e", s.HeatColor1)
 	assert.Equal(t, "#ef4444", s.HeatColor2)
 	assert.Equal(t, "#a855f7", s.HeatColor3)
@@ -73,15 +73,15 @@ func TestHotZoneLab_PresetHeatThresholds(t *testing.T) {
 	// Nasty and Hell should have higher thresholds than Normal.
 	lab.UpdateSettings(func(s *HotZoneSettings) { s.ApplyPreset(HotZonePresetNasty) })
 	nasty := lab.Settings()
-	assert.Equal(t, 20, nasty.HeatThreshold1)
-	assert.Equal(t, 80, nasty.HeatThreshold2)
-	assert.Equal(t, 150, nasty.HeatThreshold3)
+	assert.Equal(t, 16, nasty.HeatThreshold1)
+	assert.Equal(t, 32, nasty.HeatThreshold2)
+	assert.Equal(t, 64, nasty.HeatThreshold3)
 
 	lab.UpdateSettings(func(s *HotZoneSettings) { s.ApplyPreset(HotZonePresetHell) })
 	hell := lab.Settings()
-	assert.Equal(t, 30, hell.HeatThreshold1)
-	assert.Equal(t, 100, hell.HeatThreshold2)
-	assert.Equal(t, 200, hell.HeatThreshold3)
+	assert.Equal(t, 32, hell.HeatThreshold1)
+	assert.Equal(t, 64, hell.HeatThreshold2)
+	assert.Equal(t, 128, hell.HeatThreshold3)
 }
 
 func TestHotZoneLab_RecordReceived(t *testing.T) {
