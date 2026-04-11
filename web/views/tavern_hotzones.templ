@@ -103,9 +103,9 @@ templ HotZoneLabPage(data HotZoneLabData) {
 
 				<!-- Center + right: gallery grid -->
 				<div class="lg:col-span-9">
-					<div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+					<div class="flex flex-wrap gap-2">
 						for _, reg := range data.Regions {
-							<div class="card bg-base-200 shadow-sm overflow-hidden" data-hz-card={ fmt.Sprintf("%d", reg.ID) }>
+							<div class="card bg-base-200 shadow-sm overflow-hidden w-36" data-hz-card={ fmt.Sprintf("%d", reg.ID) }>
 								<div id={ fmt.Sprintf("hz-region-%d", reg.ID) }>
 									@HotZoneRegionContent(reg, data.Settings)
 								</div>
