@@ -70,18 +70,14 @@ func TestHotZoneLab_ApplyPreset(t *testing.T) {
 
 func TestHotZoneLab_PresetHeatThresholds(t *testing.T) {
 	lab := NewHotZoneLab()
-	// Nasty and Hell should have higher thresholds than Normal.
-	lab.UpdateSettings(func(s *HotZoneSettings) { s.ApplyPreset(HotZonePresetNasty) })
-	nasty := lab.Settings()
-	assert.Equal(t, 16, nasty.HeatThreshold1)
-	assert.Equal(t, 32, nasty.HeatThreshold2)
-	assert.Equal(t, 64, nasty.HeatThreshold3)
-
-	lab.UpdateSettings(func(s *HotZoneSettings) { s.ApplyPreset(HotZonePresetHell) })
-	hell := lab.Settings()
-	assert.Equal(t, 32, hell.HeatThreshold1)
-	assert.Equal(t, 64, hell.HeatThreshold2)
-	assert.Equal(t, 128, hell.HeatThreshold3)
+	// All presets use the same default heat thresholds.
+	for _, p := range []HotZonePreset{HotZonePresetNormal, HotZonePresetHot, HotZonePresetNasty, HotZonePresetHell} {
+		lab.UpdateSettings(func(s *HotZoneSettings) { s.ApplyPreset(p) })
+		s := lab.Settings()
+		assert.Equal(t, 8, s.HeatThreshold1, "preset %s", p)
+		assert.Equal(t, 16, s.HeatThreshold2, "preset %s", p)
+		assert.Equal(t, 32, s.HeatThreshold3, "preset %s", p)
+	}
 }
 
 func TestHotZoneLab_RecordReceived(t *testing.T) {

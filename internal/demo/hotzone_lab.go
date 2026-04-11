@@ -92,18 +92,12 @@ func (s *HotZoneSettings) ApplyPreset(p HotZonePreset) {
 		s.PayloadSize = 1500
 		s.BurstMode = true
 		s.FocusedRegion = 0
-		s.HeatThreshold1 = 16
-		s.HeatThreshold2 = 32
-		s.HeatThreshold3 = 64
 	case HotZonePresetHell:
 		s.UpdateIntervalMS = 25
 		s.RegionCount = 8
 		s.PayloadSize = 4000
 		s.BurstMode = true
 		s.FocusedRegion = 0
-		s.HeatThreshold1 = 32
-		s.HeatThreshold2 = 64
-		s.HeatThreshold3 = 128
 	default: // normal
 		s.UpdateIntervalMS = 500
 		s.RegionCount = 4
