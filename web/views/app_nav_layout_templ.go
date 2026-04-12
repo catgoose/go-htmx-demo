@@ -58,7 +58,7 @@ func AppNavLayout(content templ.Component, cfg linkwell.NavConfig, csrfToken str
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<body class=\"min-h-screen bg-base-200\"><div class=\"app-shell\"><div id=\"app-lifeline\" hx-ext=\"sse\" sse-connect=\"/sse/app\" tavern-role=\"lifeline\" tavern-reconnecting-class=\"app-lifeline-disconnected\" style=\"display:none\"></div><!-- Sticky header group: banner + nav stick together --><div class=\"app-header sticky top-0 z-50\"><div id=\"error-status\"></div><!-- Mobile topbar (CSS shows/hides) --><div class=\"app-topbar bg-base-100 border-b border-base-300 items-center justify-between px-4 py-2.5\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 3, "<body class=\"min-h-screen bg-base-200\"><div class=\"app-shell\"><div id=\"app-lifeline\" hx-ext=\"sse\" sse-connect=\"/sse/app\" tavern-role=\"lifeline\" tavern-reconnecting-class=\"app-lifeline-disconnected\" style=\"display:none\"></div><!-- Sticky header group: banner + nav stick together --><div class=\"app-header sticky top-0 z-50 bg-base-100\"><div id=\"error-status\"></div><!-- Mobile topbar (CSS shows/hides) --><div class=\"app-topbar bg-base-100 border-b border-base-300 items-center justify-between px-4 py-2.5\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -108,7 +108,7 @@ func AppNavLayout(content templ.Component, cfg linkwell.NavConfig, csrfToken str
 				return templ_7745c5c3_Err
 			}
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<!-- Main Content (z-0 keeps content below sticky nav z-50) --><main class=\"app-main flex-1 p-4 md:p-6 relative z-0\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 8, "<!-- Main Content (z-0 keeps content below sticky nav z-50) --><main class=\"app-main flex-1 p-4 md:p-6 relative z-0 overflow-clip\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
