@@ -123,7 +123,7 @@ templ HotZoneLabPage(data HotZoneLabData) {
 templ HotZoneRegionContent(region demo.HotZoneRegion, settings demo.HotZoneSettings) {
 	<figure class="relative w-full h-36 overflow-hidden bg-base-300">
 		if region.ImagePath != "" {
-			<img src={ region.ImagePath } alt={ region.ImageAlt } class="w-full h-full object-cover" loading="lazy"/>
+			<img src={ region.ImagePath } alt={ region.ImageAlt } class="w-full h-full object-cover"/>
 		} else {
 			<div class="w-full h-full flex items-center justify-center text-base-content/20 text-xs">no image</div>
 		}
@@ -559,11 +559,40 @@ templ hotZoneLifecycleScript() {
 			container.addEventListener('tavern:command-success', function() { reportLifecycle('succeeded', currentMode()); });
 			container.addEventListener('tavern:command-error', function() { reportLifecycle('failed', currentMode()); });
 
+			// --- Image crossfade: keep old image visible until new one loads ---
+			// Before swap, snapshot the current image src per region.
+			var prevSrcs = {};
+			document.body.addEventListener('htmx:beforeSwap', function(evt) {
+				var elt = (evt.detail && evt.detail.elt) || evt.target;
+				if (!elt || !elt.id || !elt.id.startsWith('hz-region-')) return;
+				var img = elt.querySelector('img');
+				if (img) prevSrcs[elt.id] = img.src;
+			});
+
 			// --- SSE swap handler ---
 			document.body.addEventListener('htmx:afterSwap', function(evt) {
 				var elt = (evt.detail && evt.detail.elt) || evt.target;
 				if (elt && elt.id && elt.id.startsWith('hz-region-')) {
 					recordSwap(elt.id.replace('hz-region-', ''));
+					// Crossfade: hide new img, show old as bg, reveal on load.
+					var newImg = elt.querySelector('img');
+					var oldSrc = prevSrcs[elt.id];
+					if (newImg && oldSrc && newImg.src !== oldSrc) {
+						var figure = newImg.closest('figure');
+						if (figure) figure.style.backgroundImage = 'url(' + oldSrc + ')';
+						if (figure) { figure.style.backgroundSize = 'cover'; figure.style.backgroundPosition = 'center'; }
+						newImg.style.opacity = '0';
+						if (newImg.complete) {
+							newImg.style.opacity = '1';
+							if (figure) figure.style.backgroundImage = '';
+						} else {
+							newImg.onload = function() {
+								newImg.style.opacity = '1';
+								if (figure) figure.style.backgroundImage = '';
+							};
+						}
+					}
+					delete prevSrcs[elt.id];
 				}
 				if (elt && elt.id === 'hz-stats') syncConfig();
 			});

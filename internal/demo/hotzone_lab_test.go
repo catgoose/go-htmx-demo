@@ -31,7 +31,7 @@ func TestHotZoneLab_NewLab(t *testing.T) {
 	assert.Equal(t, HotZoneSwapInner, s.SwapScope)
 	assert.Equal(t, HotZonePresetNormal, s.Preset)
 	assert.False(t, s.BurstMode)
-	assert.True(t, s.AllowGIF)
+	assert.False(t, s.AllowGIF)
 	assert.True(t, s.ShowMeta)
 	assert.Equal(t, 100, s.JitterMinMS)
 	assert.Equal(t, 500, s.JitterMaxMS)

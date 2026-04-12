@@ -88,7 +88,6 @@ func (s *HotZoneSettings) ApplyPreset(p HotZonePreset) {
 	s.HeatWindowMS, s.HeatThreshold1, s.HeatThreshold2, s.HeatThreshold3,
 		s.HeatColor1, s.HeatColor2, s.HeatColor3, s.HeatBaseColor = DefaultHeatSettings()
 	s.HeatEnabled = true
-	s.AllowGIF = true
 	s.ShowMeta = true
 	switch p {
 	case HotZonePresetHot:
@@ -98,6 +97,7 @@ func (s *HotZoneSettings) ApplyPreset(p HotZonePreset) {
 		s.JitterMaxMS = 200
 		s.BurstMode = true
 		s.FocusedRegion = 0
+		s.AllowGIF = false
 	case HotZonePresetNasty:
 		s.UpdateIntervalMS = 75
 		s.RegionCount = 16
@@ -105,6 +105,7 @@ func (s *HotZoneSettings) ApplyPreset(p HotZonePreset) {
 		s.JitterMaxMS = 100
 		s.BurstMode = true
 		s.FocusedRegion = 0
+		s.AllowGIF = false
 	case HotZonePresetHell:
 		s.UpdateIntervalMS = 25
 		s.RegionCount = 32
@@ -112,6 +113,7 @@ func (s *HotZoneSettings) ApplyPreset(p HotZonePreset) {
 		s.JitterMaxMS = 50
 		s.BurstMode = true
 		s.FocusedRegion = 0
+		s.AllowGIF = false
 	default: // normal
 		s.UpdateIntervalMS = 500
 		s.RegionCount = 4
@@ -119,6 +121,7 @@ func (s *HotZoneSettings) ApplyPreset(p HotZonePreset) {
 		s.JitterMaxMS = 500
 		s.BurstMode = false
 		s.FocusedRegion = 0
+		s.AllowGIF = false
 	}
 }
 
@@ -226,7 +229,7 @@ func NewHotZoneLab(images HotZoneImagePool) *HotZoneLab {
 			FocusedRegion:    0,
 			CommandMode:      HotZoneModeTavern,
 			SwapScope:        HotZoneSwapInner,
-			AllowGIF:         true,
+			AllowGIF:         false,
 			ShowMeta:         true,
 			HeatEnabled:      true,
 			HeatWindowMS:     wMS,
