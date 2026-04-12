@@ -53,6 +53,7 @@
 	.app-main {
 		padding-left: max(1rem, env(safe-area-inset-left));
 		padding-right: max(1rem, env(safe-area-inset-right));
+		contain: paint;
 	}
 	.app-topbar { display: flex; }
 	.app-topbar-spacer { display: block; height: 3.25rem; }
@@ -61,9 +62,6 @@
 /* Desktop: top navbar */
 @media (min-width: 768px) {
 	.app-nav {
-		position: sticky;
-		top: 0;
-		z-index: 50;
 		border-bottom: 1px solid color-mix(in oklab, var(--color-base-content) 10%, transparent);
 		background-color: var(--color-base-100);
 		box-shadow: 0 1px 3px color-mix(in oklab, var(--color-base-content) 5%, transparent);
