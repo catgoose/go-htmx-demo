@@ -127,7 +127,7 @@ func ErrorModesPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var8 = []any{s.MinH + " border border-base-300 rounded-lg"}
+			var templ_7745c5c3_Var8 = []any{s.MinH + " border border-base-300 rounded-lg bg-base-100"}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var8...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -253,7 +253,7 @@ func ErrorModesPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var17 = []any{s.MinH + " border border-base-300 rounded-lg"}
+			var templ_7745c5c3_Var17 = []any{s.MinH + " border border-base-300 rounded-lg bg-base-100"}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var17...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -379,7 +379,7 @@ func ErrorModesPage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			var templ_7745c5c3_Var26 = []any{s.MinH + " border border-base-300 rounded-lg"}
+			var templ_7745c5c3_Var26 = []any{s.MinH + " border border-base-300 rounded-lg bg-base-100"}
 			templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var26...)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
