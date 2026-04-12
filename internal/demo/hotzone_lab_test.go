@@ -66,14 +66,11 @@ func TestHotZoneLab_CellCount(t *testing.T) {
 	lab := NewHotZoneLab()
 	lab.UpdateSettings(func(s *HotZoneSettings) {
 		s.GridSize = 4
+		s.BurstMode = true
 	})
 	lab.SimTick()
 	r := lab.Region(1)
-	// After a tick with GridSize=4, cells should be 4*4=16.
-	if len(r.Cells) > 0 {
-		// The region was updated by SimTick.
-		assert.Len(t, r.Cells, 16)
-	}
+	assert.Len(t, r.Cells, 16)
 }
 
 func TestHotZoneLab_ToggleLock(t *testing.T) {
