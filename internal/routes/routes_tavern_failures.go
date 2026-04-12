@@ -21,9 +21,9 @@ const (
 )
 
 type failuresRoutes struct {
-	broker    *tavern.SSEBroker
-	counter   atomic.Int64
-	latestID  atomic.Value // stores string — most recently published event ID
+	latestID atomic.Value
+	broker   *tavern.SSEBroker
+	counter  atomic.Int64
 }
 
 func (ar *appRoutes) initFailuresRoutes(broker *tavern.SSEBroker) {
