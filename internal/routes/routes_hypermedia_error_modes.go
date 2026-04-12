@@ -38,7 +38,29 @@ func (ar *appRoutes) initErrorModesRoutes() {
 	for _, size := range []string{"xs", "sm", "md", "lg", "xl", "2xl", "3xl"} {
 		size := size // capture
 		ar.e.GET(base+"/inline-full/"+size, func(c echo.Context) error {
+			if c.QueryParam("retry") == "true" {
+				return handler.RenderComponent(c, views.ErrorModesInlineFullRetryResult(size))
+			}
 			return handler.RenderComponent(c, views.ErrorModesInlineFullResult(size))
 		})
 	}
+
+	// Unified contract demo triggers — all use RenderError() with different surfaces.
+	ar.e.GET(base+"/contract/banner", func(c echo.Context) error {
+		demos := views.ContractDemoPresentations()
+		return handler.RenderComponent(c, views.ErrorModesContractResult(demos[0]))
+	})
+	ar.e.GET(base+"/contract/inline", func(c echo.Context) error {
+		demos := views.ContractDemoPresentations()
+		return handler.RenderComponent(c, views.ErrorModesContractResult(demos[1]))
+	})
+	ar.e.GET(base+"/contract/inline-full", func(c echo.Context) error {
+		demos := views.ContractDemoPresentations()
+		return handler.RenderComponent(c, views.ErrorModesContractResult(demos[2]))
+	})
+	ar.e.GET(base+"/contract/full-page", func(c echo.Context) error {
+		theme := session.GetSettings(c.Request()).Theme
+		p := views.ContractFullPagePresentation(theme)
+		return handler.RenderComponent(c, views.ErrorModesContractFullPage(p))
+	})
 }
