@@ -20,8 +20,8 @@ const (
 
 // HotZoneCell represents one cell in a region's text grid.
 type HotZoneCell struct {
-	Glyph    string
-	Palette  int // index into the color palette (0–7)
+	Glyph   string
+	Palette int // index into the color palette (0–7)
 }
 
 // HotZoneRegion is a single independently-updating UI region.
@@ -73,23 +73,22 @@ type HotZoneSettings struct {
 	Preset           HotZonePreset
 	CommandMode      HotZoneMode
 	SwapScope        HotZoneSwapScope
-	UpdateIntervalMS int // ms between ticks (25–5000)
-	RegionCount      int // 1–64
-	GridSize         int // N for NxN grid (2–16)
-	FocusedRegion    int // 0 = random, 1–64 = focused
-	JitterMinMS      int // 0–2000
-	JitterMaxMS      int // 0–5000
+	HeatBaseColor    string
+	HeatColor3       string
+	HeatColor2       string
+	HeatColor1       string
+	JitterMaxMS      int
+	JitterMinMS      int
+	HeatWindowMS     int
+	HeatThreshold1   int
+	HeatThreshold2   int
+	HeatThreshold3   int
+	FocusedRegion    int
+	GridSize         int
+	RegionCount      int
+	UpdateIntervalMS int
 	BurstMode        bool
-	// Heat-map visualization (client-side).
-	HeatEnabled    bool
-	HeatWindowMS   int
-	HeatThreshold1 int
-	HeatThreshold2 int
-	HeatThreshold3 int
-	HeatColor1     string
-	HeatColor2     string
-	HeatColor3     string
-	HeatBaseColor  string
+	HeatEnabled      bool
 }
 
 // DefaultHeatSettings returns sensible heat-map defaults.
