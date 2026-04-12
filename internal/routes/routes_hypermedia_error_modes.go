@@ -35,13 +35,10 @@ func (ar *appRoutes) initErrorModesRoutes() {
 	})
 
 	// Inline-full error demo triggers — return sized InlineFullErrorPanel.
-	ar.e.GET(base+"/inline-full/sm", func(c echo.Context) error {
-		return handler.RenderComponent(c, views.ErrorModesInlineFullResult("sm"))
-	})
-	ar.e.GET(base+"/inline-full/md", func(c echo.Context) error {
-		return handler.RenderComponent(c, views.ErrorModesInlineFullResult("md"))
-	})
-	ar.e.GET(base+"/inline-full/lg", func(c echo.Context) error {
-		return handler.RenderComponent(c, views.ErrorModesInlineFullResult("lg"))
-	})
+	for _, size := range []string{"xs", "sm", "md", "lg", "xl", "2xl", "3xl"} {
+		size := size // capture
+		ar.e.GET(base+"/inline-full/"+size, func(c echo.Context) error {
+			return handler.RenderComponent(c, views.ErrorModesInlineFullResult(size))
+		})
+	}
 }
