@@ -160,12 +160,21 @@
 }
 
 /* View Transitions: cross-document page navigation for hx-boost.
-   Note: HTMX globalViewTransitions is OFF — these rules only apply to
-   browser-native cross-document transitions, not inline HTMX swaps. */
+   HTMX globalViewTransitions is OFF — these rules only apply to
+   browser-native cross-document transitions, not inline HTMX swaps.
+   Shell chrome is excluded so only interior content animates. */
 @view-transition {
     navigation: auto;
 }
 
 main {
     view-transition-name: main-content;
+}
+
+/* Shell chrome must not participate in view transitions */
+.app-header,
+.app-nav,
+#error-status,
+.app-topbar {
+    view-transition-name: none;
 }
