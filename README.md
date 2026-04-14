@@ -681,9 +681,9 @@ Every tool in this stack exists because HTML alone couldn't express something. Y
     |  +--------------------------------------------------+
     |  |  inline <script>    locality bent                  |
     |  +--------------------------------------------------+
-    |  |  Alpine.js          reactive client state         |
+    |  |  Alpine.js          coordinated view state        |
     |  +--------------------------------------------------+---------------------+
-    |  |  _hyperscript       client-side behavior          |  Tailwind utilities |
+    |  |  _hyperscript       local DOM behavior            |  Tailwind utilities |
     |  +--------------------------------------------------+  layout + spacing   |
     |  |  HTMX               completes hypertext           +---------------------+
     |  +--------------------------------------------------+  DaisyUI components |
@@ -707,14 +707,14 @@ Map two dimensions -- **where it runs** and **what it manages** -- and six domai
            |                  |                      |                      |
            +------------------+----------------------+----------------------+
            |                  |                      |                      |
-  Client   |  Alpine.js       |  _hyperscript        |  Tailwind + CSS      |
-           |  view state      |  DOM interactions    |  layout, spacing     |
-           |  ephemeral       |  transitions, toggles|  visual adjustments  |
+  Client   |  _hyperscript    |  _hyperscript        |  Tailwind + CSS      |
+           |  + Alpine.js     |  DOM interactions    |  layout, spacing     |
+           |  local + bridges |  transitions, toggles|  visual adjustments  |
            |                  |                      |                      |
            +------------------+----------------------+----------------------+
 ```
 
-The left column is authority. **Server state** (Go + SQL) is the single source of truth. **Client state** (Alpine.js) is ephemeral view data the server doesn't care about. Nothing in the bottom row pretends to be the top row. If your client state is pretending to be server state, you have a distributed systems problem. You do not want a distributed systems problem. Nobody wants a distributed systems problem. People who say they want a distributed systems problem have not had a distributed systems problem.
+The left column is authority. **Server state** (Go + SQL) is the single source of truth. **Client state** is ephemeral view data the server doesn't care about -- `_hyperscript` handles the common case (local DOM toggles, transitions, one-off bindings) and `Alpine.js` stays in reserve for the rarer cases that need coordinated view state or a browser-API bridge (theme picker, offline indicator). Nothing in the bottom row pretends to be the top row. If your client state is pretending to be server state, you have a distributed systems problem. You do not want a distributed systems problem. Nobody wants a distributed systems problem. People who say they want a distributed systems problem have not had a distributed systems problem.
 
 ### The Two Triangles, Or Why Your Backend Has a Frontend Problem
 
