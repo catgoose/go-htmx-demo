@@ -341,6 +341,7 @@ func Run(ctx context.Context, dir string, opts Options) error {
 	envDevPath := filepath.Join(dir, ".env.development")
 	if data, err := os.ReadFile(envDevPath); err == nil {
 		content := composeSetupEnv(string(data))
+		content = strings.ReplaceAll(content, "{{APP_NAME}}", opts.AppName)
 		content = strings.ReplaceAll(content, "{{APP_TLS_PORT}}", appTLSPort)
 		content = strings.ReplaceAll(content, "{{TEMPL_HTTP_PORT}}", templHTTPPort)
 		content = strings.ReplaceAll(content, "{{CADDY_TLS_PORT}}", caddyTLSPort)
