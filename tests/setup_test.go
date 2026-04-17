@@ -80,6 +80,10 @@ func TestSetupReplacesAppNameAndModule(t *testing.T) {
 	envBytes, err := os.ReadFile(envPath)
 	require.NoError(t, err)
 	require.Contains(t, string(envBytes), "SERVER_LISTEN_PORT=12345")
+	require.Contains(t, string(envBytes), "APP_NAME=Test App",
+		".env.development should have APP_NAME substituted with the real app name")
+	require.NotContains(t, string(envBytes), "{{APP_NAME}}",
+		".env.development must not contain unreplaced {{APP_NAME}} placeholder")
 	require.NotContains(t, string(envBytes), "{{APP_TLS_PORT}}")
 	require.NotContains(t, string(envBytes), "# setup:env")
 
@@ -536,6 +540,36 @@ func TestSetup_FeaturesNone(t *testing.T) {
 	require.Contains(t, readmeContent, "## Setup Configuration")
 	// Minimal config should still have implicit features (database, alpine)
 	require.Contains(t, readmeContent, "Database (chuck)")
+
+	// env substitution must survive feature stripping (#regression)
+	envBytes, err := os.ReadFile(filepath.Join(dest, ".env.development"))
+	require.NoError(t, err)
+	require.Contains(t, string(envBytes), "APP_NAME=No Features App",
+		".env.development must have APP_NAME substituted even when demo is stripped")
+	require.NotContains(t, string(envBytes), "{{APP_NAME}}",
+		".env.development must not contain unreplaced {{APP_NAME}} placeholder")
+
+	// Non-demo apps must still register GET / so breadcrumbs and not-found
+	// recovery links to Home point at a real route (#regression).
+	routesBytes, err := os.ReadFile(filepath.Join(dest, "internal", "routes", "routes.go"))
+	require.NoError(t, err)
+	require.Contains(t, string(routesBytes), `ar.e.GET("/"`,
+		"routes.go must register GET / when demo is stripped")
+	require.Contains(t, string(routesBytes), "views.HomePage",
+		"routes.go must use views.HomePage as the non-demo landing page")
+	require.NotContains(t, string(routesBytes), "ArchitecturePage",
+		"ArchitecturePage is demo-only and should be stripped in non-demo setups")
+
+	// Not-found page should not advertise demo routes when demo is stripped.
+	notFoundBytes, err := os.ReadFile(filepath.Join(dest, "web", "views", "not_found.templ"))
+	require.NoError(t, err)
+	notFound := string(notFoundBytes)
+	require.Contains(t, notFound, `@notFoundLink("Home", "/")`,
+		"not_found page should still advertise Home since GET / is registered")
+	require.NotContains(t, notFound, "Dashboard",
+		"not_found page should not advertise demo routes when demo is stripped")
+	require.NotContains(t, notFound, "apps/inventory",
+		"not_found page should not advertise demo routes when demo is stripped")
 }
 
 func TestSetup_FeaturesAuthOnly(t *testing.T) {
