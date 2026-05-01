@@ -63,6 +63,9 @@ build/
 docs/packages/
 site/
 
+# Screenshots (workflow pushes these to catgoose/screenshots)
+docs/screenshots/
+
 # Playwright
 test-results/
 playwright-report/
