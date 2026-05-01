@@ -104,7 +104,6 @@ graph TB
         direction TB
 
         subgraph startup ["Startup"]
-            DIO["<b>dio</b><br/>environment config"]
             CHUCK_DDL["<b>chuck</b><br/>schema · DDL · migrations"]
         end
 
@@ -133,7 +132,6 @@ graph TB
     TEMPL -- "HTML response" --> HTML
     HANDLER -. "publish" .-> TAVERN
     TAVERN -. "SSE stream" .-> SSE
-    DIO -. "config" .-> pipeline
     CHUCK_DDL -. "DDL" .-> SQLITE
 ```
 
@@ -145,12 +143,12 @@ graph TB
                              │                          DOTHOG                              │
                              │                                                              │
                              │  STARTUP                                                     │
-                             │  ┌──────────────┐       ┌──────────────────────┐             │
-                             │  │     dio      │       │       chuck          │             │
-                             │  │  env config  │       │  schema · DDL        │             │
-                             │  └──────┬───────┘       └──────────┬───────────┘             │
-                             │         │ config                   │ DDL                     │
-                             │         ▼                          ▼                         │
+                             │                          ┌──────────────────────┐             │
+                             │                          │       chuck          │             │
+                             │                          │  schema · DDL        │             │
+                             │                          └──────────┬───────────┘             │
+                             │                                     │ DDL                     │
+                             │                                     ▼                         │
   ┌─────────────┐            │  REQUEST PIPELINE                          ┌──────────┐      │
   │   Browser   │            │  ┌──────────┐  ┌──────────┐  ┌──────────┐ │  SQLite  │      │
   │             │  request   │  │  dorman  ├─►│ crooner  ├─►│ promolog │ │          │      │
