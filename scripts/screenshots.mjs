@@ -87,7 +87,7 @@ async function main() {
     try {
       const theme = randomTheme();
       console.log(`Capturing ${title} (${path}) [theme: ${theme}]...`);
-      await page.goto(`${baseURL}${path}`, { waitUntil: "networkidle" });
+      await page.goto(`${baseURL}${path}`, { waitUntil: "load" });
       await setTheme(page, theme);
 
       // Full-page screenshot
@@ -122,7 +122,7 @@ async function main() {
   // Reset DB before error screenshots
   const setupPage = await errCtx.newPage();
   try {
-    await setupPage.goto(`${baseURL}/admin/db/reinit`, { waitUntil: "networkidle" });
+    await setupPage.goto(`${baseURL}/admin/db/reinit`, { waitUntil: "load" });
   } catch { /* POST may not be navigable, use fetch below */ }
   await setupPage.evaluate((url) => fetch(`${url}/admin/db/reinit`, { method: "POST" }), baseURL);
   await setupPage.close();
@@ -142,7 +142,7 @@ async function main() {
       name: "error-400-bad-request",
       title: "400 Bad Request",
       action: async (page) => {
-        await page.goto(`${baseURL}/demo/repository/tasks/abc`, { waitUntil: "networkidle" });
+        await page.goto(`${baseURL}/demo/repository/tasks/abc`, { waitUntil: "load" });
         await page.waitForTimeout(500);
       },
       fullPage: true,
@@ -151,7 +151,7 @@ async function main() {
       name: "error-404-not-found",
       title: "404 Not Found",
       action: async (page) => {
-        await page.goto(`${baseURL}/demo/repository/tasks/99999`, { waitUntil: "networkidle" });
+        await page.goto(`${baseURL}/demo/repository/tasks/99999`, { waitUntil: "load" });
         await page.waitForTimeout(500);
       },
       fullPage: true,
@@ -218,7 +218,7 @@ async function main() {
     try {
       const theme = randomTheme();
       console.log(`Capturing ${title} [theme: ${theme}]...`);
-      await page.goto(`${baseURL}/hypermedia/controls`, { waitUntil: "networkidle" });
+      await page.goto(`${baseURL}/hypermedia/controls`, { waitUntil: "load" });
       await setTheme(page, theme);
       await waitForHtmx(page);
       await page.locator(selector).click();
@@ -246,7 +246,7 @@ async function main() {
 
   // Reset DB
   const resetPage = await errPageCtx.newPage();
-  await resetPage.goto(`${baseURL}/hypermedia/errors`, { waitUntil: "networkidle" });
+  await resetPage.goto(`${baseURL}/hypermedia/errors`, { waitUntil: "load" });
   await resetPage.evaluate((url) => fetch(`${url}/admin/db/reinit`, { method: "POST" }), baseURL);
   await resetPage.waitForTimeout(500);
   await resetPage.close();
@@ -329,7 +329,7 @@ async function main() {
     try {
       const theme = randomTheme();
       console.log(`Capturing ${title} [theme: ${theme}]...`);
-      await page.goto(`${baseURL}/hypermedia/errors`, { waitUntil: "networkidle" });
+      await page.goto(`${baseURL}/hypermedia/errors`, { waitUntil: "load" });
       await setTheme(page, theme);
       await action(page);
       await page.screenshot({
