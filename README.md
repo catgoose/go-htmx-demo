@@ -9,7 +9,7 @@
 
 **Being a Account of the Rediscovery of the ORIGINAL WEB by the HYPERMEDIA NOVICES, Hidden Disciples of the Honorable ROY T. FIELDING (Whose Dissertation We Have Read, Unlike You)**
 
-**_THIS IS NOT A FRAMEWORk._**
+**_THIS IS NOT A FRAMEWORK._**
 
 _You don't just accidentally create abstractions until you suddenly have a framework, that's not what happens. This is just some files. In a folder._
 
